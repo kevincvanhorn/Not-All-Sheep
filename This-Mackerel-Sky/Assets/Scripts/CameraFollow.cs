@@ -36,12 +36,12 @@ public class CameraFollow : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        Vector3 camPos = cam.position; // Instantiating can be costly, copy the struct and reapply to the object.
+        /*Vector3 camPos = cam.position; // Instantiating can be costly, copy the struct and reapply to the object.
 
         camPos.x = player.position.x + offset.y;
         camPos.y = player.position.y + offset.y;
 
-        cam.position = camPos;
+        cam.position = camPos;*/
 	}
 
 

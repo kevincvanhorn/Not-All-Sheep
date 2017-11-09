@@ -22,8 +22,11 @@ public class Character : MonoBehaviour {
     public float moveSpeed = 10;    // Horizontal speed.
     public float sprintSpeed = 20;
     public float activeSpeed;
+    public float wallImpactSpeed;
     public Vector3 velocity;
     float directionFacing = 1;
+
+    bool isWaiting = false;
     
     
     /* Jump Variables */
@@ -73,6 +76,7 @@ public class Character : MonoBehaviour {
         collisions.isSprinting = false;
         
         activeSpeed = moveSpeed;
+        wallImpactSpeed = activeSpeed;
         rigidBody = GetComponent<Rigidbody2D>();
 
         /* Calc constants in terms of Jump time and apex height. */
@@ -83,7 +87,10 @@ public class Character : MonoBehaviour {
 
     /** Update is called once per frame **/
     void Update() {
-        calcJump();
+        if(!isWaiting)
+            calcJump();
+
+        print(wallImpactSpeed + " " + velocity.x);
     }
 
     /** Called on Player collision with object. **/
@@ -96,11 +103,13 @@ public class Character : MonoBehaviour {
         collisions.isGrounded = true;
     }
     void onLeftCollisionEnter() {
+        wallImpactSpeed = velocity.x;
         velocity.x = 0;
         collisions.isTouchingLeft = true;
         collisions.onWall = true;
     }
     void onRightCollisionEnter() {
+        wallImpactSpeed = velocity.x;
         velocity.x = 0;
         collisions.isTouchingRight = true;
         collisions.onWall = true;
@@ -116,10 +125,12 @@ public class Character : MonoBehaviour {
     void onLeftCollisionExit() {
         collisions.isTouchingLeft = false;
         collisions.onWall = false;
+        wallImpactSpeed = moveSpeed;
     }
     void onRightCollisionExit() {
         collisions.isTouchingRight = false;
         collisions.onWall = false;
+        wallImpactSpeed = moveSpeed;
     }
 
     /** Calculates movement and updates rigidbody velocity. **/
@@ -127,7 +138,7 @@ public class Character : MonoBehaviour {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
 
         /* Vertical JUMP Calc ------------------------------------------ */
-        if (Input.GetKeyDown(KeyCode.UpArrow)) {// replace with more general
+        if (Input.GetKeyDown(KeyCode.UpArrow)) { // replace with more general
             if(collisions.isGrounded){ // normal Jumps
                 velocity.y = jumpVelocityMax;
                 collisions.isGrounded = false;
@@ -175,6 +186,16 @@ public class Character : MonoBehaviour {
             if (collisions.isGrounded) {
                 velocity.x = activeSpeed;
             }
+            else if(!collisions.isGrounded && collisions.isTouchingLeft) // On Wall Left-side
+            {
+                if (velocity.y > 0)
+                {
+                    velocity.x = -1 * wallImpactSpeed;
+                    //velocity.y = jumpVelocityMax;
+                }
+                else
+                    velocity.x = activeSpeed;
+            }
         }
         else if (Input.GetKeyDown(KeyCode.LeftArrow) && !collisions.isLeftPressed) {
             collisions.isLeftPressed = true;
@@ -182,6 +203,13 @@ public class Character : MonoBehaviour {
             directionFacing = -1;
             if (collisions.isGrounded) {
                 velocity.x = activeSpeed * -1; //  Necessary because input.x changes.
+            }
+            else if (!collisions.isGrounded && collisions.isTouchingRight) // On Wall Right-side
+            {
+                if (velocity.y > 0)
+                    velocity.x = -1 * wallImpactSpeed;
+                else
+                    velocity.x = activeSpeed * -1;
             }
 
         }
@@ -207,14 +235,36 @@ public class Character : MonoBehaviour {
             }
         }
         else if (!collisions.isGrounded) { // Air Lateral Movement
-            if (!collisions.onWall && (collisions.isTouchingLeft || collisions.isTouchingRight)) { // in-air, hitting a wall laterally
-                velocity.x = 0;
+            // Lateral Air Input - Not on Wall
+            if (!collisions.onWall)
+            {
+                if ((collisions.isTouchingLeft || collisions.isTouchingRight))
+                { // in-air, hitting a wall laterally
+                    velocity.x = 0;
+                }
+                else if (collisions.isRightPressed && velocity.x < activeSpeed)
+                { // in-air lateral move right
+                    velocity.x += lateralAccelAirborne * Time.deltaTime;
+                }
+                else if (collisions.isLeftPressed && velocity.x > -activeSpeed)
+                { // in-air lateral move left
+                    velocity.x -= lateralAccelAirborne * Time.deltaTime;
+                }
             }
-            else if (collisions.isRightPressed && velocity.x < activeSpeed) { // in-air lateral move right
-                velocity.x += lateralAccelAirborne * Time.deltaTime;
-            }
-            else if (collisions.isLeftPressed && velocity.x > -activeSpeed) { // in-air lateral move left
-                velocity.x -= lateralAccelAirborne * Time.deltaTime;
+            else if (collisions.onWall)
+            {
+                /*if (collisions.isLeftPressed && collisions.isTouchingLeft)
+                {
+                    velocity.x = 0;
+                    print("Left Lock "+ collisions.isLeftPressed);
+                }
+                else if (collisions.isRightPressed && collisions.isTouchingRight)
+                {
+                    velocity.x = 0;
+                    print("Right Lock");
+                }*/
+
+
             }
         }
 
