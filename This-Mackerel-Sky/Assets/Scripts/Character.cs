@@ -143,6 +143,7 @@ public class Character : MonoBehaviour {
                 velocity.y = jumpVelocityMax;
                 collisions.isGrounded = false;
             }
+            // Jumping off Wall - UP
             else if(collisions.onWall){ // Wall Jumps // Note: to fix the sticking to wall part: check above equations with gravity - may need to use a different equation for gravity.
                 if (collisions.isTouchingLeft){
                     velocity.y = jumpVelocityMax;
@@ -162,7 +163,12 @@ public class Character : MonoBehaviour {
         }
 
         if (!collisions.isGrounded) { // Apply Gravity every frame until grounded
-            velocity.y += gravity * Time.deltaTime;
+            /*if (collisions.onWall && velocity.y < 0)
+            {
+                velocity.y = 0;
+            }
+            else*/
+                velocity.y += gravity * Time.deltaTime;
         }
 
         /* Lateral Calc -------------------------------------------------- */
@@ -186,12 +192,13 @@ public class Character : MonoBehaviour {
             if (collisions.isGrounded) {
                 velocity.x = activeSpeed;
             }
+            //Jumping off Wall -RIGHT
             else if(!collisions.isGrounded && collisions.isTouchingLeft) // On Wall Left-side
             {
                 if (velocity.y > 0)
                 {
                     velocity.x = -1 * wallImpactSpeed;
-                    //velocity.y = jumpVelocityMax;
+                    velocity.y = jumpVelocityMax;
                 }
                 else
                     velocity.x = activeSpeed;
@@ -204,10 +211,14 @@ public class Character : MonoBehaviour {
             if (collisions.isGrounded) {
                 velocity.x = activeSpeed * -1; //  Necessary because input.x changes.
             }
+            // Jumping off Wall - LEFT
             else if (!collisions.isGrounded && collisions.isTouchingRight) // On Wall Right-side
             {
                 if (velocity.y > 0)
+                {
                     velocity.x = -1 * wallImpactSpeed;
+                    velocity.y = jumpVelocityMax;
+                }
                 else
                     velocity.x = activeSpeed * -1;
             }
