@@ -20,7 +20,6 @@ public class CharacterMoveDriver : MonoBehaviour {
     public bool isTouchingRight;
     public bool isTouchingLeft;
     public bool onWall;
-    public bool groundedSinceLastColl;
 
     /* Colliders */
     public List<GameObject> ChildrenColliders;
@@ -31,6 +30,7 @@ public class CharacterMoveDriver : MonoBehaviour {
 
     /* Movement Variables */
     public float moveSpeed = 10;    // Horizontal speed.
+    public float moveSpeedMin = 5;
     public float sprintSpeed = 20;
     public float activeSpeed;
     public float wallImpactSpeed;
@@ -108,7 +108,6 @@ public class CharacterMoveDriver : MonoBehaviour {
         isTouchingLeft = false;
         isGrounded = false;
         isSprinting = false;
-        groundedSinceLastColl = false;
 
         activeSpeed = moveSpeed;
         wallImpactSpeed = activeSpeed;
@@ -142,7 +141,6 @@ public class CharacterMoveDriver : MonoBehaviour {
     {
         velocity.y = 0;
         isGrounded = true;
-        groundedSinceLastColl = true;
     }
     void onLeftCollisionEnter()
     {
@@ -173,20 +171,12 @@ public class CharacterMoveDriver : MonoBehaviour {
         isTouchingLeft = false;
         onWall = false;
         wallImpactSpeed = moveSpeed;
-        if (!isGrounded)
-        {
-            groundedSinceLastColl = false;
-        }
     }
     void onRightCollisionExit()
     {
         isTouchingRight = false;
         onWall = false;
         wallImpactSpeed = moveSpeed;
-        if (!isGrounded)
-        {
-            groundedSinceLastColl = false;
-        }
     }
 
     void CalcState()
@@ -415,32 +405,32 @@ public class CharacterMoveDriver : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             directionFacing = 1;
-            velocity.x = activeSpeed; // since isGrounded
+            if(isGrounded)
+                velocity.x = activeSpeed; // since isGrounded
         }
         // When Left is first input.
         else if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             directionFacing = -1;
-            velocity.x = activeSpeed * -1; //  Necessary because input.x changes. // since isGrounded
+            if(isGrounded)
+                velocity.x = activeSpeed * -1; //  Necessary because input.x changes. // since isGrounded
         }
-        if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
+        else if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
         {
             directionFacing = -1;
-            velocity.x = activeSpeed * -1;
+            if(isGrounded)
+                velocity.x = activeSpeed * -1;
         }
         else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         {
             directionFacing = 1;
-            velocity.x = activeSpeed;
+            if(isGrounded)
+                velocity.x = activeSpeed;
         }
 
         /* X Acceleration ---------------------------------------------- */
-        if (isGrounded && (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.LeftArrow)))
-        {
-            velocity.x = activeSpeed * directionFacing; // Ground Sliding
-        }
         // When No input.
-        else if (isGrounded && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
+        if (isGrounded && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         { // On-release of Lateral Movement controls - Deccelerate
             if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0)
             { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
@@ -528,12 +518,6 @@ public class CharacterMoveDriver : MonoBehaviour {
                 else // Fall away from wall
                     velocity.x += lateralAccelAirborne * Time.deltaTime;
             }
-            /*else if (isTouchingRight && !groundedSinceLastColl && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
-            {
-                // When coming from a non-grounded state, immediately jump when hit wall
-                velocity.y = jumpVelocityMax;
-                velocity.x = -1 * moveSpeed / 2;
-            }*/
             
         }
         else if (Input.GetKey(KeyCode.LeftArrow))
@@ -547,14 +531,7 @@ public class CharacterMoveDriver : MonoBehaviour {
                     }
                     else // Fall away from wall
                         velocity.x -= lateralAccelAirborne * Time.deltaTime;
-            }
-            /*else if (isTouchingLeft && !groundedSinceLastColl && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
-            {
-                // When coming from a non-grounded state, immediately jump when hit wall
-                velocity.y = jumpVelocityMax;
-                velocity.x = moveSpeed / 2;
-            }*/
-            
+            }   
         }
 
         // Conditions to Transition out of state

@@ -590,13 +590,13 @@ MonoBehaviour:
   isTouchingRight: 0
   isTouchingLeft: 0
   onWall: 0
-  groundedSinceLastColl: 0
   ChildrenColliders: []
   topCollider: {fileID: 34552533}
   botCollider: {fileID: 1132223094}
   leftCollider: {fileID: 1370662423}
   rightCollider: {fileID: 1393784958}
   moveSpeed: 10
+  moveSpeedMin: 5
   sprintSpeed: 20
   activeSpeed: 0
   wallImpactSpeed: 0
