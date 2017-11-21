@@ -173,8 +173,10 @@ EdgeCollider2D:
   m_Offset: {x: 0, y: 0}
   m_EdgeRadius: 0
   m_Points:
-  - {x: -0.4622795, y: 0.49826598}
-  - {x: 0.45390153, y: 0.49958402}
+  - {x: -0.4801125, y: 0.49870455}
+  - {x: -0.4536373, y: 0.4986376}
+  - {x: 0.45057115, y: 0.49945167}
+  - {x: 0.46383032, y: 0.49920204}
 --- !u!1 &119972481
 GameObject:
   m_ObjectHideFlags: 0
@@ -583,14 +585,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rigidBody: {fileID: 0}
   isGrounded: 0
-  isRightPressed: 0
-  isLeftPressed: 0
-  isUpPressed: 0
   isSprinting: 0
   isTouchingTop: 0
   isTouchingRight: 0
   isTouchingLeft: 0
   onWall: 0
+  groundedSinceLastColl: 0
   ChildrenColliders: []
   topCollider: {fileID: 34552533}
   botCollider: {fileID: 1132223094}
@@ -753,8 +753,10 @@ EdgeCollider2D:
   m_Offset: {x: 0, y: 0}
   m_EdgeRadius: 0
   m_Points:
-  - {x: -0.46636078, y: -0.49864793}
-  - {x: 0.43552366, y: -0.4999529}
+  - {x: -0.47608432, y: -0.49993768}
+  - {x: -0.4605876, y: -0.49988052}
+  - {x: 0.43373835, y: -0.4999493}
+  - {x: 0.47882825, y: -0.4998412}
 --- !u!1001 &1226632295
 Prefab:
   m_ObjectHideFlags: 0
@@ -866,8 +868,8 @@ EdgeCollider2D:
   m_Offset: {x: 0, y: 0}
   m_EdgeRadius: 0
   m_Points:
-  - {x: -0.49439305, y: -0.48559427}
-  - {x: -0.49803227, y: 0.47192553}
+  - {x: -0.49970153, y: -0.4881688}
+  - {x: -0.49947038, y: 0.47325388}
 --- !u!1 &1393784956
 GameObject:
   m_ObjectHideFlags: 0
@@ -925,7 +927,7 @@ EdgeCollider2D:
   m_Offset: {x: 0, y: 0}
   m_EdgeRadius: 0
   m_Points:
-  - {x: 0.49803227, y: -0.48559433}
+  - {x: 0.49994898, y: -0.4870591}
   - {x: 0.4999998, y: 0.4772701}
 --- !u!1001 &1441471776
 Prefab:
