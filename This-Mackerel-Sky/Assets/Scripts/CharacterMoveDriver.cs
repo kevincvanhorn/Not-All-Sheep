@@ -16,6 +16,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     public bool isGrounded; // Essentially touchingBot
     public bool isRightPressed; // is a force right applied
     public bool isLeftPressed; // is a force left applied
+    public bool isUpPressed;
     //note: 3 states- left, right, and still require two variables
     public bool isSprinting;
     public bool isTouchingTop;
@@ -107,6 +108,7 @@ public class CharacterMoveDriver : MonoBehaviour {
         isTouchingLeft = false;
         isRightPressed = false;
         isLeftPressed = false;
+        isUpPressed = false;
         isGrounded = false;
         isSprinting = false;
 
@@ -190,6 +192,14 @@ public class CharacterMoveDriver : MonoBehaviour {
         {
             isLeftPressed = false;
         }
+        if (Input.GetKeyUp(KeyCode.UpArrow))
+        {
+            isUpPressed = false;
+        }
+        if (Input.GetKeyUp(KeyCode.UpArrow))
+        {
+            isUpPressed = false;
+        }
 
         // Do State Actions:
         if (IsIdle())
@@ -255,9 +265,10 @@ public class CharacterMoveDriver : MonoBehaviour {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
 
         /* Vertical JUMP Calc ------------------------------------------ */
-        // When Up is held down.
-        if (Input.GetKeyDown(KeyCode.UpArrow)) // Velocity when initial pressed
+        // When Up is first input.
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isUpPressed) // Velocity when initial pressed
         {
+            isUpPressed = true;
             velocity.y = jumpVelocityMax;
             isGrounded = false;
         }
@@ -292,9 +303,10 @@ public class CharacterMoveDriver : MonoBehaviour {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
 
         /* Vertical Calc ----------------------------------------- */
-        // When Up is held down.
-        if (Input.GetKeyDown(KeyCode.UpArrow)) // Continue adding velocity when pressed
-        { 
+        // When Up is first input.
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isUpPressed) // Continue adding velocity when pressed
+        {
+            isUpPressed = true;
             if (isGrounded)
             { // normal Jumps
                 velocity.y = jumpVelocityMax;
@@ -302,8 +314,10 @@ public class CharacterMoveDriver : MonoBehaviour {
             }
         }
 
+        // When Up is released in this frame.
         if (Input.GetKeyUp(KeyCode.UpArrow))
         {
+            isUpPressed = false;
             if (velocity.y > jumpVelocityMin)
             { // Keep applying velocity up while key is pressed - variable jump
                 velocity.y = jumpVelocityMin;
@@ -393,11 +407,12 @@ public class CharacterMoveDriver : MonoBehaviour {
         }
 
         /* Vertical JUMP Calc ------------------------------------------ */
-        // When Up is held down.
-        if (Input.GetKeyDown(KeyCode.UpArrow))
+        // When Up is released in this frame.
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isUpPressed)
         {
-                velocity.y = jumpVelocityMax;
-                isGrounded = false;
+            isUpPressed = true;
+            velocity.y = jumpVelocityMax;
+            isGrounded = false;
         }
 
         /* Lateral Calc -------------------------------------------------- */
@@ -450,20 +465,11 @@ public class CharacterMoveDriver : MonoBehaviour {
     {
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
-        // When Up is held down.
-        if (Input.GetKeyDown(KeyCode.UpArrow))
+        // When Up is first input.
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isUpPressed)
         {
-            if (isTouchingLeft && isRightPressed) // Jump away from left wall.
-            {
-                velocity.y = jumpVelocityMax;
-                velocity.x = moveSpeed;
-            }
-            else if (isTouchingRight && isLeftPressed) // Jump away from right wall.
-            { 
-                velocity.x = moveSpeed * -1;
-                velocity.y = jumpVelocityMax;
-            }
-            else if(isTouchingLeft && isLeftPressed) // Jump toward left wall.
+            isUpPressed = true;
+            if(isTouchingLeft && isLeftPressed) // Jump toward left wall.
             {
                 velocity.y = jumpVelocityMax;
                 velocity.x = moveSpeed / 2;
@@ -474,9 +480,10 @@ public class CharacterMoveDriver : MonoBehaviour {
                 velocity.x = -1 * moveSpeed / 2;
             }
         }
-        // When Up is held down.
+        // When Up is released in this frame.
         if (Input.GetKeyUp(KeyCode.UpArrow))
         {
+            isUpPressed = false;
             if (velocity.y > jumpVelocityMin)
             { // Keep applying velocity up while key is pressed - variable jump
                 velocity.y = jumpVelocityMin;
@@ -499,12 +506,11 @@ public class CharacterMoveDriver : MonoBehaviour {
                 }
                 else
                     velocity.x = activeSpeed;*/
-                if (Input.GetKeyDown(KeyCode.UpArrow))
+                if (isUpPressed) // Jump away from left wall.
                 {
-                    velocity.x = wallImpactSpeed;
                     velocity.y = jumpVelocityMax;
+                    velocity.x = moveSpeed;
                 }
-
             }
             else if (isTouchingRight) // Jumping toward left wall.
             {
@@ -528,18 +534,28 @@ public class CharacterMoveDriver : MonoBehaviour {
                 }
                 else
                     velocity.x = activeSpeed * -1;*/
-                if (Input.GetKeyDown(KeyCode.UpArrow))
+                if (isUpPressed) // Jump away from right wall.
                 {
-                    velocity.x = -1 * wallImpactSpeed;
+                    velocity.x = moveSpeed * -1;
                     velocity.y = jumpVelocityMax;
                 }
             }
-            if (isTouchingLeft) // Jumping toward right wall.
+            else if (isTouchingLeft) // Jumping toward right wall.
             {
                 velocity.y = jumpVelocityMax;
                 velocity.x = moveSpeed / 2;
             }
 
+        }
+
+        // When Right or Left is held down.
+        if (isRightPressed && isTouchingLeft) // Fall away from wall
+        {
+            velocity.x += lateralAccelAirborne * Time.deltaTime;
+        }
+        else if (isLeftPressed && isTouchingRight) // Fall away from wall
+        {
+            velocity.x -= lateralAccelAirborne * Time.deltaTime;
         }
 
         // Conditions to Transition out of state
@@ -553,9 +569,10 @@ public class CharacterMoveDriver : MonoBehaviour {
     {
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
-        // When Up is pulsed.
-        if (Input.GetKeyDown(KeyCode.UpArrow))
+        // When Up is first input.
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isUpPressed)
         {
+            isUpPressed = true;
             if (isTouchingLeft && isLeftPressed) // Jump toward wall
             {
                 velocity.y = jumpVelocityMax;
@@ -574,11 +591,18 @@ public class CharacterMoveDriver : MonoBehaviour {
             isRightPressed = true;
             isLeftPressed = false;
             directionFacing = 1;
-            //Jumping off Wall -RIGHT
             if (isTouchingRight) // Jump toward wall
             {
                 velocity.y = jumpVelocityMax;
                 velocity.x = -1 * moveSpeed / 2;
+            }
+            else if (isTouchingLeft)
+            {
+                if (isUpPressed) // Jump away from left wall.
+                {
+                    velocity.y = jumpVelocityMax;
+                    velocity.x = moveSpeed;
+                }
             }
         }
 
@@ -588,17 +612,18 @@ public class CharacterMoveDriver : MonoBehaviour {
             isLeftPressed = true;
             isRightPressed = false;
             directionFacing = -1;
-            // Jumping off Wall - LEFT
-            if (isTouchingRight) // Fall away from wall
-            {
-                //velocity.x = -1 * activeSpeed;
-                //velocity.y = jumpVelocityMax;
-                velocity.x -= lateralAccelAirborne * Time.deltaTime;
-            }
-            else if (isTouchingLeft) // jump toward wall
+            if (isTouchingLeft) // jump toward wall
             {
                 velocity.y = jumpVelocityMax;
                 velocity.x = moveSpeed / 2;
+            }
+            else if (isTouchingRight)
+            {
+                if (isUpPressed) // Jump away from left wall.
+                {
+                    velocity.y = jumpVelocityMax;
+                    velocity.x = -1*moveSpeed;
+                }
             }
 
         }

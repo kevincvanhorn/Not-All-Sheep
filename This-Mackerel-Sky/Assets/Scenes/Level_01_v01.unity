@@ -585,6 +585,7 @@ MonoBehaviour:
   isGrounded: 0
   isRightPressed: 0
   isLeftPressed: 0
+  isUpPressed: 0
   isSprinting: 0
   isTouchingTop: 0
   isTouchingRight: 0
