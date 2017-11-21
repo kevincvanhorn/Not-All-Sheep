@@ -450,25 +450,25 @@ public class CharacterMoveDriver : MonoBehaviour {
     {
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
-        // When Down is held down.
+        // When Up is held down.
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            if (isTouchingLeft && isRightPressed)
+            if (isTouchingLeft && isRightPressed) // Jump away from left wall.
             {
                 velocity.y = jumpVelocityMax;
                 velocity.x = moveSpeed;
             }
-            else if (isTouchingRight && isLeftPressed)
-            {
+            else if (isTouchingRight && isLeftPressed) // Jump away from right wall.
+            { 
                 velocity.x = moveSpeed * -1;
                 velocity.y = jumpVelocityMax;
             }
-            else if(isTouchingLeft && isLeftPressed)
+            else if(isTouchingLeft && isLeftPressed) // Jump toward left wall.
             {
                 velocity.y = jumpVelocityMax;
                 velocity.x = moveSpeed / 2;
             }
-            else if(isTouchingRight && isRightPressed)
+            else if(isTouchingRight && isRightPressed) // Jump toward right wall.
             {
                 velocity.y = jumpVelocityMax;
                 velocity.x = -1 * moveSpeed / 2;
@@ -491,16 +491,22 @@ public class CharacterMoveDriver : MonoBehaviour {
             //Jumping off Wall -RIGHT
             if (isTouchingLeft) // On Wall Left-side
             {
+                /*
                 if (velocity.y > 0)
                 {
                     velocity.x = -1 * wallImpactSpeed;
                     velocity.y = jumpVelocityMax;
                 }
                 else
-                    velocity.x = activeSpeed;
+                    velocity.x = activeSpeed;*/
+                if (Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    velocity.x = wallImpactSpeed;
+                    velocity.y = jumpVelocityMax;
+                }
 
             }
-            else if (isTouchingRight)
+            else if (isTouchingRight) // Jumping toward left wall.
             {
                 velocity.y = jumpVelocityMax;
                 velocity.x = -1 * moveSpeed / 2;
@@ -515,15 +521,20 @@ public class CharacterMoveDriver : MonoBehaviour {
             // Jumping off Wall - LEFT
             if (isTouchingRight) // On Wall Right-side
             {
-                if (velocity.y > 0)
+                /*if (velocity.y > 0)
                 {
                     velocity.x = -1 * wallImpactSpeed;
                     velocity.y = jumpVelocityMax;
                 }
                 else
-                    velocity.x = activeSpeed * -1;
+                    velocity.x = activeSpeed * -1;*/
+                if (Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    velocity.x = -1 * wallImpactSpeed;
+                    velocity.y = jumpVelocityMax;
+                }
             }
-            else if (isTouchingLeft)
+            if (isTouchingLeft) // Jumping toward right wall.
             {
                 velocity.y = jumpVelocityMax;
                 velocity.x = moveSpeed / 2;
@@ -542,7 +553,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     {
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
-        // When Up is held down.
+        // When Up is pulsed.
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             if (isTouchingLeft && isLeftPressed) // Jump toward wall
