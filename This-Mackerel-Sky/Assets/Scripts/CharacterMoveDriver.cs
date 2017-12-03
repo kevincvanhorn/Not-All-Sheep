@@ -127,7 +127,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     {
         CalcState();
         rigidBody.velocity = velocity;
-        print(moveState);
+        //print(moveState);
         //print(velocity + " rp: " + isRightPressed + " tL: " + isTouchingLeft);
     }
 
@@ -381,6 +381,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     void doSprint()
     {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
+
 
         if (!isGrounded) // Conditions to Transition out of state
         {
