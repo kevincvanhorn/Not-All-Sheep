@@ -25,11 +25,12 @@ public class CharacterMoveDriver : MonoBehaviour {
     public bool onWall;
 
     /* Colliders */
-    public List<GameObject> ChildrenColliders;
+    /*public List<GameObject> ChildrenColliders;
     public PlayerCollider topCollider;
     public PlayerCollider botCollider;
     public PlayerCollider leftCollider;
     public PlayerCollider rightCollider;
+    */
 
     /* Movement Variables */
     public float moveSpeed = 10;    // Horizontal speed.
@@ -82,12 +83,13 @@ public class CharacterMoveDriver : MonoBehaviour {
         //controller = GetComponent<Controller2D>();
 
         /* Set child colliders. */
-        foreach (Transform child in transform) {
+        /*foreach (Transform child in transform) {
             if (child.tag == "PlayerCollider") {
                 ChildrenColliders.Add(child.gameObject);
             }
         }
 
+        
         topCollider = ChildrenColliders[0].GetComponent<PlayerCollider>();
         botCollider = ChildrenColliders[1].GetComponent<PlayerCollider>();
         leftCollider = ChildrenColliders[2].GetComponent<PlayerCollider>();
@@ -102,7 +104,7 @@ public class CharacterMoveDriver : MonoBehaviour {
         botCollider.OnEdgeExit += onBotCollisionExit;
         leftCollider.OnEdgeExit += onLeftCollisionExit;
         rightCollider.OnEdgeExit += onRightCollisionExit;
-
+        */
 
         /* Set collision defaults. */
         isTouchingTop = false;
@@ -129,8 +131,30 @@ public class CharacterMoveDriver : MonoBehaviour {
         CalcState();
         rigidBody.velocity = velocity;
         //controller.Move(velocity * Time.deltaTime); // Pass distance to move.
-        print(moveState);
+        //print(moveState);
         //print(velocity + " rp: " + isRightPressed + " tL: " + isTouchingLeft);
+    }
+
+    /** Called on Player collision with a new object. **/
+    void OnCollisionEnter2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
+        ContactPoint2D[] contacts = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
+        coll.GetContacts(contacts);
+
+        /* Test Print */
+        foreach(ContactPoint2D c in contacts) {
+            print(c.normal);
+        }
+        
+
+        /* Call Collider Enter Functions */
+        for (int i =0; i < contacts.Length; i++) {
+            /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
+            if (contacts[i].normal != Vector2.zero) {
+                print("ITS ZERO!");
+            }
+        }
+
+        print("-------------------");
     }
 
     /** Called on Player collision with object. **/
