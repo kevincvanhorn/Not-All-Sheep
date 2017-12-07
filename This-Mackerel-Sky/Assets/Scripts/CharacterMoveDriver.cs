@@ -8,13 +8,16 @@ using UnityEngine;
  */
 
 [RequireComponent(typeof(Rigidbody2D))]
+//[RequireComponent(typeof(Controller2D))]
 public class CharacterMoveDriver : MonoBehaviour {
 
-    public Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
+    //Controller2D controller;
+    Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
 
     /* Collisions Vars */
     public bool isGrounded; // Essentially touchingBot
-    //note: 3 states- left, right, and still require two variables
+
+    // note: 3 states- left, right, and still: requires two variables
     public bool isSprinting;
     public bool isTouchingTop;
     public bool isTouchingRight;
@@ -33,8 +36,9 @@ public class CharacterMoveDriver : MonoBehaviour {
     public float moveSpeedMin = 5;
     public float sprintSpeed = 20;
     public float activeSpeed;
-    public float wallImpactSpeed;
     public Vector3 velocity;
+
+    float wallImpactSpeed;
     float directionFacing = 1;
 
     /* Jump Variables */
@@ -75,6 +79,8 @@ public class CharacterMoveDriver : MonoBehaviour {
     public bool IsSprinting() { return moveState == MoveState.Sprinting; }
 
     void Start() {
+        //controller = GetComponent<Controller2D>();
+
         /* Set child colliders. */
         foreach (Transform child in transform) {
             if (child.tag == "PlayerCollider") {
@@ -122,6 +128,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     void Update() {
         CalcState();
         rigidBody.velocity = velocity;
+        //controller.Move(velocity * Time.deltaTime); // Pass distance to move.
         print(moveState);
         //print(velocity + " rp: " + isRightPressed + " tL: " + isTouchingLeft);
     }
