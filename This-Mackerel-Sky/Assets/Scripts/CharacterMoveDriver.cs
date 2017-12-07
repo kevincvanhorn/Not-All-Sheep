@@ -8,8 +8,7 @@ using UnityEngine;
  */
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(CharacterRayController))]
-public class CharacterMoveDriver : CharacterRayController {
+public class CharacterMoveDriver : MonoBehaviour {
 
     public Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
 
@@ -40,7 +39,7 @@ public class CharacterMoveDriver : CharacterRayController {
 
     /* Jump Variables */
     public float lateralAccelAirborne = 60;
-    public float lateralAccelGrounded = 100;
+    public float lateralAccelGrounded = 60;
 
     public float jumpHeightMax = 5;
     public float jumpHeightMin = .9f;
@@ -171,13 +170,13 @@ public class CharacterMoveDriver : CharacterRayController {
     {
         isTouchingLeft = false;
         onWall = false;
-        wallImpactSpeed = activeSpeed;
+        wallImpactSpeed = moveSpeed;
     }
     void onRightCollisionExit()
     {
         isTouchingRight = false;
         onWall = false;
-        wallImpactSpeed = activeSpeed;
+        wallImpactSpeed = moveSpeed;
     }
 
     void CalcState()
@@ -388,15 +387,6 @@ public class CharacterMoveDriver : CharacterRayController {
             FindState();
         }
 
-        /* Sprint Calc ------------------------------------------------- */
-        if (Input.GetKey(KeyCode.LeftShift)) {
-            activeSpeed = sprintSpeed;
-            print("asdklfjalskdjfhakljsdf");
-        }
-        else {
-            activeSpeed = moveSpeed;
-        }
-
         /* Vertical JUMP Calc ------------------------------------------ */
         // When Up is released in this frame.
         if (Input.GetKeyDown(KeyCode.UpArrow))
@@ -478,12 +468,12 @@ public class CharacterMoveDriver : CharacterRayController {
             if(isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward left wall.
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = activeSpeed / 2;
+                velocity.x = moveSpeed / 2;
             }
             else if(isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward right wall.
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * activeSpeed / 2;
+                velocity.x = -1 * moveSpeed / 2;
             }
         }
         // When Up is released in this frame.
@@ -501,7 +491,7 @@ public class CharacterMoveDriver : CharacterRayController {
             if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * activeSpeed / 2;
+                velocity.x = -1 * moveSpeed / 2;
             }
         }
         // When Left is first input.
@@ -511,7 +501,7 @@ public class CharacterMoveDriver : CharacterRayController {
             if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = activeSpeed / 2;
+                velocity.x = moveSpeed / 2;
             }
         }
 
@@ -523,7 +513,7 @@ public class CharacterMoveDriver : CharacterRayController {
                 if (Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
                 {
                     velocity.y = jumpVelocityMax;
-                    velocity.x = activeSpeed;
+                    velocity.x = moveSpeed;
                 }
                 else // Fall away from wall
                     velocity.x += lateralAccelAirborne * Time.deltaTime;
@@ -537,7 +527,7 @@ public class CharacterMoveDriver : CharacterRayController {
                 if (Input.GetKey(KeyCode.UpArrow)) // Jump away from right wall.
                     {
                         velocity.y = jumpVelocityMax;
-                        velocity.x = -1 * activeSpeed / 2;
+                        velocity.x = -1 * moveSpeed;
                     }
                     else // Fall away from wall
                         velocity.x -= lateralAccelAirborne * Time.deltaTime;
@@ -561,12 +551,12 @@ public class CharacterMoveDriver : CharacterRayController {
             if (isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward wall
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = activeSpeed / 2;
+                velocity.x = moveSpeed / 2;
             }
             else if (isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward wall
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * activeSpeed / 2;
+                velocity.x = -1 * moveSpeed / 2;
             }
         }
 
@@ -577,7 +567,7 @@ public class CharacterMoveDriver : CharacterRayController {
             if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jump toward wall
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * activeSpeed / 2;
+                velocity.x = -1 * moveSpeed / 2;
             }
         }
 
@@ -588,7 +578,7 @@ public class CharacterMoveDriver : CharacterRayController {
             if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // jump toward wall
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = activeSpeed / 2;
+                velocity.x = moveSpeed / 2;
             }
         }
 
@@ -600,7 +590,7 @@ public class CharacterMoveDriver : CharacterRayController {
                 if (Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
                 {
                     velocity.y = jumpVelocityMax;
-                    velocity.x = activeSpeed;
+                    velocity.x = moveSpeed;
                 }
                 else // Fall away from wall
                     velocity.x += lateralAccelAirborne * Time.deltaTime;
@@ -609,7 +599,7 @@ public class CharacterMoveDriver : CharacterRayController {
             {
                 // When coming from a non-grounded state, immediately jump when hit wall
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * activeSpeed / 2;
+                velocity.x = -1 * moveSpeed / 2;
             }
 
         }
@@ -620,7 +610,7 @@ public class CharacterMoveDriver : CharacterRayController {
                 if (Input.GetKey(KeyCode.UpArrow)) // Jump away from right wall.
                 {
                     velocity.y = jumpVelocityMax;
-                    velocity.x = -1 * activeSpeed;
+                    velocity.x = -1 * moveSpeed;
                 }
                 else // Fall away from wall
                     velocity.x -= lateralAccelAirborne * Time.deltaTime;
@@ -629,7 +619,7 @@ public class CharacterMoveDriver : CharacterRayController {
             {
                 // When coming from a non-grounded state, immediately jump when hit wall
                 velocity.y = jumpVelocityMax;
-                velocity.x = activeSpeed / 2;
+                velocity.x = moveSpeed / 2;
             }
 
         }
