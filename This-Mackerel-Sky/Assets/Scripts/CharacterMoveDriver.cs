@@ -32,7 +32,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     public PlayerCollider leftCollider;
     public PlayerCollider rightCollider;
     */
-    HashSet<ContactPoint2D> contacts = new HashSet<ContactPoint2D>();
+    HashSet<Vector2> contacts = new HashSet<Vector2>();
     //ContactPoint2D[] contacts = new ContactPoint2D[12]; // 2 when side collides (each corner) || 1 when on slope
 
     /* Movement Variables */
@@ -165,8 +165,8 @@ public class CharacterMoveDriver : MonoBehaviour {
         /* Add new contact points to hash. */
         for(int i = 0; i < contactsIn.Length; i++) {
             if(contactsIn[i].normal != Vector2.zero) {
-                if (!contacts.Contains(contactsIn[i])) {
-                    contacts.Add(contactsIn[i]);
+                if (!contacts.Contains(contactsIn[i].normal)) {
+                    contacts.Add(contactsIn[i].normal);
                 }
             }
         }
@@ -215,31 +215,37 @@ public class CharacterMoveDriver : MonoBehaviour {
         ContactPoint2D[] contactsRB = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
         rigidBody.GetContacts(contactsRB);
 
-        HashSet<ContactPoint2D> exitContacts = new HashSet<ContactPoint2D>();
+        /* Make a hash with the current normals touching the object. */
+        HashSet<Vector2> contactNormalsRB = new HashSet<Vector2>();
+        foreach (ContactPoint2D c in contactsRB) {
+            contactNormalsRB.Add(c.normal);
+        }
+
+        HashSet<Vector2> exitContacts = new HashSet<Vector2>();
         exitContacts.UnionWith(contacts);     // exitContacts = contacts
 
-        exitContacts.ExceptWith(contactsRB);  // Set ExitContacts.
-        contacts.IntersectWith(contactsRB);   // Remove Exit contacts from Hash.
+        exitContacts.ExceptWith(contactNormalsRB);  // Set ExitContacts.
+        contacts.IntersectWith(exitContacts);   // Remove Exit contacts from Hash.
 
         /* Call Collider Enter Functions */
-        foreach (ContactPoint2D exitContact in exitContacts) {
+        foreach (Vector2 exitContact in exitContacts) {
             /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
-            if (exitContact.normal != Vector2.zero) {
+            if (exitContact != Vector2.zero) {
                 /* Vertical Collision */
-                if (exitContact.normal.x == 0) {
-                    if (exitContact.normal.y == 1 && isTouchingBot) {
+                if (exitContact.x == 0) {
+                    if (exitContact.y == 1 && isTouchingBot) {
                         onBotCollisionExit();
                     }
-                    else if (exitContact.normal.y == -1 && isTouchingTop) {
+                    else if (exitContact.y == -1 && isTouchingTop) {
                         onTopCollisionExit();
                     }
                 }
                 /* Horizontal Collision */
-                else if (exitContact.normal.y == 0) {
-                    if (exitContact.normal.x == 1 && isTouchingLeft) {
+                else if (exitContact.y == 0) {
+                    if (exitContact.x == 1 && isTouchingLeft) {
                         onLeftCollisionExit();
                     }
-                    else if (exitContact.normal.x == -1 && isTouchingRight) {
+                    else if (exitContact.x == -1 && isTouchingRight) {
                         onRightCollisionExit();
                     }
                 }
