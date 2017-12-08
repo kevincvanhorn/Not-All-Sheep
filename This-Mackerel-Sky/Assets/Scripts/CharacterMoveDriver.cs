@@ -15,13 +15,14 @@ public class CharacterMoveDriver : MonoBehaviour {
     Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
 
     /* Collisions Vars */
-    public bool isGrounded; // Essentially touchingBot
+    public bool isGrounded;
 
     // note: 3 states- left, right, and still: requires two variables
     public bool isSprinting;
     public bool isTouchingTop;
     public bool isTouchingRight;
     public bool isTouchingLeft;
+    public bool isTouchingBot;
     public bool onWall;
 
     /* Colliders */
@@ -31,6 +32,8 @@ public class CharacterMoveDriver : MonoBehaviour {
     public PlayerCollider leftCollider;
     public PlayerCollider rightCollider;
     */
+    HashSet<ContactPoint2D> contacts = new HashSet<ContactPoint2D>();
+    //ContactPoint2D[] contacts = new ContactPoint2D[12]; // 2 when side collides (each corner) || 1 when on slope
 
     /* Movement Variables */
     public float moveSpeed = 10;    // Horizontal speed.
@@ -53,6 +56,24 @@ public class CharacterMoveDriver : MonoBehaviour {
     float gravity;
     float jumpVelocityMax;
     float jumpVelocityMin;
+
+    /*public ContactPoint2D[] Contacts {
+        get {
+            return contacts;
+        }
+        set {
+            contacts = value;
+        }
+    }*/
+
+    //CContactPoints contacts = new CContactPoints();
+
+    // Define the indexer to allow client code to use [] notation.
+    /*public ContactPoint2D this[int i] {
+        get { return contacts[i]; }
+        set { contacts[i] = value; }
+    }*/
+
 
     /* Define States */
     public enum MoveState {
@@ -112,6 +133,7 @@ public class CharacterMoveDriver : MonoBehaviour {
         isTouchingLeft = false;
         isGrounded = false;
         isSprinting = false;
+        isTouchingBot = false;
 
         activeSpeed = moveSpeed;
         wallImpactSpeed = activeSpeed;
@@ -137,42 +159,115 @@ public class CharacterMoveDriver : MonoBehaviour {
 
     /** Called on Player collision with a new object. **/
     void OnCollisionEnter2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
-        ContactPoint2D[] contacts = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
-        coll.GetContacts(contacts);
+        ContactPoint2D[] contactsIn = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
+        coll.GetContacts(contactsIn);
 
-        /* Test Print */
-        foreach(ContactPoint2D c in contacts) {
-            print(c.normal);
-        }
-        
-
-        /* Call Collider Enter Functions */
-        for (int i =0; i < contacts.Length; i++) {
-            /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
-            if (contacts[i].normal != Vector2.zero) {
-                print("ITS ZERO!");
+        /* Add new contact points to hash. */
+        for(int i = 0; i < contactsIn.Length; i++) {
+            if(contactsIn[i].normal != Vector2.zero) {
+                if (!contacts.Contains(contactsIn[i])) {
+                    contacts.Add(contactsIn[i]);
+                }
             }
         }
 
-        print("-------------------");
+        /* Test Print */
+        /*foreach(ContactPoint2D c in contacts) {
+            print(c.normal);
+        }*/
+
+        /* Slope Normals mix/max
+        float slopeMin = 2; // x = 0.99
+        float slopeMax = 88;
+        float VerticalCollisionXMin = Mathf.Cos(slopeMin * Mathf.Deg2Rad);
+        float HorizontalCollisionYMax = Mathf.Sin(slopeMax * Mathf.Deg2Rad);
+        */
+
+        /* Call Collider Enter Functions */
+        for (int i =0; i < contactsIn.Length; i++) {
+            /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
+            if (contactsIn[i].normal != Vector2.zero) {
+                /* Vertical Collision */
+                if (contactsIn[i].normal.x == 0) {
+                    if (contactsIn[i].normal.y == 1 && !isTouchingBot) {
+                        onBotCollisionEnter();
+                    }
+                    else if (contactsIn[i].normal.y == -1 && !isTouchingTop) {
+                        onTopCollisionEnter();
+                    }
+                }
+                /* Horizontal Collision */
+                else if (contactsIn[i].normal.y==0) {
+                    if (contactsIn[i].normal.x == 1 && !isTouchingLeft) {
+                        onLeftCollisionEnter();
+                    }
+                    else if (contactsIn[i].normal.x == -1 && !isTouchingRight) {
+                        onRightCollisionEnter();
+                    }
+                }
+            }
+        }
+        //print("-------------------");
+    }
+
+    /** Called on Player collision with a new object. **/
+    void OnCollisionExit2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
+        ContactPoint2D[] contactsRB = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
+        rigidBody.GetContacts(contactsRB);
+
+        HashSet<ContactPoint2D> exitContacts = new HashSet<ContactPoint2D>();
+        exitContacts.UnionWith(contacts);     // exitContacts = contacts
+
+        exitContacts.ExceptWith(contactsRB);  // Set ExitContacts.
+        contacts.IntersectWith(contactsRB);   // Remove Exit contacts from Hash.
+
+        /* Call Collider Enter Functions */
+        foreach (ContactPoint2D exitContact in exitContacts) {
+            /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
+            if (exitContact.normal != Vector2.zero) {
+                /* Vertical Collision */
+                if (exitContact.normal.x == 0) {
+                    if (exitContact.normal.y == 1 && isTouchingBot) {
+                        onBotCollisionExit();
+                    }
+                    else if (exitContact.normal.y == -1 && isTouchingTop) {
+                        onTopCollisionExit();
+                    }
+                }
+                /* Horizontal Collision */
+                else if (exitContact.normal.y == 0) {
+                    if (exitContact.normal.x == 1 && isTouchingLeft) {
+                        onLeftCollisionExit();
+                    }
+                    else if (exitContact.normal.x == -1 && isTouchingRight) {
+                        onRightCollisionExit();
+                    }
+                }
+            }
+        }
     }
 
     /** Called on Player collision with object. **/
     void onTopCollisionEnter() {
+        print("ENTER Top");
         velocity.y = 0;
         isTouchingTop = true;
     }
     void onBotCollisionEnter() {
+        print("ENTER Bot");
         velocity.y = 0;
         isGrounded = true;
+        isTouchingBot = true;
     }
     void onLeftCollisionEnter() {
+        print("ENTER Left");
         wallImpactSpeed = velocity.x;
         velocity.x = 0;
         isTouchingLeft = true;
         onWall = true;
     }
     void onRightCollisionEnter() {
+        print("ENTER Right");
         wallImpactSpeed = velocity.x;
         velocity.x = 0;
         isTouchingRight = true;
@@ -181,17 +276,22 @@ public class CharacterMoveDriver : MonoBehaviour {
 
     /** Called on Player leaving collision with an object. **/
     void onTopCollisionExit() {
+        print("Exit Top");
         isTouchingTop = false;
     }
     void onBotCollisionExit() {
+        print("Exit Bot");
         isGrounded = false;
+        isTouchingBot = false;
     }
     void onLeftCollisionExit() {
+        print("Exit Left");
         isTouchingLeft = false;
         onWall = false;
         wallImpactSpeed = activeSpeed;
     }
     void onRightCollisionExit() {
+        print("Exit Right");
         isTouchingRight = false;
         onWall = false;
         wallImpactSpeed = activeSpeed;
@@ -620,5 +720,27 @@ public class CharacterMoveDriver : MonoBehaviour {
         // set
         prevState = moveState;
         moveState = newState;
+    }
+}
+
+class CContactPoints {
+    // Array of temperature values
+    private ContactPoint2D[] contacts = new ContactPoint2D[8];
+
+    // To enable client code to validate input 
+    // when accessing your indexer.
+    public int Length {
+        get { return contacts.Length; }
+    }
+    // Indexer declaration.
+    // If index is out of range, the temps array will throw the exception.
+    public ContactPoint2D this[int index] {
+        get {
+            return contacts[index];
+        }
+
+        set {
+            contacts[index] = value;
+        }
     }
 }
