@@ -24,6 +24,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     public bool isTouchingLeft;
     public bool isTouchingBot;
     public bool onWall;
+    public bool onSlope;
 
     /* Colliders */
     HashSet<Vector2> contacts = new HashSet<Vector2>();
@@ -50,6 +51,11 @@ public class CharacterMoveDriver : MonoBehaviour {
     float jumpVelocityMax;
     float jumpVelocityMin;
 
+    /* Slope Variables */
+    float slopeDir;
+    public float slopeAngle = 0;
+    public float maxAngle = 80;
+
     /* Define States */
     public enum MoveState {
         Idle,
@@ -59,7 +65,8 @@ public class CharacterMoveDriver : MonoBehaviour {
         WallFalling,
         WallSticking,
         Sprinting,
-        Dashing
+        Dashing,
+        ClimbingSlope
     }
 
     public MoveState moveState { get; private set; }
@@ -74,6 +81,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     public bool IsWallSticking() { return moveState == MoveState.WallSticking; }
     public bool IsDashing() { return moveState == MoveState.Dashing; }
     public bool IsSprinting() { return moveState == MoveState.Sprinting; }
+    public bool IsClimbingSlope() { return moveState == MoveState.ClimbingSlope; }
 
     void Start() {
         /* Set collision defaults. */
@@ -83,6 +91,7 @@ public class CharacterMoveDriver : MonoBehaviour {
         isGrounded = false;
         isSprinting = false;
         isTouchingBot = false;
+        onSlope = false;
 
         activeSpeed = moveSpeed;
         wallImpactSpeed = activeSpeed;
@@ -115,6 +124,7 @@ public class CharacterMoveDriver : MonoBehaviour {
             if(contactsIn[i].normal != Vector2.zero) {
                 if (!contacts.Contains(contactsIn[i].normal)) {
                     contacts.Add(contactsIn[i].normal);
+                    //print(contactsIn[i].normal);
                 }
             }
         }
@@ -144,6 +154,12 @@ public class CharacterMoveDriver : MonoBehaviour {
                         onRightCollisionEnter();
                         enterSet = true;
                     }
+                }
+                /* Slope Collision */
+                else {
+                    slopeDir = (contactsIn[i].normal.x < 0) ? 0 : 1; // 1 = right, 0 = left
+                    slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
+                    onSlopeCollisionEnter();
                 }
             }
         }
@@ -203,49 +219,45 @@ public class CharacterMoveDriver : MonoBehaviour {
 
     /** Called on Player collision with object. **/
     void onTopCollisionEnter() {
-        print("ENTER Top");
         velocity.y = 0;
         isTouchingTop = true;
     }
     void onBotCollisionEnter() {
-        print("ENTER Bot");
         velocity.y = 0;
         isGrounded = true;
         isTouchingBot = true;
     }
     void onLeftCollisionEnter() {
-        print("ENTER Left");
         wallImpactSpeed = velocity.x;
         velocity.x = 0;
         isTouchingLeft = true;
         onWall = true;
     }
     void onRightCollisionEnter() {
-        print("ENTER Right");
         wallImpactSpeed = velocity.x;
         velocity.x = 0;
         isTouchingRight = true;
         onWall = true;
     }
+    void onSlopeCollisionEnter() {
+        onSlope = true;
+        isGrounded = true; //TODO: make work with upper slopes
+    }
 
     /** Called on Player leaving collision with an object. **/
     void onTopCollisionExit() {
-        print("Exit Top");
         isTouchingTop = false;
     }
     void onBotCollisionExit() {
-        print("Exit Bot");
         isGrounded = false;
         isTouchingBot = false;
     }
     void onLeftCollisionExit() {
-        print("Exit Left");
         isTouchingLeft = false;
         onWall = false;
         wallImpactSpeed = activeSpeed;
     }
     void onRightCollisionExit() {
-        print("Exit Right");
         isTouchingRight = false;
         onWall = false;
         wallImpactSpeed = activeSpeed;
@@ -269,17 +281,25 @@ public class CharacterMoveDriver : MonoBehaviour {
             doDash();
         else if (IsSprinting())
             doSprint();
+        else if(IsClimbingSlope())
+            climbSlope();
     }
 
     void FindState() {
         if (isGrounded) {
-            if (velocity.x == 0) {
-                ChangeState(MoveState.Idle);
+            if (onSlope) {
+                ChangeState(MoveState.ClimbingSlope);
             }
-            else // velocity.x !=0
-            {
-                ChangeState(MoveState.Sprinting);
+            else {
+                if (velocity.x == 0) {
+                    ChangeState(MoveState.Idle);
+                }
+                else // velocity.x !=0
+                {
+                    ChangeState(MoveState.Sprinting);
+                }
             }
+            
         }
         else // !isGrounded
         {
@@ -345,7 +365,6 @@ public class CharacterMoveDriver : MonoBehaviour {
             FindState();
         }
     }
-
 
     void doJump() {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
@@ -655,6 +674,75 @@ public class CharacterMoveDriver : MonoBehaviour {
     }
 
     void doWallStick() {
+    }
+
+    void climbSlope() {
+        Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
+
+        if (!onSlope) // Conditions to Transition out of state
+        {
+            FindState();
+        }
+
+        /* Vertical JUMP Calc ------------------------------------------ */
+        // When Up is first input.
+        if (Input.GetKeyDown(KeyCode.UpArrow)) // Velocity when initial pressed
+        {
+            velocity.y = jumpVelocityMax;
+            isGrounded = false;
+        }
+        else if (Input.GetKey(KeyCode.UpArrow)) // Up Held down.
+        {
+            velocity.y = jumpVelocityMax;
+            isGrounded = false;
+        }
+
+        /* Lateral Calc -------------------------------------------------- */
+        // When Right is first input.
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
+            directionFacing = 1;
+            if (isGrounded) {
+                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad); // since isGrounded
+                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+            }
+                
+        }
+        // When Left is first input.
+        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+            directionFacing = -1;
+            if (isGrounded) {
+                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * -1;
+                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+            }
+                
+        }
+        else if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)) {
+            directionFacing = -1;
+            if (isGrounded) {
+                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * -1;
+                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+            }
+                
+        }
+        else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
+            directionFacing = 1;
+            if (isGrounded) {
+                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad);
+                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+            }
+                
+        }
+
+        if (isTouchingLeft || isTouchingRight) {
+            velocity.x = 0;
+            velocity.y = 0;
+        }
+
+        /* Change State -------------------------------------------------- */
+        if (!onSlope || !isGrounded) // Conditions to Transition out of state
+        {
+            FindState();
+        }
     }
     /* Example State
      * 
