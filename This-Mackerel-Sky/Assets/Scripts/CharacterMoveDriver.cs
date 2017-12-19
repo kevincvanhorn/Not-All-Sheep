@@ -8,38 +8,46 @@ using UnityEngine;
  */
 
 [RequireComponent(typeof(Rigidbody2D))]
+//[RequireComponent(typeof(Controller2D))]
 public class CharacterMoveDriver : MonoBehaviour {
 
-    public Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
+    //Controller2D controller;
+    Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
 
     /* Collisions Vars */
-    public bool isGrounded; // Essentially touchingBot
-    //note: 3 states- left, right, and still require two variables
+    public bool isGrounded;
+
+    // note: 3 states- left, right, and still: requires two variables
     public bool isSprinting;
     public bool isTouchingTop;
     public bool isTouchingRight;
     public bool isTouchingLeft;
+    public bool isTouchingBot;
     public bool onWall;
 
     /* Colliders */
-    public List<GameObject> ChildrenColliders;
+    /*public List<GameObject> ChildrenColliders;
     public PlayerCollider topCollider;
     public PlayerCollider botCollider;
     public PlayerCollider leftCollider;
     public PlayerCollider rightCollider;
+    */
+    HashSet<Vector2> contacts = new HashSet<Vector2>();
+    //ContactPoint2D[] contacts = new ContactPoint2D[12]; // 2 when side collides (each corner) || 1 when on slope
 
     /* Movement Variables */
     public float moveSpeed = 10;    // Horizontal speed.
     public float moveSpeedMin = 5;
     public float sprintSpeed = 20;
     public float activeSpeed;
-    public float wallImpactSpeed;
     public Vector3 velocity;
+
+    float wallImpactSpeed;
     float directionFacing = 1;
 
     /* Jump Variables */
     public float lateralAccelAirborne = 60;
-    public float lateralAccelGrounded = 60;
+    public float lateralAccelGrounded = 100;
 
     public float jumpHeightMax = 5;
     public float jumpHeightMin = .9f;
@@ -49,9 +57,26 @@ public class CharacterMoveDriver : MonoBehaviour {
     float jumpVelocityMax;
     float jumpVelocityMin;
 
+    /*public ContactPoint2D[] Contacts {
+        get {
+            return contacts;
+        }
+        set {
+            contacts = value;
+        }
+    }*/
+
+    //CContactPoints contacts = new CContactPoints();
+
+    // Define the indexer to allow client code to use [] notation.
+    /*public ContactPoint2D this[int i] {
+        get { return contacts[i]; }
+        set { contacts[i] = value; }
+    }*/
+
+
     /* Define States */
-    public enum MoveState
-    {
+    public enum MoveState {
         Idle,
         Jumping,
         Falling,
@@ -75,17 +100,17 @@ public class CharacterMoveDriver : MonoBehaviour {
     public bool IsDashing() { return moveState == MoveState.Dashing; }
     public bool IsSprinting() { return moveState == MoveState.Sprinting; }
 
-    void Start()
-    {
+    void Start() {
+        //controller = GetComponent<Controller2D>();
+
         /* Set child colliders. */
-        foreach (Transform child in transform)
-        {
-            if (child.tag == "PlayerCollider")
-            {
+        /*foreach (Transform child in transform) {
+            if (child.tag == "PlayerCollider") {
                 ChildrenColliders.Add(child.gameObject);
             }
         }
 
+        
         topCollider = ChildrenColliders[0].GetComponent<PlayerCollider>();
         botCollider = ChildrenColliders[1].GetComponent<PlayerCollider>();
         leftCollider = ChildrenColliders[2].GetComponent<PlayerCollider>();
@@ -100,7 +125,7 @@ public class CharacterMoveDriver : MonoBehaviour {
         botCollider.OnEdgeExit += onBotCollisionExit;
         leftCollider.OnEdgeExit += onLeftCollisionExit;
         rightCollider.OnEdgeExit += onRightCollisionExit;
-
+        */
 
         /* Set collision defaults. */
         isTouchingTop = false;
@@ -108,6 +133,7 @@ public class CharacterMoveDriver : MonoBehaviour {
         isTouchingLeft = false;
         isGrounded = false;
         isSprinting = false;
+        isTouchingBot = false;
 
         activeSpeed = moveSpeed;
         wallImpactSpeed = activeSpeed;
@@ -123,34 +149,137 @@ public class CharacterMoveDriver : MonoBehaviour {
     }
 
     /** Update is called once per frame **/
-    void Update()
-    {
+    void Update() {
         CalcState();
         rigidBody.velocity = velocity;
+        //controller.Move(velocity * Time.deltaTime); // Pass distance to move.
         //print(moveState);
         //print(velocity + " rp: " + isRightPressed + " tL: " + isTouchingLeft);
     }
 
+    /** Called on Player collision with a new object. **/
+    void OnCollisionEnter2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
+        ContactPoint2D[] contactsIn = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
+        coll.GetContacts(contactsIn);
+
+        bool enterSet = false;
+
+        /* Add new contact points to hash. */
+        for(int i = 0; i < contactsIn.Length; i++) {
+            if(contactsIn[i].normal != Vector2.zero) {
+                if (!contacts.Contains(contactsIn[i].normal)) {
+                    contacts.Add(contactsIn[i].normal);
+                }
+            }
+        }
+
+        /* Call Collider Enter Functions */
+        for (int i =0; !enterSet && i < contactsIn.Length; i++) {
+            /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
+            if (contactsIn[i].normal != Vector2.zero) {
+                /* Vertical Collision */
+                if (contactsIn[i].normal.x == 0) {
+                    if (contactsIn[i].normal.y == 1) {
+                        onBotCollisionEnter();
+                        enterSet = true;
+                    }
+                    else if (contactsIn[i].normal.y == -1) {
+                        onTopCollisionEnter();
+                        enterSet = true;
+                    }
+                }
+                /* Horizontal Collision */
+                else if (contactsIn[i].normal.y==0) {
+                    if (contactsIn[i].normal.x == 1) {
+                        onLeftCollisionEnter();
+                        enterSet = true;
+                    }
+                    else if (contactsIn[i].normal.x == -1) {
+                        onRightCollisionEnter();
+                        enterSet = true;
+                    }
+                }
+            }
+        }
+        //print("-------------------");
+    }
+
+    /** Called on Player collision Exit. **/
+    void OnCollisionExit2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
+        if (velocity.y < 0) {
+            print("");
+        }
+
+        ContactPoint2D[] contactsRB = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
+        rigidBody.GetContacts(contactsRB);
+
+        bool exitSet = false;
+
+        /* Make a hash with the current normals touching the object. */
+        HashSet<Vector2> contactNormalsRB = new HashSet<Vector2>();
+        foreach (ContactPoint2D c in contactsRB) {
+            contactNormalsRB.Add(c.normal);
+        }
+
+        HashSet<Vector2> exitContacts = new HashSet<Vector2>();
+        exitContacts.UnionWith(contacts);     // exitContacts = contacts
+
+        exitContacts.ExceptWith(contactNormalsRB);  // Set ExitContacts.
+        contacts.ExceptWith(exitContacts);   // Remove Exit contacts from Hash.
+
+        /* Call Collider Enter Functions */
+        foreach (Vector2 exitContact in exitContacts) {
+            if (!exitSet) {
+                /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
+                if (exitContact != Vector2.zero) {
+                    /* Vertical Collision */
+                    if (exitContact.x == 0) {
+                        if (exitContact.y == 1) {
+                            onBotCollisionExit();
+                            exitSet = true;
+                        }
+                        else if (exitContact.y == -1) {
+                            onTopCollisionExit();
+                            exitSet = true;
+                        }
+                    }
+                    /* Horizontal Collision */
+                    else if (exitContact.y == 0) {
+                        if (exitContact.x == 1) {
+                            onLeftCollisionExit();
+                            exitSet = true;
+                        }
+                        else if (exitContact.x == -1) {
+                            onRightCollisionExit();
+                            exitSet = true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /** Called on Player collision with object. **/
-    void onTopCollisionEnter()
-    {
+    void onTopCollisionEnter() {
+        print("ENTER Top");
         velocity.y = 0;
         isTouchingTop = true;
     }
-    void onBotCollisionEnter()
-    {
+    void onBotCollisionEnter() {
+        print("ENTER Bot");
         velocity.y = 0;
         isGrounded = true;
+        isTouchingBot = true;
     }
-    void onLeftCollisionEnter()
-    {
+    void onLeftCollisionEnter() {
+        print("ENTER Left");
         wallImpactSpeed = velocity.x;
         velocity.x = 0;
         isTouchingLeft = true;
         onWall = true;
     }
-    void onRightCollisionEnter()
-    {
+    void onRightCollisionEnter() {
+        print("ENTER Right");
         wallImpactSpeed = velocity.x;
         velocity.x = 0;
         isTouchingRight = true;
@@ -158,29 +287,29 @@ public class CharacterMoveDriver : MonoBehaviour {
     }
 
     /** Called on Player leaving collision with an object. **/
-    void onTopCollisionExit()
-    {
+    void onTopCollisionExit() {
+        print("Exit Top");
         isTouchingTop = false;
     }
-    void onBotCollisionExit()
-    {
+    void onBotCollisionExit() {
+        print("Exit Bot");
         isGrounded = false;
+        isTouchingBot = false;
     }
-    void onLeftCollisionExit()
-    {
+    void onLeftCollisionExit() {
+        print("Exit Left");
         isTouchingLeft = false;
         onWall = false;
-        wallImpactSpeed = moveSpeed;
+        wallImpactSpeed = activeSpeed;
     }
-    void onRightCollisionExit()
-    {
+    void onRightCollisionExit() {
+        print("Exit Right");
         isTouchingRight = false;
         onWall = false;
-        wallImpactSpeed = moveSpeed;
+        wallImpactSpeed = activeSpeed;
     }
 
-    void CalcState()
-    {
+    void CalcState() {
         // Do State Actions:
         if (IsIdle())
             doIdle();
@@ -200,12 +329,9 @@ public class CharacterMoveDriver : MonoBehaviour {
             doSprint();
     }
 
-    void FindState()
-    {
-        if (isGrounded)
-        {
-            if(velocity.x == 0)
-            {
+    void FindState() {
+        if (isGrounded) {
+            if (velocity.x == 0) {
                 ChangeState(MoveState.Idle);
             }
             else // velocity.x !=0
@@ -215,33 +341,27 @@ public class CharacterMoveDriver : MonoBehaviour {
         }
         else // !isGrounded
         {
-            if(velocity.y > 0)
-            {
-                if (onWall)
-                {
+            if (velocity.y > 0) {
+                if (onWall) {
                     ChangeState(MoveState.WallRising);
                 }
                 else
                     ChangeState(MoveState.Jumping);
             }
-            else if(velocity.y < 0)
-            {
-                if (onWall)
-                {
+            else if (velocity.y < 0) {
+                if (onWall) {
                     ChangeState(MoveState.WallFalling);
                 }
                 else
                     ChangeState(MoveState.Falling);
             }
-            else if(velocity.y == 0)
-            {
+            else if (velocity.y == 0) {
 
             }
         }
     }
 
-    void doIdle()
-    {
+    void doIdle() {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
 
         /* Vertical JUMP Calc ------------------------------------------ */
@@ -258,25 +378,21 @@ public class CharacterMoveDriver : MonoBehaviour {
         }
         // When Right is first input.
         /* Lateral Calc -------------------------------------------------- */
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
             directionFacing = 1;
             velocity.x = activeSpeed; // since isGrounded
         }
         // When Left is first input.
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
+        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             directionFacing = -1;
             velocity.x = activeSpeed * -1; //  Necessary because input.x changes. - since isGrounded
         }
 
-        if(Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
-        {
+        if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)) {
             directionFacing = -1;
             velocity.x = activeSpeed * -1;
         }
-        else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
-        {
+        else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
             directionFacing = 1;
             velocity.x = activeSpeed;
         }
@@ -289,26 +405,22 @@ public class CharacterMoveDriver : MonoBehaviour {
     }
 
 
-    void doJump()
-    {
+    void doJump() {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
 
         /* Vertical Calc ----------------------------------------- */
         // When Up is first input.
         if (Input.GetKeyDown(KeyCode.UpArrow)) // Continue adding velocity when pressed
         {
-            if (isGrounded)
-            { // normal Jumps
+            if (isGrounded) { // normal Jumps
                 velocity.y = jumpVelocityMax;
                 isGrounded = false;
             }
         }
 
         // When Up is released in this frame.
-        if (Input.GetKeyUp(KeyCode.UpArrow))
-        {
-            if (velocity.y > jumpVelocityMin)
-            { // Keep applying velocity up while key is pressed - variable jump
+        if (Input.GetKeyUp(KeyCode.UpArrow)) {
+            if (velocity.y > jumpVelocityMin) { // Keep applying velocity up while key is pressed - variable jump
                 velocity.y = jumpVelocityMin;
             }
         }
@@ -317,57 +429,47 @@ public class CharacterMoveDriver : MonoBehaviour {
 
         /* Lateral Calc -------------------------------------------*/
         // When Right is first input.
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
             directionFacing = 1;
         }
         // When Left is first input.
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
+        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             directionFacing = -1;
         }
 
 
-        if (Input.GetKey(KeyCode.RightArrow) && velocity.x < activeSpeed)
-        { // in-air lateral move right
+        if (Input.GetKey(KeyCode.RightArrow) && velocity.x < activeSpeed) { // in-air lateral move right
             velocity.x += lateralAccelAirborne * Time.deltaTime;
         }
-        else if (Input.GetKey(KeyCode.LeftArrow) && velocity.x > -activeSpeed)
-        { // in-air lateral move left
+        else if (Input.GetKey(KeyCode.LeftArrow) && velocity.x > -activeSpeed) { // in-air lateral move left
             velocity.x -= lateralAccelAirborne * Time.deltaTime;
         }
 
         /* Conditions to Transition out of state */
-        if (isGrounded || onWall || velocity.y <= 0) 
-        {
+        if (isGrounded || onWall || velocity.y <= 0) {
             FindState();
         }
     }
 
-    void doFall()
-    {
+    void doFall() {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
 
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
         /* Lateral Calc -------------------------------------------*/
         // When Right is first input.
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
             directionFacing = 1;
         }
         // When Left is first input.
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
+        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             directionFacing = -1;
         }
 
-        if (Input.GetKey(KeyCode.RightArrow) && velocity.x < activeSpeed)
-        { // in-air lateral move right
+        if (Input.GetKey(KeyCode.RightArrow) && velocity.x < activeSpeed) { // in-air lateral move right
             velocity.x += lateralAccelAirborne * Time.deltaTime;
         }
-        else if (Input.GetKey(KeyCode.LeftArrow) && velocity.x > -activeSpeed)
-        { // in-air lateral move left
+        else if (Input.GetKey(KeyCode.LeftArrow) && velocity.x > -activeSpeed) { // in-air lateral move left
             velocity.x -= lateralAccelAirborne * Time.deltaTime;
         }
 
@@ -378,220 +480,198 @@ public class CharacterMoveDriver : MonoBehaviour {
 
     }
 
-    void doSprint()
-    {
+    void doSprint() {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
-
 
         if (!isGrounded) // Conditions to Transition out of state
         {
             FindState();
         }
 
+        /* Sprint Calc ------------------------------------------------- */
+        if (Input.GetKey(KeyCode.LeftShift)) {
+            activeSpeed = sprintSpeed;
+            print("asdklfjalskdjfhakljsdf");
+        }
+        else {
+            activeSpeed = moveSpeed;
+        }
+
         /* Vertical JUMP Calc ------------------------------------------ */
         // When Up is released in this frame.
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
+        if (Input.GetKeyDown(KeyCode.UpArrow)) {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
         }
-        else if (Input.GetKey(KeyCode.UpArrow))
-        {
+        else if (Input.GetKey(KeyCode.UpArrow)) {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
         }
 
         /* Lateral Calc -------------------------------------------------- */
         // When Right is first input.
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
             directionFacing = 1;
-            if(isGrounded)
+            if (isGrounded)
                 velocity.x = activeSpeed; // since isGrounded
         }
         // When Left is first input.
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
+        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             directionFacing = -1;
-            if(isGrounded)
+            if (isGrounded)
                 velocity.x = activeSpeed * -1; //  Necessary because input.x changes. // since isGrounded
         }
-        else if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
-        {
+        else if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)) {
             directionFacing = -1;
-            if(isGrounded)
+            if (isGrounded)
                 velocity.x = activeSpeed * -1;
         }
-        else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
-        {
+        else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
             directionFacing = 1;
-            if(isGrounded)
+            if (isGrounded)
                 velocity.x = activeSpeed;
         }
 
         /* X Acceleration ---------------------------------------------- */
         // When No input.
-        if (isGrounded && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
-        { // On-release of Lateral Movement controls - Deccelerate
-            if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0)
-            { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
+        if (isGrounded && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) { // On-release of Lateral Movement controls - Deccelerate
+            if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
                 velocity.x = 0;
             }
-            if (directionFacing == 1 && velocity.x > 0)
-            { // Decceleration Right
+            if (directionFacing == 1 && velocity.x > 0) { // Decceleration Right
                 velocity.x -= lateralAccelGrounded * Time.deltaTime;
             }
-            else if (directionFacing == -1 && velocity.x < 0)
-            { // Decceleration Left
+            else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
                 velocity.x += lateralAccelGrounded * Time.deltaTime;
             }
         }
 
-        if(isTouchingLeft || isTouchingRight)
-        {
+        if (isTouchingLeft || isTouchingRight) {
             velocity.x = 0;
         }
 
         // Conditions to Transition out of state
-        if (!isGrounded || velocity.y != 0) 
-        {
+        if (!isGrounded || velocity.y != 0) {
             FindState();
         }
     }
 
-    void doWallRise()
-    {
+    void doWallRise() {
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
         // When Up is first input.
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            if(isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward left wall.
+        if (Input.GetKeyDown(KeyCode.UpArrow)) {
+            if (isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward left wall.
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = moveSpeed / 2;
+                velocity.x = activeSpeed / 2;
             }
-            else if(isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward right wall.
+            else if (isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward right wall.
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * moveSpeed / 2;
+                velocity.x = -1 * activeSpeed / 2;
             }
         }
         // When Up is released in this frame.
-        if (Input.GetKeyUp(KeyCode.UpArrow))
-        {
-            if (velocity.y > jumpVelocityMin)
-            { // Keep applying velocity up while key is pressed - variable jump
+        if (Input.GetKeyUp(KeyCode.UpArrow)) {
+            if (velocity.y > jumpVelocityMin) { // Keep applying velocity up while key is pressed - variable jump
                 velocity.y = jumpVelocityMin;
             }
         }
         // When Right is first input.
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        { // on L/R input - setting conditions.
+        if (Input.GetKeyDown(KeyCode.RightArrow)) { // on L/R input - setting conditions.
             directionFacing = 1;
             if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * moveSpeed / 2;
+                velocity.x = -1 * activeSpeed / 2;
             }
         }
         // When Left is first input.
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
+        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             directionFacing = -1;
             if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = moveSpeed / 2;
+                velocity.x = activeSpeed / 2;
             }
         }
 
         // When Right or Left is held down.
-        if (Input.GetKey(KeyCode.RightArrow))
-        {
-            if (isTouchingLeft)
-            {
+        if (Input.GetKey(KeyCode.RightArrow)) {
+            if (isTouchingLeft) {
                 if (Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
                 {
                     velocity.y = jumpVelocityMax;
-                    velocity.x = moveSpeed;
+                    velocity.x = activeSpeed;
                 }
                 else // Fall away from wall
                     velocity.x += lateralAccelAirborne * Time.deltaTime;
             }
-            
+
         }
-        else if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            if (isTouchingRight)
-            {
+        else if (Input.GetKey(KeyCode.LeftArrow)) {
+            if (isTouchingRight) {
                 if (Input.GetKey(KeyCode.UpArrow)) // Jump away from right wall.
                     {
-                        velocity.y = jumpVelocityMax;
-                        velocity.x = -1 * moveSpeed;
-                    }
-                    else // Fall away from wall
-                        velocity.x -= lateralAccelAirborne * Time.deltaTime;
-            }   
+                    velocity.y = jumpVelocityMax;
+                    velocity.x = -1 * activeSpeed / 2;
+                }
+                else // Fall away from wall
+                    velocity.x -= lateralAccelAirborne * Time.deltaTime;
+            }
         }
 
         // Conditions to Transition out of state
-        if (isGrounded || !onWall || velocity.y <= 0)
-        {
+        if (isGrounded || !onWall || velocity.y <= 0) {
             FindState();
         }
     }
 
-    void doWallFall()
-    {
+    void doWallFall() {
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
         // When Up is first input.
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
+        if (Input.GetKeyDown(KeyCode.UpArrow)) {
             if (isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward wall
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = moveSpeed / 2;
+                velocity.x = activeSpeed / 2;
             }
             else if (isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward wall
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * moveSpeed / 2;
+                velocity.x = -1 * activeSpeed / 2;
             }
         }
 
         // When Right is first input again.
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        { // on L/R input - setting conditions.
+        if (Input.GetKeyDown(KeyCode.RightArrow)) { // on L/R input - setting conditions.
             directionFacing = 1;
             if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jump toward wall
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * moveSpeed / 2;
+                velocity.x = -1 * activeSpeed / 2;
             }
         }
 
         // When Left is first input again.
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
+        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             directionFacing = -1;
             if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // jump toward wall
             {
                 velocity.y = jumpVelocityMax;
-                velocity.x = moveSpeed / 2;
+                velocity.x = activeSpeed / 2;
             }
         }
 
         // When Right or Left is held down.
-        if (Input.GetKey(KeyCode.RightArrow))
-        {
-            if (isTouchingLeft)
-            {
+        if (Input.GetKey(KeyCode.RightArrow)) {
+            if (isTouchingLeft) {
                 if (Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
                 {
                     velocity.y = jumpVelocityMax;
-                    velocity.x = moveSpeed;
+                    velocity.x = activeSpeed;
                 }
                 else // Fall away from wall
                     velocity.x += lateralAccelAirborne * Time.deltaTime;
@@ -600,18 +680,16 @@ public class CharacterMoveDriver : MonoBehaviour {
             {
                 // When coming from a non-grounded state, immediately jump when hit wall
                 velocity.y = jumpVelocityMax;
-                velocity.x = -1 * moveSpeed / 2;
+                velocity.x = -1 * activeSpeed / 2;
             }
 
         }
-        else if (Input.GetKey(KeyCode.LeftArrow))
-        {
-            if (isTouchingRight)
-            {
+        else if (Input.GetKey(KeyCode.LeftArrow)) {
+            if (isTouchingRight) {
                 if (Input.GetKey(KeyCode.UpArrow)) // Jump away from right wall.
                 {
                     velocity.y = jumpVelocityMax;
-                    velocity.x = -1 * moveSpeed;
+                    velocity.x = -1 * activeSpeed;
                 }
                 else // Fall away from wall
                     velocity.x -= lateralAccelAirborne * Time.deltaTime;
@@ -620,24 +698,21 @@ public class CharacterMoveDriver : MonoBehaviour {
             {
                 // When coming from a non-grounded state, immediately jump when hit wall
                 velocity.y = jumpVelocityMax;
-                velocity.x = moveSpeed / 2;
+                velocity.x = activeSpeed / 2;
             }
 
         }
 
         // Conditions to Transition out of state
-        if (isGrounded || !onWall || velocity.y >= 0)
-        {
+        if (isGrounded || !onWall || velocity.y >= 0) {
             FindState();
         }
     }
 
-    void doDash()
-    {
+    void doDash() {
     }
 
-    void doWallStick()
-    {
+    void doWallStick() {
     }
     /* Example State
      * 
@@ -648,16 +723,36 @@ public class CharacterMoveDriver : MonoBehaviour {
         }    
      */
 
-    private void ChangeState(MoveState newState)
-    {
+    private void ChangeState(MoveState newState) {
         // no change...
-        if (moveState == newState)
-        {
+        if (moveState == newState) {
             return;
         }
 
         // set
         prevState = moveState;
         moveState = newState;
+    }
+}
+
+class CContactPoints {
+    // Array of temperature values
+    private ContactPoint2D[] contacts = new ContactPoint2D[8];
+
+    // To enable client code to validate input 
+    // when accessing your indexer.
+    public int Length {
+        get { return contacts.Length; }
+    }
+    // Indexer declaration.
+    // If index is out of range, the temps array will throw the exception.
+    public ContactPoint2D this[int index] {
+        get {
+            return contacts[index];
+        }
+
+        set {
+            contacts[index] = value;
+        }
     }
 }
