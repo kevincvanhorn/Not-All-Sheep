@@ -162,6 +162,8 @@ public class CharacterMoveDriver : MonoBehaviour {
         ContactPoint2D[] contactsIn = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
         coll.GetContacts(contactsIn);
 
+        bool enterSet = false;
+
         /* Add new contact points to hash. */
         for(int i = 0; i < contactsIn.Length; i++) {
             if(contactsIn[i].normal != Vector2.zero) {
@@ -171,38 +173,30 @@ public class CharacterMoveDriver : MonoBehaviour {
             }
         }
 
-        /* Test Print */
-        /*foreach(ContactPoint2D c in contacts) {
-            print(c.normal);
-        }*/
-
-        /* Slope Normals mix/max
-        float slopeMin = 2; // x = 0.99
-        float slopeMax = 88;
-        float VerticalCollisionXMin = Mathf.Cos(slopeMin * Mathf.Deg2Rad);
-        float HorizontalCollisionYMax = Mathf.Sin(slopeMax * Mathf.Deg2Rad);
-        */
-
         /* Call Collider Enter Functions */
-        for (int i =0; i < contactsIn.Length; i++) {
+        for (int i =0; !enterSet && i < contactsIn.Length; i++) {
             /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
             if (contactsIn[i].normal != Vector2.zero) {
                 /* Vertical Collision */
                 if (contactsIn[i].normal.x == 0) {
-                    if (contactsIn[i].normal.y == 1 && !isTouchingBot) {
+                    if (contactsIn[i].normal.y == 1) {
                         onBotCollisionEnter();
+                        enterSet = true;
                     }
-                    else if (contactsIn[i].normal.y == -1 && !isTouchingTop) {
+                    else if (contactsIn[i].normal.y == -1) {
                         onTopCollisionEnter();
+                        enterSet = true;
                     }
                 }
                 /* Horizontal Collision */
                 else if (contactsIn[i].normal.y==0) {
-                    if (contactsIn[i].normal.x == 1 && !isTouchingLeft) {
+                    if (contactsIn[i].normal.x == 1) {
                         onLeftCollisionEnter();
+                        enterSet = true;
                     }
-                    else if (contactsIn[i].normal.x == -1 && !isTouchingRight) {
+                    else if (contactsIn[i].normal.x == -1) {
                         onRightCollisionEnter();
+                        enterSet = true;
                     }
                 }
             }
@@ -210,10 +204,16 @@ public class CharacterMoveDriver : MonoBehaviour {
         //print("-------------------");
     }
 
-    /** Called on Player collision with a new object. **/
+    /** Called on Player collision Exit. **/
     void OnCollisionExit2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
+        if (velocity.y < 0) {
+            print("");
+        }
+
         ContactPoint2D[] contactsRB = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
         rigidBody.GetContacts(contactsRB);
+
+        bool exitSet = false;
 
         /* Make a hash with the current normals touching the object. */
         HashSet<Vector2> contactNormalsRB = new HashSet<Vector2>();
@@ -225,28 +225,34 @@ public class CharacterMoveDriver : MonoBehaviour {
         exitContacts.UnionWith(contacts);     // exitContacts = contacts
 
         exitContacts.ExceptWith(contactNormalsRB);  // Set ExitContacts.
-        contacts.IntersectWith(exitContacts);   // Remove Exit contacts from Hash.
+        contacts.ExceptWith(exitContacts);   // Remove Exit contacts from Hash.
 
         /* Call Collider Enter Functions */
         foreach (Vector2 exitContact in exitContacts) {
-            /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
-            if (exitContact != Vector2.zero) {
-                /* Vertical Collision */
-                if (exitContact.x == 0) {
-                    if (exitContact.y == 1 && isTouchingBot) {
-                        onBotCollisionExit();
+            if (!exitSet) {
+                /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
+                if (exitContact != Vector2.zero) {
+                    /* Vertical Collision */
+                    if (exitContact.x == 0) {
+                        if (exitContact.y == 1) {
+                            onBotCollisionExit();
+                            exitSet = true;
+                        }
+                        else if (exitContact.y == -1) {
+                            onTopCollisionExit();
+                            exitSet = true;
+                        }
                     }
-                    else if (exitContact.y == -1 && isTouchingTop) {
-                        onTopCollisionExit();
-                    }
-                }
-                /* Horizontal Collision */
-                else if (exitContact.y == 0) {
-                    if (exitContact.x == 1 && isTouchingLeft) {
-                        onLeftCollisionExit();
-                    }
-                    else if (exitContact.x == -1 && isTouchingRight) {
-                        onRightCollisionExit();
+                    /* Horizontal Collision */
+                    else if (exitContact.y == 0) {
+                        if (exitContact.x == 1) {
+                            onLeftCollisionExit();
+                            exitSet = true;
+                        }
+                        else if (exitContact.x == -1) {
+                            onRightCollisionExit();
+                            exitSet = true;
+                        }
                     }
                 }
             }
