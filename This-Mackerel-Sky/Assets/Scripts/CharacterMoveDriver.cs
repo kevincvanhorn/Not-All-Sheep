@@ -26,14 +26,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     public bool onWall;
 
     /* Colliders */
-    /*public List<GameObject> ChildrenColliders;
-    public PlayerCollider topCollider;
-    public PlayerCollider botCollider;
-    public PlayerCollider leftCollider;
-    public PlayerCollider rightCollider;
-    */
     HashSet<Vector2> contacts = new HashSet<Vector2>();
-    //ContactPoint2D[] contacts = new ContactPoint2D[12]; // 2 when side collides (each corner) || 1 when on slope
 
     /* Movement Variables */
     public float moveSpeed = 10;    // Horizontal speed.
@@ -56,24 +49,6 @@ public class CharacterMoveDriver : MonoBehaviour {
     float gravity;
     float jumpVelocityMax;
     float jumpVelocityMin;
-
-    /*public ContactPoint2D[] Contacts {
-        get {
-            return contacts;
-        }
-        set {
-            contacts = value;
-        }
-    }*/
-
-    //CContactPoints contacts = new CContactPoints();
-
-    // Define the indexer to allow client code to use [] notation.
-    /*public ContactPoint2D this[int i] {
-        get { return contacts[i]; }
-        set { contacts[i] = value; }
-    }*/
-
 
     /* Define States */
     public enum MoveState {
@@ -101,32 +76,6 @@ public class CharacterMoveDriver : MonoBehaviour {
     public bool IsSprinting() { return moveState == MoveState.Sprinting; }
 
     void Start() {
-        //controller = GetComponent<Controller2D>();
-
-        /* Set child colliders. */
-        /*foreach (Transform child in transform) {
-            if (child.tag == "PlayerCollider") {
-                ChildrenColliders.Add(child.gameObject);
-            }
-        }
-
-        
-        topCollider = ChildrenColliders[0].GetComponent<PlayerCollider>();
-        botCollider = ChildrenColliders[1].GetComponent<PlayerCollider>();
-        leftCollider = ChildrenColliders[2].GetComponent<PlayerCollider>();
-        rightCollider = ChildrenColliders[3].GetComponent<PlayerCollider>();
-
-        topCollider.OnEdgeEnter += onTopCollisionEnter;
-        botCollider.OnEdgeEnter += onBotCollisionEnter;
-        leftCollider.OnEdgeEnter += onLeftCollisionEnter;
-        rightCollider.OnEdgeEnter += onRightCollisionEnter;
-
-        topCollider.OnEdgeExit += onTopCollisionExit;
-        botCollider.OnEdgeExit += onBotCollisionExit;
-        leftCollider.OnEdgeExit += onLeftCollisionExit;
-        rightCollider.OnEdgeExit += onRightCollisionExit;
-        */
-
         /* Set collision defaults. */
         isTouchingTop = false;
         isTouchingRight = false;
@@ -152,9 +101,6 @@ public class CharacterMoveDriver : MonoBehaviour {
     void Update() {
         CalcState();
         rigidBody.velocity = velocity;
-        //controller.Move(velocity * Time.deltaTime); // Pass distance to move.
-        //print(moveState);
-        //print(velocity + " rp: " + isRightPressed + " tL: " + isTouchingLeft);
     }
 
     /** Called on Player collision with a new object. **/
@@ -206,10 +152,6 @@ public class CharacterMoveDriver : MonoBehaviour {
 
     /** Called on Player collision Exit. **/
     void OnCollisionExit2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
-        if (velocity.y < 0) {
-            print("");
-        }
-
         ContactPoint2D[] contactsRB = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
         rigidBody.GetContacts(contactsRB);
 
@@ -732,27 +674,5 @@ public class CharacterMoveDriver : MonoBehaviour {
         // set
         prevState = moveState;
         moveState = newState;
-    }
-}
-
-class CContactPoints {
-    // Array of temperature values
-    private ContactPoint2D[] contacts = new ContactPoint2D[8];
-
-    // To enable client code to validate input 
-    // when accessing your indexer.
-    public int Length {
-        get { return contacts.Length; }
-    }
-    // Indexer declaration.
-    // If index is out of range, the temps array will throw the exception.
-    public ContactPoint2D this[int index] {
-        get {
-            return contacts[index];
-        }
-
-        set {
-            contacts[index] = value;
-        }
     }
 }
