@@ -231,7 +231,6 @@ public class CharacterMoveDriver : MonoBehaviour {
         isTouchingTop = true;
     }
     void onBotCollisionEnter() {
-        print("BOTTTTTTTTTTTTTTT ENTER " + velocity.y);
         velocity.y = 0;
         isGrounded = true;
         isTouchingBot = true;
@@ -241,13 +240,15 @@ public class CharacterMoveDriver : MonoBehaviour {
         wallImpactSpeed = velocity.x;
         velocity.x = 0;
         isTouchingLeft = true;
-        onWall = true;
+        if(!isGrounded)
+            onWall = true;
     }
     void onRightCollisionEnter() {
         wallImpactSpeed = velocity.x;
         velocity.x = 0;
         isTouchingRight = true;
-        onWall = true;
+        if (!isGrounded)
+            onWall = true;
     }
     void onSlopeCollisionEnter() {
         onSlope = true;
@@ -279,7 +280,8 @@ public class CharacterMoveDriver : MonoBehaviour {
         wallImpactSpeed = activeSpeed;
     }
     void onSlopeCollisionExit() {
-        onSlope = false;
+        if (!isTouchingRight && !isTouchingLeft) // Case: when running into obstacles on slope.
+            onSlope = false;
     }
 
     void CalcState() {
@@ -466,7 +468,6 @@ public class CharacterMoveDriver : MonoBehaviour {
     }
 
     void doSprint() {
-        print("SPRRRRRRRINT " + velocity.y);
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
         //velocity.y = 0;
 
@@ -703,7 +704,6 @@ public class CharacterMoveDriver : MonoBehaviour {
     }
 
     void climbSlope() {
-        print("SLOOOOOOOOOPE " + velocity.y);
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
 
         /* Change State -------------------------------------------------- */
@@ -719,6 +719,9 @@ public class CharacterMoveDriver : MonoBehaviour {
         {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
+            onSlope = false;
+            if (isTouchingRight || isTouchingRight) // Case: Jumping from slope against a wall. 
+                onWall = true;
             FindState();
             return;
         }
@@ -727,6 +730,9 @@ public class CharacterMoveDriver : MonoBehaviour {
         {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
+            onSlope = false;
+            if (isTouchingRight || isTouchingRight) // Case: Jumping from slope against a wall. 
+                onWall = true;
             FindState();
             return;
         }
@@ -736,33 +742,58 @@ public class CharacterMoveDriver : MonoBehaviour {
         if (Input.GetKeyDown(KeyCode.RightArrow)) {
             directionFacing = 1;
             if (isGrounded) {
-                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad); // since isGrounded
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir;
+                if(!isTouchingRight) {
+                    velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad); // since isGrounded
+                    velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir;
+                }
+                else { // Wall on slope.
+                    velocity.x = 0;
+                    velocity.y = 0;
+                }
             }
+            
                 
         }
         // When Left is first input.
         else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             directionFacing = -1;
             if (isGrounded) {
-                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * -1;
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * -1;
+                if (!isTouchingLeft) {
+                    velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * -1;
+                    velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * -1;
+                }
+                else { // Case: Wall on slope.
+                    velocity.x = 0;
+                    velocity.y = 0;
+                }
             }
                 
         }
         else if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)) {
             directionFacing = -1;
             if (isGrounded) {
-                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * -1;
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * -1;
+                if (!isTouchingLeft) {
+                    velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * -1;
+                    velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * -1;
+                }
+                else { // Case: Wall on slope.
+                    velocity.x = 0;
+                    velocity.y = 0;
+                }
             }
                 
         }
         else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
             directionFacing = 1;
             if (isGrounded) {
-                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad);
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir;
+                if (!isTouchingRight) {
+                    velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad);
+                    velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir;
+                }
+                else { // Wall on slope.
+                    velocity.x = 0;
+                    velocity.y = 0;
+                }
             }
                 
         }
@@ -781,11 +812,6 @@ public class CharacterMoveDriver : MonoBehaviour {
             else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
                 velocity.x += lateralAccelGrounded * Time.deltaTime;
             }*/
-        }
-
-        if (isTouchingLeft || isTouchingRight) {
-            velocity.x = 0;
-            velocity.y = 0;
         }
 
         /* Change State -------------------------------------------------- */
