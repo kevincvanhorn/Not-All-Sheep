@@ -113,7 +113,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     void Update() {
         CalcState();
         rigidBody.velocity = velocity;
-        //print(moveState);
+        print(moveState);
     }
 
     /** Called on Player collision with a new object. **/
@@ -479,6 +479,9 @@ public class CharacterMoveDriver : MonoBehaviour {
     void doSprint() {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
         //velocity.y = 0;
+        if (!isTouchingBot) {
+            isGrounded = false;
+        }
 
         if (!isGrounded || onSlope) // Conditions to Transition out of state
         {
