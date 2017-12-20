@@ -229,6 +229,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     void onTopCollisionEnter() {
         velocity.y = 0;
         isTouchingTop = true;
+        print("Enter Top--------------");
     }
     void onBotCollisionEnter() {
         velocity.y = 0;
@@ -252,6 +253,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     }
     void onSlopeCollisionEnter() {
         onSlope = true;
+        velocity.y = 0; // For falling -> slope transition.
         isGrounded = true; //TODO: make work with upper slopes
     }
 
@@ -339,7 +341,7 @@ public class CharacterMoveDriver : MonoBehaviour {
                     ChangeState(MoveState.Falling);
             }
             else if (velocity.y == 0) {
-
+                ChangeState(MoveState.Falling);
             }
         }
     }
@@ -715,7 +717,7 @@ public class CharacterMoveDriver : MonoBehaviour {
 
         /* Vertical JUMP Calc ------------------------------------------ */
         // When Up is first input.
-        if (Input.GetKeyDown(KeyCode.UpArrow)) // Velocity when initial pressed
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isTouchingTop) // Velocity when initial pressed
         {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
@@ -726,7 +728,7 @@ public class CharacterMoveDriver : MonoBehaviour {
             return;
         }
         
-        else if (Input.GetKey(KeyCode.UpArrow)) // Up Held down.
+        else if (Input.GetKey(KeyCode.UpArrow) && !isTouchingTop) // Up Held down.
         {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
@@ -801,17 +803,20 @@ public class CharacterMoveDriver : MonoBehaviour {
         /* X Acceleration ---------------------------------------------- */
         // When No input.
         if (isGrounded && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) { // On-release of Lateral Movement controls - Deccelerate
-            velocity.x = 0;
-            velocity.y = 0;
-            /*if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
+            //velocity.x = 0;
+            //velocity.y = 0;
+            if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
                 velocity.x = 0;
+                velocity.y = 0;
             }
             if (directionFacing == 1 && velocity.x > 0) { // Decceleration Right
                 velocity.x -= lateralAccelGrounded * Time.deltaTime;
+                velocity.y -= lateralAccelGrounded * Time.deltaTime;
             }
             else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
                 velocity.x += lateralAccelGrounded * Time.deltaTime;
-            }*/
+                velocity.y -= lateralAccelGrounded * Time.deltaTime;
+            }
         }
 
         /* Change State -------------------------------------------------- */
