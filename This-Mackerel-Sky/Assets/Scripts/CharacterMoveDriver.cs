@@ -113,12 +113,12 @@ public class CharacterMoveDriver : MonoBehaviour {
     void Update() {
         CalcState();
         rigidBody.velocity = velocity;
-        print(moveState);
+        //print(moveState);
     }
 
     /** Called on Player collision with a new object. **/
     void OnCollisionEnter2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
-        ContactPoint2D[] contactsIn = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
+        ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
         coll.GetContacts(contactsIn);
 
         bool enterSet = false;
@@ -136,25 +136,27 @@ public class CharacterMoveDriver : MonoBehaviour {
         /* Call Collider Enter Functions */
         for (int i =0; !enterSet && i < contactsIn.Length; i++) {
             /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
+            print("--------------" + slopeAngle + " " + contactsIn[i].normal);
             if (contactsIn[i].normal != Vector2.zero) {
                 /* Vertical Collision */
-                if (contactsIn[i].normal.x == 0) {
+                slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
+                if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
                     if (contactsIn[i].normal.y == 1) {
                         onBotCollisionEnter();
                         enterSet = true;
                     }
-                    else if (contactsIn[i].normal.y == -1) {
+                    else if (contactsIn[i].normal.y == -1) { // contactsIn[i].normal.y == -1
                         onTopCollisionEnter();
                         enterSet = true;
                     }
                 }
                 /* Horizontal Collision */
-                else if (contactsIn[i].normal.y==0) {
-                    if (contactsIn[i].normal.x == 1) {
+                else if (slopeAngle > maxAngle) { // contactsIn[i].normal.y == 0
+                    if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
                         onLeftCollisionEnter();
                         enterSet = true;
                     }
-                    else if (contactsIn[i].normal.x == -1) {
+                    else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
                         onRightCollisionEnter();
                         enterSet = true;
                     }
@@ -162,7 +164,7 @@ public class CharacterMoveDriver : MonoBehaviour {
                 /* Slope Collision */
                 else {
                     slopeDir = (contactsIn[i].normal.x < 0) ? 1 : -1; // 1 = right, -1 = left
-                    slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
+                    //slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
                     onSlopeCollisionEnter();
                 }
             }
@@ -172,10 +174,11 @@ public class CharacterMoveDriver : MonoBehaviour {
 
     /** Called on Player collision Exit. **/
     void OnCollisionExit2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
-        ContactPoint2D[] contactsRB = new ContactPoint2D[2]; // 2 when side collides (each corner) || 1 when on slope
+        ContactPoint2D[] contactsRB = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
         rigidBody.GetContacts(contactsRB);
 
         bool exitSet = false;
+        float slopeAngleExit = 0;
 
         /* Make a hash with the current normals touching the object. */
         HashSet<Vector2> contactNormalsRB = new HashSet<Vector2>();
@@ -184,16 +187,18 @@ public class CharacterMoveDriver : MonoBehaviour {
         }
 
         HashSet<Vector2> exitContacts = new HashSet<Vector2>();
-        exitContacts.UnionWith(contacts);     // exitContacts = contacts
+        exitContacts.UnionWith(contacts);           // exitContacts = contacts
 
         exitContacts.ExceptWith(contactNormalsRB);  // Set ExitContacts.
-        contacts.ExceptWith(exitContacts);   // Remove Exit contacts from Hash.
+        contacts.ExceptWith(exitContacts);          // Remove Exit contacts from Hash.
 
         /* Call Collider Enter Functions */
         foreach (Vector2 exitContact in exitContacts) {
-            if (!exitSet) {
-                /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
+            //if (!exitSet) {
+                /* If contact exists (entries are zero in larger allocated ContactPoint2D[])*/
                 if (exitContact != Vector2.zero) {
+                    slopeAngleExit = Vector2.Angle(exitContact, Vector2.up);
+                    print("EXIT --- " + slopeAngleExit);
                     /* Vertical Collision */
                     if (exitContact.x == 0) {
                         if (exitContact.y == 1) {
@@ -206,12 +211,13 @@ public class CharacterMoveDriver : MonoBehaviour {
                         }
                     }
                     /* Horizontal Collision */
-                    else if (exitContact.y == 0) {
-                        if (exitContact.x == 1) {
+                    else if (slopeAngleExit > maxAngle) { //exitContact.y == 0
+                        print(" HORIZ EXIT ---------------------------- ");
+                        if (exitContact.x > 0) {
                             onLeftCollisionExit();
                             exitSet = true;
                         }
-                        else if (exitContact.x == -1) {
+                        else if (exitContact.x < 0) {
                             onRightCollisionExit();
                             exitSet = true;
                         }
@@ -221,7 +227,7 @@ public class CharacterMoveDriver : MonoBehaviour {
                         onSlopeCollisionExit();
                     }
                 }
-            }
+            //}
         }
     }
 
@@ -229,7 +235,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     void onTopCollisionEnter() {
         velocity.y = 0;
         isTouchingTop = true;
-        print("Enter Top--------------");
+        //print("Enter Top--------------");
     }
     void onBotCollisionEnter() {
         velocity.y = 0;
@@ -245,6 +251,7 @@ public class CharacterMoveDriver : MonoBehaviour {
             onWall = true;
     }
     void onRightCollisionEnter() {
+        print("----- RIGHT collision");
         wallImpactSpeed = velocity.x;
         velocity.x = 0;
         isTouchingRight = true;
@@ -260,17 +267,17 @@ public class CharacterMoveDriver : MonoBehaviour {
     /** Called on Player leaving collision with an object. **/
     void onTopCollisionExit() {
         isTouchingTop = false;
-        print("EXIT Top--------------");
+        //print("EXIT Top--------------");
     }
     void onBotCollisionExit() {
-        print("EXIT Bot--------------");
+        //print("EXIT Bot--------------");
         if (!onSlope) {
             isGrounded = false;
         }
         isTouchingBot = false;
     }
     void onLeftCollisionExit() {
-        print("EXIT Left--------------");
+        //print("EXIT Left--------------");
         isTouchingLeft = false;
         onWall = false;
         wallImpactSpeed = activeSpeed;
@@ -502,24 +509,49 @@ public class CharacterMoveDriver : MonoBehaviour {
         // When Right is first input.
         if (Input.GetKeyDown(KeyCode.RightArrow)) {
             directionFacing = 1;
-            if (isGrounded)
-                velocity.x = activeSpeed; // since isGrounded
+            if (isGrounded) {
+                if (isTouchingRight) {
+                    velocity.x = 0;
+                }
+                else
+                    velocity.x = activeSpeed; // since isGrounded
+               
+            }
+                
         }
         // When Left is first input.
         else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             directionFacing = -1;
-            if (isGrounded)
-                velocity.x = activeSpeed * -1; //  Necessary because input.x changes. // since isGrounded
+            if (isGrounded) {
+                if (isTouchingLeft) {
+                    velocity.x = 0;
+                }
+                else
+                    velocity.x = activeSpeed * -1; //  Necessary because input.x changes. // since isGrounded
+            }
+                
         }
         else if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)) {
             directionFacing = -1;
-            if (isGrounded)
-                velocity.x = activeSpeed * -1;
+            if (isGrounded) {
+                if (isTouchingLeft) {
+                    velocity.x = 0;
+                }
+                else
+                    velocity.x = activeSpeed * -1;
+            }
+                
         }
         else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
             directionFacing = 1;
-            if (isGrounded)
-                velocity.x = activeSpeed;
+            if (isGrounded) {
+                if (isTouchingRight) {
+                    velocity.x = 0;
+                }
+                else
+                    velocity.x = activeSpeed;
+            }
+                
         }
 
         /* X Acceleration ---------------------------------------------- */
@@ -534,10 +566,9 @@ public class CharacterMoveDriver : MonoBehaviour {
             else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
                 velocity.x += lateralAccelGrounded * Time.deltaTime;
             }
-        }
-
-        if (isTouchingLeft || isTouchingRight) {
-            velocity.x = 0;
+            if (isTouchingLeft || isTouchingRight) {
+                velocity.x = 0;
+            }
         }
 
         // Conditions to Transition out of state
