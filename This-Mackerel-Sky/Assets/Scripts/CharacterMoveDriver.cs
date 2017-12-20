@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// {System.AppDomain.CurrentDomain.SetData("break",true)}
+// System.AppDomain.CurrentDomain.GetData("break") != null
+
 /**
  * General Character Platformer Controller - Parent of DeathForm, LifeForm, and ReaperForm MoveDrivers
  * (DFMoveDriver, LFMoveDriver, RFMoveDriver)
@@ -52,7 +55,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     float jumpVelocityMin;
 
     /* Slope Variables */
-    float slopeDir;
+    public float slopeDir;
     public float slopeAngle = 0;
     public float maxAngle = 80;
 
@@ -110,6 +113,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     void Update() {
         CalcState();
         rigidBody.velocity = velocity;
+        print(moveState);
     }
 
     /** Called on Player collision with a new object. **/
@@ -157,7 +161,7 @@ public class CharacterMoveDriver : MonoBehaviour {
                 }
                 /* Slope Collision */
                 else {
-                    slopeDir = (contactsIn[i].normal.x < 0) ? 0 : 1; // 1 = right, 0 = left
+                    slopeDir = (contactsIn[i].normal.x < 0) ? 1 : -1; // 1 = right, -1 = left
                     slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
                     onSlopeCollisionEnter();
                 }
@@ -212,6 +216,10 @@ public class CharacterMoveDriver : MonoBehaviour {
                             exitSet = true;
                         }
                     }
+                    /* Slope Collision */
+                    else {
+                        onSlopeCollisionExit();
+                    }
                 }
             }
         }
@@ -223,9 +231,11 @@ public class CharacterMoveDriver : MonoBehaviour {
         isTouchingTop = true;
     }
     void onBotCollisionEnter() {
+        print("BOTTTTTTTTTTTTTTT ENTER " + velocity.y);
         velocity.y = 0;
         isGrounded = true;
         isTouchingBot = true;
+        onSlope = false;
     }
     void onLeftCollisionEnter() {
         wallImpactSpeed = velocity.x;
@@ -247,20 +257,29 @@ public class CharacterMoveDriver : MonoBehaviour {
     /** Called on Player leaving collision with an object. **/
     void onTopCollisionExit() {
         isTouchingTop = false;
+        print("EXIT Top--------------");
     }
     void onBotCollisionExit() {
-        isGrounded = false;
+        print("EXIT Bot--------------");
+        if (!onSlope) {
+            isGrounded = false;
+        }
         isTouchingBot = false;
     }
     void onLeftCollisionExit() {
+        print("EXIT Left--------------");
         isTouchingLeft = false;
         onWall = false;
         wallImpactSpeed = activeSpeed;
     }
     void onRightCollisionExit() {
+        print("EXIT Right--------------");
         isTouchingRight = false;
         onWall = false;
         wallImpactSpeed = activeSpeed;
+    }
+    void onSlopeCollisionExit() {
+        onSlope = false;
     }
 
     void CalcState() {
@@ -325,7 +344,7 @@ public class CharacterMoveDriver : MonoBehaviour {
 
     void doIdle() {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
-
+        //velocity.y = 0;
         /* Vertical JUMP Calc ------------------------------------------ */
         // When Up is first input.
         if (Input.GetKeyDown(KeyCode.UpArrow)) // Velocity when initial pressed
@@ -415,6 +434,11 @@ public class CharacterMoveDriver : MonoBehaviour {
     void doFall() {
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
 
+        if (isGrounded || onSlope) {
+            FindState();
+            return;
+        }
+
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
         /* Lateral Calc -------------------------------------------*/
@@ -442,17 +466,19 @@ public class CharacterMoveDriver : MonoBehaviour {
     }
 
     void doSprint() {
+        print("SPRRRRRRRINT " + velocity.y);
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
+        //velocity.y = 0;
 
-        if (!isGrounded) // Conditions to Transition out of state
+        if (!isGrounded || onSlope) // Conditions to Transition out of state
         {
             FindState();
+            return;
         }
 
         /* Sprint Calc ------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftShift)) {
             activeSpeed = sprintSpeed;
-            print("asdklfjalskdjfhakljsdf");
         }
         else {
             activeSpeed = moveSpeed;
@@ -512,7 +538,7 @@ public class CharacterMoveDriver : MonoBehaviour {
         }
 
         // Conditions to Transition out of state
-        if (!isGrounded || velocity.y != 0) {
+        if (!isGrounded || velocity.y != 0 || onSlope) {
             FindState();
         }
     }
@@ -677,11 +703,14 @@ public class CharacterMoveDriver : MonoBehaviour {
     }
 
     void climbSlope() {
+        print("SLOOOOOOOOOPE " + velocity.y);
         Vector2 input = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")); // Raw is no smoothing.
 
-        if (!onSlope) // Conditions to Transition out of state
+        /* Change State -------------------------------------------------- */
+        if (!onSlope || !isGrounded) // Conditions to Transition out of state
         {
             FindState();
+            return;
         }
 
         /* Vertical JUMP Calc ------------------------------------------ */
@@ -690,11 +719,16 @@ public class CharacterMoveDriver : MonoBehaviour {
         {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
+            FindState();
+            return;
         }
+        
         else if (Input.GetKey(KeyCode.UpArrow)) // Up Held down.
         {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
+            FindState();
+            return;
         }
 
         /* Lateral Calc -------------------------------------------------- */
@@ -703,7 +737,7 @@ public class CharacterMoveDriver : MonoBehaviour {
             directionFacing = 1;
             if (isGrounded) {
                 velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad); // since isGrounded
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir;
             }
                 
         }
@@ -712,7 +746,7 @@ public class CharacterMoveDriver : MonoBehaviour {
             directionFacing = -1;
             if (isGrounded) {
                 velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * -1;
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * -1;
             }
                 
         }
@@ -720,7 +754,7 @@ public class CharacterMoveDriver : MonoBehaviour {
             directionFacing = -1;
             if (isGrounded) {
                 velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * -1;
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * -1;
             }
                 
         }
@@ -728,9 +762,25 @@ public class CharacterMoveDriver : MonoBehaviour {
             directionFacing = 1;
             if (isGrounded) {
                 velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad);
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir;
             }
                 
+        }
+
+        /* X Acceleration ---------------------------------------------- */
+        // When No input.
+        if (isGrounded && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) { // On-release of Lateral Movement controls - Deccelerate
+            velocity.x = 0;
+            velocity.y = 0;
+            /*if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
+                velocity.x = 0;
+            }
+            if (directionFacing == 1 && velocity.x > 0) { // Decceleration Right
+                velocity.x -= lateralAccelGrounded * Time.deltaTime;
+            }
+            else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
+                velocity.x += lateralAccelGrounded * Time.deltaTime;
+            }*/
         }
 
         if (isTouchingLeft || isTouchingRight) {
