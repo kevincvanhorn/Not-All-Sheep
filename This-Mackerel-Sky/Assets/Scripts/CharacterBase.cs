@@ -4,6 +4,8 @@ using UnityEngine;
 
 using MonsterLove.StateMachine; // State-Machine Package.
 
+// FixedUpdate -> OnTrigger -> OnCollision
+
 [RequireComponent(typeof(Rigidbody2D))]
 public class CharacterBase : MonoBehaviour {
 
@@ -64,6 +66,18 @@ public class CharacterBase : MonoBehaviour {
         ClimbingSlope
     }
 
+    private enum CollisionType {
+        None,
+        Top,
+        Bot,
+        Left,
+        Right,
+        Slope
+    };
+
+    HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>();
+    HashSet<CollisionType> exitCollisionTypes = new HashSet<CollisionType>();
+
     private StateMachine<States> fsm;
 
     public void Awake() {
@@ -91,41 +105,23 @@ public class CharacterBase : MonoBehaviour {
         jumpVelocityMin = Mathf.Sqrt(2 * Mathf.Abs(gravity) * jumpHeightMin);
     }
 
-    // Update is called once per frame
-    void Update() {
-        CalcState();
+    void FixedUpdate() {
+        Debug.Log("MAIN - Update");
         rigidBody.velocity = velocity;
     }
 
-    void CalcState() {
-        var state = fsm.State;
-        if(state == States.Idle) {
-
-        }
+    /* Synchronous w/ Custom State fixed updates - for common resetting of attributes. */
+    void BaseFixedUpdate() {
+        enterCollisionTypes.Clear();
+        exitCollisionTypes.Clear();
     }
-
-    void Falling_OnCollisionEnter2D(Collision2D collision) {
-        bool enterSet = false;
-
-        Debug.Log("FALLING - OnCollisionEnter");
-        velocity.y = 0;
-        fsm.ChangeState(States.Idle, StateTransition.Overwrite);
-    }
-
-    void Falling_Update() {
-        velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
-    }
-
-    void Idle_Enter() {
-        velocity.y = 0;
-    }
-
-    /* ------------------------------------------------------------------------------ Collision Methods: Custom  */
 
     /** Called on Player collision with a new object. **/
-    void BaseCollisionEnter2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
+    void BaseCollisionEnter2D(Collision2D collision) { // ~ Could convert Collision2D to Collider2D
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
-        coll.GetContacts(contactsIn);
+        collision.GetContacts(contactsIn);
+
+        bool enterSet = false;
 
         /* Add new contact points to hash. */
         for (int i = 0; i < contactsIn.Length; i++) {
@@ -137,11 +133,132 @@ public class CharacterBase : MonoBehaviour {
             }
         }
 
+        /* Call Collider Enter Functions */
+        for (int i = 0; !enterSet && i < contactsIn.Length; i++) {
+            /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
+            //print("--------------" + slopeAngle + " " + contactsIn[i].normal);
+            if (contactsIn[i].normal != Vector2.zero) {
+                /* Vertical Collision */
+                slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
+                if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
+                    if (contactsIn[i].normal.y == 1) {
+                        enterCollisionTypes.Add(CollisionType.Bot);
+                        enterSet = true;
+                    }
+                    else if (contactsIn[i].normal.y == -1) { // contactsIn[i].normal.y == -1
+                        enterCollisionTypes.Add(CollisionType.Top);
+                        enterSet = true;
+                    }
+                }
+                /* Horizontal Collision */
+                else if (slopeAngle > maxAngle) { // contactsIn[i].normal.y == 0
+                    if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
+                        enterCollisionTypes.Add(CollisionType.Left);
+                        enterSet = true;
+                    }
+                    else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
+                        enterCollisionTypes.Add(CollisionType.Right);
+                        enterSet = true;
+                    }
+                }
+                /* Slope Collision */
+                else {
+                    slopeDir = (contactsIn[i].normal.x < 0) ? 1 : -1; // 1 = right, -1 = left
+                    //slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
+                    enterCollisionTypes.Add(CollisionType.Slope);
+                }
+            }
+        }
     }
 
-    void BaseCollisionExit2D(ref Collision2D collision) {
+    /** Called on Player collision Exit. **/
+    void BaseCollisionExit2D(Collision2D collision) { // ~ Could convert Collision2D to Collider2D
+        ContactPoint2D[] contactsRB = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
+        rigidBody.GetContacts(contactsRB);
 
+        bool exitSet = false;
+        float slopeAngleExit = 0;
+
+        /* Make a hash with the current normals touching the object. */
+        HashSet<Vector2> contactNormalsRB = new HashSet<Vector2>();
+        foreach (ContactPoint2D c in contactsRB) {
+            contactNormalsRB.Add(c.normal);
+        }
+
+        HashSet<Vector2> exitContacts = new HashSet<Vector2>();
+        exitContacts.UnionWith(contacts);           // exitContacts = contacts
+
+        exitContacts.ExceptWith(contactNormalsRB);  // Set ExitContacts.
+        contacts.ExceptWith(exitContacts);          // Remove Exit contacts from Hash.
+
+        /* Call Collider Enter Functions */
+        foreach (Vector2 exitContact in exitContacts) {
+            //if (!exitSet) {
+            /* If contact exists (entries are zero in larger allocated ContactPoint2D[])*/
+            if (exitContact != Vector2.zero) {
+                slopeAngleExit = Vector2.Angle(exitContact, Vector2.up);
+                //print("EXIT --- " + slopeAngleExit);
+                /* Vertical Collision */
+                if (exitContact.x == 0) {
+                    if (exitContact.y == 1) {
+                        exitCollisionTypes.Add(CollisionType.Bot);
+                        exitSet = true;
+                    }
+                    else if (exitContact.y == -1) {
+                        exitCollisionTypes.Add(CollisionType.Top);
+                        exitSet = true;
+                    }
+                }
+                /* Horizontal Collision */
+                else if (slopeAngleExit > maxAngle) { //exitContact.y == 0
+                    if (exitContact.x > 0) {
+                        exitCollisionTypes.Add(CollisionType.Left);
+                        exitSet = true;
+                    }
+                    else if (exitContact.x < 0) {
+                        exitCollisionTypes.Add(CollisionType.Right);
+                        exitSet = true;
+                    }
+                }
+                /* Slope Collision */
+                else {
+                    exitCollisionTypes.Add(CollisionType.Slope);
+                }
+            }
+            //}
+        }
     }
+
+    /* Collision Methods: Custom ---------------------------------------------*/
+    // Enter
+    // Exit
+    // FixedUpdate
+    // Collision Enter/Exit
+    // Update
+    // LateUpdate
+    // Finally
+
+    void Falling_FixedUpdate() {
+        BaseFixedUpdate();
+
+        velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+    }
+
+    void Falling_OnCollisionEnter2D(Collision2D collision) {
+        BaseCollisionEnter2D(collision);
+        
+
+
+
+        Debug.Log("FALLING - OnCollisionEnter");
+        velocity.y = 0;
+        fsm.ChangeState(States.Idle, StateTransition.Overwrite);
+    }
+
+    void Idle_Enter() {
+        velocity.y = 0;
+    }
+
 }
 
 // Fianlly: Reset object to desired configuration
