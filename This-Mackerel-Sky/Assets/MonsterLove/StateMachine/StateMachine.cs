@@ -153,10 +153,13 @@ namespace MonsterLove.StateMachine
 					case "FixedUpdate":
 						targetState.FixedUpdate = CreateDelegate<Action>(methods[i], component);
 						break;
-					case "OnCollisionEnter":
-						targetState.OnCollisionEnter = CreateDelegate<Action<Collision>>(methods[i], component);
+					case "OnCollisionEnter2D":
+						targetState.OnCollisionEnter2D = CreateDelegate<Action<Collision2D>>(methods[i], component);
 						break;
-				}
+                    case "OnCollisionExit2D":
+                        targetState.OnCollisionExit2D = CreateDelegate<Action<Collision2D>>(methods[i], component);
+                        break;
+                }
 			}
 
 			//Create nil state mapping

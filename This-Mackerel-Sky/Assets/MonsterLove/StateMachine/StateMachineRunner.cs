@@ -98,15 +98,26 @@ namespace MonsterLove.StateMachine
 			}
 		}
 
-		//void OnCollisionEnter(Collision collision)
-		//{
-		//	if(currentState != null && !IsInTransition)
-		//	{
-		//		currentState.OnCollisionEnter(collision);
-		//	}
-		//}
+		void OnCollisionEnter2D(Collision2D collision)
+		{
+            for (int i = 0; i < stateMachineList.Count; i++) {
+                var fsm = stateMachineList[i];
+                if (fsm.CurrentStateMap != null && !fsm.IsInTransition) {
+                    fsm.CurrentStateMap.OnCollisionEnter2D(collision);
+                }
+            }
+		}
 
-		public static void DoNothing()
+        void OnCollisionExit2D(Collision2D collision) {
+            for (int i = 0; i < stateMachineList.Count; i++) {
+                var fsm = stateMachineList[i];
+                if (fsm.CurrentStateMap != null && !fsm.IsInTransition) {
+                    fsm.CurrentStateMap.OnCollisionExit2D(collision);
+                }
+            }
+        }
+
+        public static void DoNothing()
 		{
 		}
 
@@ -114,7 +125,7 @@ namespace MonsterLove.StateMachine
 		{
 		}
 
-		public static void DoNothingCollision(Collision other)
+		public static void DoNothingCollision(Collision2D other)
 		{
 		}
 
@@ -141,9 +152,10 @@ namespace MonsterLove.StateMachine
 		public Action Update = StateMachineRunner.DoNothing;
 		public Action LateUpdate = StateMachineRunner.DoNothing;
 		public Action FixedUpdate = StateMachineRunner.DoNothing;
-		public Action<Collision> OnCollisionEnter = StateMachineRunner.DoNothingCollision;
+		public Action<Collision2D> OnCollisionEnter2D = StateMachineRunner.DoNothingCollision;
+        public Action<Collision2D> OnCollisionExit2D = StateMachineRunner.DoNothingCollision;
 
-		public StateMapping(object state)
+        public StateMapping(object state)
 		{
 			this.state = state;
 		}
