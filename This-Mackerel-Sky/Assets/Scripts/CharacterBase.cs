@@ -123,7 +123,7 @@ public class CharacterBase : MonoBehaviour {
         else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
             directionFacing = -1;
         }
-        if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)) {
+        else if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)) {
             directionFacing = -1;
         }
         else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
@@ -265,17 +265,24 @@ public class CharacterBase : MonoBehaviour {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
             fsm.ChangeState(States.Airborne, StateTransition.Safe);
+            print("Idle Transition 1");
         }
 
         /* Lateral Calc -------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
             velocity.x = activeSpeed * directionFacing;
             fsm.ChangeState(States.Running, StateTransition.Safe);
+            print("Idle Transition 2");
         }
 
         if (inputManager.ActionKeyPressed()) {
             fsm.ChangeState(States.Action);
+            print("Idle Transition 3");
         }
+    }
+
+    void Idle_OnCollisionExit2D(Collision2D collision) {
+        BaseCollisionExit2D(collision);
     }
 
     void Airborne_Enter() {
@@ -304,6 +311,11 @@ public class CharacterBase : MonoBehaviour {
         // Reduntant Case for platforms moving down while in air. 
         if (collisionTypes.Contains(CollisionType.Top)) {
             velocity.y = 0;
+        }
+
+        // Jumping While Against Wall.
+        if (collisionTypes.Contains(CollisionType.Right) || collisionTypes.Contains(CollisionType.Left)) {
+            fsm.ChangeState(States.OnWall);
         }
 
         // Trigger Action.
@@ -363,7 +375,12 @@ public class CharacterBase : MonoBehaviour {
 
     }
 
+    void Airborne_OnCollisionExit2D(Collision2D collision) {
+        BaseCollisionExit2D(collision);
+    }
+
     void Running_Enter() {
+        Debug.Log("RUNNING - Enter");
         /* If Enter State and Collision has not been addressed. */
         /*if (enterCollisionTypes.Count > 0 && enterCollisionTypes.Contains(CollisionType.Left)) {
             velocity.x = 0;
@@ -372,6 +389,7 @@ public class CharacterBase : MonoBehaviour {
     }
 
     void Running_FixedUpdate() {
+        Debug.Log("RUNNING - FixedUpdate");
         //check conatcts and set velocity.x = 0 should be touching the ground still
 
         /* Sprint Calc ------------------------------------------------- */
@@ -387,6 +405,7 @@ public class CharacterBase : MonoBehaviour {
         if (Input.GetKey(KeyCode.UpArrow) && !collisionTypes.Contains(CollisionType.Top)) {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
+            print("Running Transition 1");
             fsm.ChangeState(States.Airborne, StateTransition.Safe);
         }
 
@@ -429,12 +448,14 @@ public class CharacterBase : MonoBehaviour {
 
         }
 
-        if (velocity.x == 0) {
+        if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
+            print("Running Transition 2");
             fsm.ChangeState(States.Idle, StateTransition.Safe);
         }
 
         // Trigger Action.
         if (inputManager.ActionKeyPressed()) {
+            print("Running Transition 3");
             fsm.ChangeState(States.Action);
         }
     }
@@ -442,7 +463,7 @@ public class CharacterBase : MonoBehaviour {
     void Running_OnCollisionEnter2D(Collision2D collision) {
         BaseCollisionEnter2D(collision);
 
-        Debug.Log("AIRBORNE - OnCollisionEnter");
+        Debug.Log("RUNNING - OnCollisionEnter");
         /* These are the new collisions this frame from this specific collision. */
         // ? Iterate for all combinations not needed with contains.
         if (enterCollisionTypes.Count > 0) {
@@ -463,6 +484,83 @@ public class CharacterBase : MonoBehaviour {
                 fsm.ChangeState(States.FindState, StateTransition.Overwrite);
             }
         }
+    }
+
+    void Running_OnCollisionExit2D(Collision2D collision) {
+        BaseCollisionExit2D(collision);
+    }
+
+    void OnWall_Enter() {
+        Debug.Log("ONWALL - Enter");
+    }
+
+    void OnWall_FixedUpdate() {
+        Debug.Log("ONWALL - FixedUpdate");
+        velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+
+        // When Up is first input.
+        if (Input.GetKeyDown(KeyCode.UpArrow)) {
+            if (isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward left wall.
+            {
+                velocity.y = jumpVelocityMax;
+                velocity.x = activeSpeed / 2;
+            }
+            else if (isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward right wall.
+            {
+                velocity.y = jumpVelocityMax;
+                velocity.x = -1 * activeSpeed / 2;
+            }
+        }
+        // When Up is released in this frame.
+        if (Input.GetKeyUp(KeyCode.UpArrow)) {
+            if (velocity.y > jumpVelocityMin) { // Keep applying velocity up while key is pressed - variable jump
+                velocity.y = jumpVelocityMin;
+            }
+        }
+        // When Right is first input.
+        if (Input.GetKeyDown(KeyCode.RightArrow)) { // on L/R input - setting conditions.
+            directionFacing = 1;
+            if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
+            {
+                velocity.y = jumpVelocityMax;
+                velocity.x = -1 * activeSpeed / 2;
+            }
+        }
+        // When Left is first input.
+        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+            directionFacing = -1;
+            if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
+            {
+                velocity.y = jumpVelocityMax;
+                velocity.x = activeSpeed / 2;
+            }
+        }
+
+        // When Right or Left is held down.
+        if (Input.GetKey(KeyCode.RightArrow)) {
+            if (isTouchingLeft) {
+                if (Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
+                {
+                    velocity.y = jumpVelocityMax;
+                    velocity.x = activeSpeed;
+                }
+                else // Fall away from wall
+                    velocity.x += lateralAccelAirborne * Time.deltaTime;
+            }
+
+        }
+        else if (Input.GetKey(KeyCode.LeftArrow)) {
+            if (isTouchingRight) {
+                if (Input.GetKey(KeyCode.UpArrow)) // Jump away from right wall.
+                    {
+                    velocity.y = jumpVelocityMax;
+                    velocity.x = -1 * activeSpeed / 2;
+                }
+                else // Fall away from wall
+                    velocity.x -= lateralAccelAirborne * Time.deltaTime;
+            }
+        }
+
     }
 }
 
