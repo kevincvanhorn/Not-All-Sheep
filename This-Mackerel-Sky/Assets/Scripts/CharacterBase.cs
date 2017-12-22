@@ -152,19 +152,23 @@ public class CharacterBase : MonoBehaviour {
                 slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
                 if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
                     if (contactsIn[i].normal.y == 1) {
-                        enterCollisionTypes.Add(CollisionType.Bot);
+                        enterCollisionTypes.Add(CollisionType.Bot); // For this frame.
+                        collisionTypes.Add(CollisionType.Bot);      // For all states.
                     }
                     else if (contactsIn[i].normal.y == -1) { // contactsIn[i].normal.y == -1
                         enterCollisionTypes.Add(CollisionType.Top);
+                        collisionTypes.Add(CollisionType.Top);
                     }
                 }
                 /* Horizontal Collision */
                 else if (slopeAngle > maxAngle) { // contactsIn[i].normal.y == 0
                     if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
                         enterCollisionTypes.Add(CollisionType.Left);
+                        collisionTypes.Add(CollisionType.Left);
                     }
                     else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
                         enterCollisionTypes.Add(CollisionType.Right);
+                        collisionTypes.Add(CollisionType.Right);
                     }
                 }
                 /* Slope Collision */
@@ -172,6 +176,7 @@ public class CharacterBase : MonoBehaviour {
                     slopeDir = (contactsIn[i].normal.x < 0) ? 1 : -1; // 1 = right, -1 = left
                     //slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
                     enterCollisionTypes.Add(CollisionType.Slope);
+                    collisionTypes.Add(CollisionType.Slope);
                 }
             }
         }
@@ -206,23 +211,28 @@ public class CharacterBase : MonoBehaviour {
                 if (exitContact.x == 0) {
                     if (exitContact.y == 1) {
                         exitCollisionTypes.Add(CollisionType.Bot);
+                        collisionTypes.Remove(CollisionType.Bot);
                     }
                     else if (exitContact.y == -1) {
                         exitCollisionTypes.Add(CollisionType.Top);
+                        collisionTypes.Remove(CollisionType.Top);
                     }
                 }
                 /* Horizontal Collision */
                 else if (slopeAngleExit > maxAngle) { //exitContact.y == 0
                     if (exitContact.x > 0) {
                         exitCollisionTypes.Add(CollisionType.Left);
+                        collisionTypes.Remove(CollisionType.Left);
                     }
                     else if (exitContact.x < 0) {
                         exitCollisionTypes.Add(CollisionType.Right);
+                        collisionTypes.Remove(CollisionType.Right);
                     }
                 }
                 /* Slope Collision */
                 else {
                     exitCollisionTypes.Add(CollisionType.Slope);
+                    collisionTypes.Remove(CollisionType.Slope);
                 }
             }
         }
@@ -278,7 +288,8 @@ public class CharacterBase : MonoBehaviour {
         Debug.Log("IDLE - FixedUpdate");
 
         /* Vertical JUMP Calc ------------------------------------------ */
-        if (Input.GetKey(KeyCode.UpArrow)) // Jump if pressed or held.
+        // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
+        if (Input.GetKey(KeyCode.UpArrow) && collisionTypes.Contains(CollisionType.Top)) 
         {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
@@ -291,6 +302,7 @@ public class CharacterBase : MonoBehaviour {
             fsm.ChangeState(States.Running, StateTransition.Safe);
         }
         
+        //if()
     }
 
 
