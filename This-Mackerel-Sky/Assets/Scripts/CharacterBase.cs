@@ -55,13 +55,13 @@ public class CharacterBase : MonoBehaviour {
 
     /* Define States */
     public enum States {
+        FindState,
         Idle,
-        Jumping,
-        Falling,
+        Airborne,
         WallRising,
         WallFalling,
         WallSticking,
-        Sprinting,
+        Running,
         Dashing,
         ClimbingSlope
     }
@@ -75,14 +75,15 @@ public class CharacterBase : MonoBehaviour {
         Slope
     };
 
-    HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>();
+    HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame.
     HashSet<CollisionType> exitCollisionTypes = new HashSet<CollisionType>();
+    HashSet<CollisionType> collisionTypes = new HashSet<CollisionType>();
 
     private StateMachine<States> fsm;
 
     public void Awake() {
         // Initialize State Machine Engine		
-        fsm = StateMachine<States>.Initialize(this, States.Falling);
+        fsm = StateMachine<States>.Initialize(this, States.Airborne);
     }
 
     public void Start() {
@@ -106,10 +107,25 @@ public class CharacterBase : MonoBehaviour {
     }
 
     void FixedUpdate() {
-        Debug.Log("Main - Fixed Update");
+        //Debug.Log("Main - Fixed Update");
         enterCollisionTypes.Clear();
         exitCollisionTypes.Clear();
         rigidBody.velocity = velocity;
+
+        /* Update directionFacing ------------------------------------------ */
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
+            directionFacing = 1;
+        }
+        // When Left is first input.
+        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+            directionFacing = -1;
+        }
+        if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)) {
+            directionFacing = -1;
+        }
+        else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
+            directionFacing = 1;
+        }
     }
 
     /** Called on Player collision with a new object. **/
@@ -222,25 +238,33 @@ public class CharacterBase : MonoBehaviour {
     // LateUpdate
     // Finally
 
-    void Falling_Enter() {
-        Debug.Log("FALLING - Enter");
+    void Airborne_Enter() {
+        Debug.Log("AIRBORNE - Enter");
     }
 
-    void Falling_FixedUpdate() {
-        Debug.Log("FALLING - Fixed Update");
+    void Airborne_FixedUpdate() {
+        Debug.Log("AIRBORNE - Fixed Update");
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
     }
 
-    void Falling_OnCollisionEnter2D(Collision2D collision) {
+    void Airborne_OnCollisionEnter2D(Collision2D collision) {
         BaseCollisionEnter2D(collision);
         
-        Debug.Log("FALLING - OnCollisionEnter");
+        Debug.Log("AIRBORNE - OnCollisionEnter");
         if(enterCollisionTypes.Count > 0) {
             if (enterCollisionTypes.Contains(CollisionType.Bot)) {
                 velocity.y = 0;
                 enterCollisionTypes.Remove(CollisionType.Bot); // Addressed this collision so delete.
-                fsm.ChangeState(States.Idle, StateTransition.Overwrite);
+                if(velocity.x == 0) {
+                    fsm.ChangeState(States.Idle, StateTransition.Overwrite);
+                }
+                else {
+                    fsm.ChangeState(States.Running, StateTransition.Overwrite);
+                }    
                 // Continues execution from here after NextState.Enter() before FixedUpdate() next frame.
+            }
+            else {
+                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
             }
         }
         
@@ -252,6 +276,21 @@ public class CharacterBase : MonoBehaviour {
 
     void Idle_FixedUpdate() {
         Debug.Log("IDLE - FixedUpdate");
+
+        /* Vertical JUMP Calc ------------------------------------------ */
+        if (Input.GetKey(KeyCode.UpArrow)) // Jump if pressed or held.
+        {
+            velocity.y = jumpVelocityMax;
+            isGrounded = false;
+            fsm.ChangeState(States.Airborne, StateTransition.Safe);
+        }
+
+        /* Lateral Calc -------------------------------------------------- */
+        if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
+            velocity.x = activeSpeed * directionFacing;
+            fsm.ChangeState(States.Running, StateTransition.Safe);
+        }
+        
     }
 
 
