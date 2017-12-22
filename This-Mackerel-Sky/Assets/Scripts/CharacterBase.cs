@@ -15,7 +15,7 @@ public class CharacterBase : MonoBehaviour {
     public bool isGrounded;
 
     // note: 3 states- left, right, and still: requires two variables
-    public bool isSprinting;
+    public bool isRunning;
     public bool isTouchingTop;
     public bool isTouchingRight;
     public bool isTouchingLeft;
@@ -53,14 +53,15 @@ public class CharacterBase : MonoBehaviour {
     public float slopeAngle = 0;
     public float maxAngle = 80;
 
+    CInputManager inputManager;
+
     /* Define States */
     public enum States {
         FindState,
+        Action,
         Idle,
         Airborne,
-        WallRising,
-        WallFalling,
-        WallSticking,
+        OnWall,
         Running,
         Dashing,
         ClimbingSlope
@@ -92,13 +93,15 @@ public class CharacterBase : MonoBehaviour {
         isTouchingRight = false;
         isTouchingLeft = false;
         isGrounded = false;
-        isSprinting = false;
+        isRunning = false;
         isTouchingBot = false;
         onSlope = false;
 
         activeSpeed = moveSpeed;
         wallImpactSpeed = activeSpeed;
         rigidBody = GetComponent<Rigidbody2D>();
+
+        inputManager = GetComponent<CInputManager>();
 
         /* Calc constants in terms of Jump time and apex height. */
         gravity = -(2 * jumpHeightMax) / Mathf.Pow(timeToJumpApex, 2);
@@ -107,7 +110,7 @@ public class CharacterBase : MonoBehaviour {
     }
 
     void FixedUpdate() {
-        //Debug.Log("Main - Fixed Update");
+        Debug.Log("Main - Fixed Update");
         enterCollisionTypes.Clear();
         exitCollisionTypes.Clear();
         rigidBody.velocity = velocity;
@@ -248,40 +251,9 @@ public class CharacterBase : MonoBehaviour {
     // LateUpdate
     // Finally
 
-    void Airborne_Enter() {
-        Debug.Log("AIRBORNE - Enter");
-    }
-
-    void Airborne_FixedUpdate() {
-        Debug.Log("AIRBORNE - Fixed Update");
-        velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
-    }
-
-    void Airborne_OnCollisionEnter2D(Collision2D collision) {
-        BaseCollisionEnter2D(collision);
-        
-        Debug.Log("AIRBORNE - OnCollisionEnter");
-        if(enterCollisionTypes.Count > 0) {
-            if (enterCollisionTypes.Contains(CollisionType.Bot)) {
-                velocity.y = 0;
-                enterCollisionTypes.Remove(CollisionType.Bot); // Addressed this collision so delete.
-                if(velocity.x == 0) {
-                    fsm.ChangeState(States.Idle, StateTransition.Overwrite);
-                }
-                else {
-                    fsm.ChangeState(States.Running, StateTransition.Overwrite);
-                }    
-                // Continues execution from here after NextState.Enter() before FixedUpdate() next frame.
-            }
-            else {
-                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
-            }
-        }
-        
-    }
-
     void Idle_Enter() {
-        Debug.Log("IDLE - ENTER");
+        // velocity.x = 0
+        Debug.Log("IDLE - Enter");
     }
 
     void Idle_FixedUpdate() {
@@ -289,22 +261,107 @@ public class CharacterBase : MonoBehaviour {
 
         /* Vertical JUMP Calc ------------------------------------------ */
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
-        if (Input.GetKey(KeyCode.UpArrow) && collisionTypes.Contains(CollisionType.Top)) 
-        {
+        if (Input.GetKey(KeyCode.UpArrow) && !collisionTypes.Contains(CollisionType.Top)) {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
             fsm.ChangeState(States.Airborne, StateTransition.Safe);
         }
 
         /* Lateral Calc -------------------------------------------------- */
-        if(Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
+        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
             velocity.x = activeSpeed * directionFacing;
             fsm.ChangeState(States.Running, StateTransition.Safe);
         }
-        
-        //if()
+
+        if (inputManager.ActionKeyPressed()) {
+            fsm.ChangeState(States.Action);
+        }
     }
 
+    void Airborne_Enter() {
+        Debug.Log("AIRBORNE - Enter");
+    }
+
+    void Airborne_FixedUpdate() {
+        Debug.Log("AIRBORNE - Fixed Update");
+        /* Vertical Calc ----------------------------------------- */
+        if (Input.GetKeyUp(KeyCode.UpArrow)) {  // Variable jump - When Up is released in this frame.
+            if (velocity.y > jumpVelocityMin) {
+                velocity.y = jumpVelocityMin;
+            }
+        }
+
+        /* Lateral Calc -------------------------------------------*/
+        if (Input.GetKey(KeyCode.RightArrow) && velocity.x < activeSpeed) { // in-air lateral move right
+            velocity.x += lateralAccelAirborne * Time.deltaTime;
+        }
+        else if (Input.GetKey(KeyCode.LeftArrow) && velocity.x > -activeSpeed) { // in-air lateral move left
+            velocity.x -= lateralAccelAirborne * Time.deltaTime;
+        }
+
+        velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+
+        // Reduntant Case for platforms moving down while in air. 
+        if (collisionTypes.Contains(CollisionType.Top)) {
+            velocity.y = 0;
+        }
+
+        // Trigger Action.
+        if (inputManager.ActionKeyPressed()) {
+            fsm.ChangeState(States.Action);
+        }
+    }
+
+    void Airborne_OnCollisionEnter2D(Collision2D collision) {
+        BaseCollisionEnter2D(collision);
+
+        Debug.Log("AIRBORNE - OnCollisionEnter");
+        /* These are the new collisions this frame from this specific collision. */
+        // ? Iterate for all combinations not needed with contains.
+        if (enterCollisionTypes.Count > 0) {
+            // Grounded.
+            if (enterCollisionTypes.Contains(CollisionType.Bot)) {
+                velocity.y = 0;
+                enterCollisionTypes.Remove(CollisionType.Bot); // Addressed this collision so delete.
+                if (velocity.x == 0) {
+                    fsm.ChangeState(States.Idle, StateTransition.Overwrite);
+                }
+                else {
+                    fsm.ChangeState(States.Running, StateTransition.Overwrite);
+                }
+                // Continues execution from here after NextState.Enter() before FixedUpdate() next frame.
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Left)) {
+                // OnWall.
+                enterCollisionTypes.Remove(CollisionType.Left);
+                if (!collisionTypes.Contains(CollisionType.Bot)) {
+                    fsm.ChangeState(States.OnWall, StateTransition.Overwrite);
+                }
+                else {
+                    velocity.x = 0;
+                    print("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
+                }
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Right)) {
+                enterCollisionTypes.Remove(CollisionType.Right);
+                if (!collisionTypes.Contains(CollisionType.Bot)) {
+                    fsm.ChangeState(States.OnWall, StateTransition.Overwrite);
+                }
+                else {
+                    velocity.x = 0;
+                    print("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
+                }
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Top)) {
+                enterCollisionTypes.Remove(CollisionType.Top);
+                velocity.y = 0;
+            }
+            else {
+                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
+            }
+        }
+
+    }
 
     void Running_Enter() {
         /* If Enter State and Collision has not been addressed. */
@@ -312,9 +369,101 @@ public class CharacterBase : MonoBehaviour {
             velocity.x = 0;
             enterCollisionTypes.Remove(CollisionType.Left); // Addressed this collision so delete.
         }*/
-
     }
 
+    void Running_FixedUpdate() {
+        //check conatcts and set velocity.x = 0 should be touching the ground still
+
+        /* Sprint Calc ------------------------------------------------- */
+        if (Input.GetKey(KeyCode.LeftShift)) {
+            activeSpeed = sprintSpeed;
+        }
+        else {
+            activeSpeed = moveSpeed;
+        }
+
+        /* Vertical JUMP Calc ------------------------------------------ */
+        // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
+        if (Input.GetKey(KeyCode.UpArrow) && !collisionTypes.Contains(CollisionType.Top)) {
+            velocity.y = jumpVelocityMax;
+            isGrounded = false;
+            fsm.ChangeState(States.Airborne, StateTransition.Safe);
+        }
+
+        /* Lateral Calc -------------------------------------------------- */
+        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
+            velocity.x = activeSpeed * directionFacing;
+        }
+
+        /* X Acceleration ---------------------------------------------- */
+        else if (!Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) { // On-release of Lateral Movement controls - Deccelerate
+            if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
+                velocity.x = 0;
+            }
+            if (directionFacing == 1 && velocity.x > 0) { // Decceleration Right
+                velocity.x -= lateralAccelGrounded * Time.deltaTime;
+            }
+            else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
+                velocity.x += lateralAccelGrounded * Time.deltaTime;
+            }
+        }
+
+        /* Run/deccelerate into wall - Applied here once instead of conditionals above. */
+        if (velocity.x > 0 && collisionTypes.Contains(CollisionType.Right)) {
+            velocity.x = 0;
+        }
+        else if (velocity.x < 0 && collisionTypes.Contains(CollisionType.Left)) {
+            velocity.x = 0;
+        }
+
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
+            directionFacing = 1;
+            if (isGrounded) {
+                if (isTouchingRight) {
+                    velocity.x = 0;
+                }
+                else
+                    velocity.x = activeSpeed; // since isGrounded
+
+            }
+
+        }
+
+        if (velocity.x == 0) {
+            fsm.ChangeState(States.Idle, StateTransition.Safe);
+        }
+
+        // Trigger Action.
+        if (inputManager.ActionKeyPressed()) {
+            fsm.ChangeState(States.Action);
+        }
+    }
+
+    void Running_OnCollisionEnter2D(Collision2D collision) {
+        BaseCollisionEnter2D(collision);
+
+        Debug.Log("AIRBORNE - OnCollisionEnter");
+        /* These are the new collisions this frame from this specific collision. */
+        // ? Iterate for all combinations not needed with contains.
+        if (enterCollisionTypes.Count > 0) {
+            if (enterCollisionTypes.Contains(CollisionType.Right)) {
+                // TouchingWall.
+                enterCollisionTypes.Remove(CollisionType.Right);
+                velocity.x = 0;
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Left)) {
+                // TouchingWall.
+                enterCollisionTypes.Remove(CollisionType.Left);
+                velocity.x = 0;
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Top)) {
+                velocity.y = 0; // Redundancy case - addressed in this.FixedUpdate.
+            }
+            else {
+                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
+            }
+        }
+    }
 }
 
 // Fianlly: Reset object to desired configuration

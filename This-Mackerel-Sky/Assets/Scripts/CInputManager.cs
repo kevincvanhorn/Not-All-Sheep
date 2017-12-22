@@ -14,8 +14,14 @@ public enum Buttons {
 }
 
 public class CInputManager : MonoBehaviour {
-    public bool OtherKeyPressed() {
+
+    public bool ActionKeyPressed() {
+        if (Input.GetKey(KeyCode.LeftShift)) {
+            return true;
+        }
         return false;
     }
+
+
 
 }
