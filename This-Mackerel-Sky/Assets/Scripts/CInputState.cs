@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum Buttons {
+/*public enum Buttons {
     Right,
     Left,
     Up,
@@ -11,7 +11,7 @@ public enum Buttons {
     B,
     X,
     Y
-}
+}*/
 
 /* Specifies what value comparision triggers this button. */
 public enum Condition {

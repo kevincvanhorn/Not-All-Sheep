@@ -53,9 +53,6 @@ public class CharacterBase : MonoBehaviour {
     public float slopeAngle = 0;
     public float maxAngle = 80;
 
-    /* Input vars */
-    protected CInputState input;
-
     /* Define States */
     public enum States {
         FindState,
@@ -103,8 +100,6 @@ public class CharacterBase : MonoBehaviour {
         wallImpactSpeed = activeSpeed;
         rigidBody = GetComponent<Rigidbody2D>();
 
-        input = GetComponent<CInputState>();
-
         /* Calc constants in terms of Jump time and apex height. */
         gravity = -(2 * jumpHeightMax) / Mathf.Pow(timeToJumpApex, 2);
         jumpVelocityMax = Mathf.Abs(gravity * timeToJumpApex);
@@ -118,7 +113,7 @@ public class CharacterBase : MonoBehaviour {
         rigidBody.velocity = velocity;
 
         /* Update directionFacing ------------------------------------------ */
-        if (input.GetButton(Buttons.Right)) {
+        if (Input.GetKeyDown(KeyCode.RightArrow)) {
             directionFacing = 1;
         }
         // When Left is first input.
