@@ -131,6 +131,11 @@ public class CharacterBase : MonoBehaviour {
         }
     }
 
+    private void OnCollisionExit2D(Collision2D collision) {
+        BaseCollisionExit2D(collision);
+        Debug.Log("BASE - Exit2D");
+    }
+
     /** Called on Player collision with a new object. **/
     void BaseCollisionEnter2D(Collision2D collision) { // ~ Could convert Collision2D to Collider2D
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
@@ -242,6 +247,7 @@ public class CharacterBase : MonoBehaviour {
     }
 
     /* Collision Methods: Custom ---------------------------------------------*/
+    // EXECUTION ORDER:
     // Enter - Called immediately when changeState is called (before Main FixedUpdate).
     // Exit
     // FixedUpdate - Called after Main FixedUpdate
@@ -281,6 +287,10 @@ public class CharacterBase : MonoBehaviour {
         }
     }
 
+    void Idle_OnCollisionEnter2D(Collision2D collision) {
+        BaseCollisionEnter2D(collision);
+    }
+
     void Idle_OnCollisionExit2D(Collision2D collision) {
         BaseCollisionExit2D(collision);
     }
@@ -308,13 +318,12 @@ public class CharacterBase : MonoBehaviour {
 
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
-        // Reduntant Case for platforms moving down while in air. 
-        if (collisionTypes.Contains(CollisionType.Top)) {
-            velocity.y = 0;
-        }
-
         // Jumping While Against Wall.
         if (collisionTypes.Contains(CollisionType.Right) || collisionTypes.Contains(CollisionType.Left)) {
+            print(collisionTypes);
+            foreach(CollisionType coll in collisionTypes) {
+                print(coll);
+            }
             fsm.ChangeState(States.OnWall);
         }
 
@@ -377,6 +386,7 @@ public class CharacterBase : MonoBehaviour {
 
     void Airborne_OnCollisionExit2D(Collision2D collision) {
         BaseCollisionExit2D(collision);
+        Debug.Log("AIRBORNE - Exit2D");
     }
 
     void Running_Enter() {
@@ -479,6 +489,7 @@ public class CharacterBase : MonoBehaviour {
             }
             else if (enterCollisionTypes.Contains(CollisionType.Top)) {
                 velocity.y = 0; // Redundancy case - addressed in this.FixedUpdate.
+                enterCollisionTypes.Remove(CollisionType.Top);
             }
             else {
                 fsm.ChangeState(States.FindState, StateTransition.Overwrite);
@@ -488,6 +499,7 @@ public class CharacterBase : MonoBehaviour {
 
     void Running_OnCollisionExit2D(Collision2D collision) {
         BaseCollisionExit2D(collision);
+        Debug.Log("RUNNING - Exit2D");
     }
 
     void OnWall_Enter() {
@@ -496,71 +508,146 @@ public class CharacterBase : MonoBehaviour {
 
     void OnWall_FixedUpdate() {
         Debug.Log("ONWALL - FixedUpdate");
+
+        bool isTouchingLeft = collisionTypes.Contains(CollisionType.Left);
+        bool isTouchingRight = collisionTypes.Contains(CollisionType.Right);
+
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
-        // When Up is first input.
-        if (Input.GetKeyDown(KeyCode.UpArrow)) {
-            if (isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward left wall.
-            {
-                velocity.y = jumpVelocityMax;
-                velocity.x = activeSpeed / 2;
-            }
-            else if (isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward right wall.
-            {
-                velocity.y = jumpVelocityMax;
-                velocity.x = -1 * activeSpeed / 2;
-            }
-        }
-        // When Up is released in this frame.
-        if (Input.GetKeyUp(KeyCode.UpArrow)) {
-            if (velocity.y > jumpVelocityMin) { // Keep applying velocity up while key is pressed - variable jump
-                velocity.y = jumpVelocityMin;
-            }
-        }
-        // When Right is first input.
-        if (Input.GetKeyDown(KeyCode.RightArrow)) { // on L/R input - setting conditions.
-            directionFacing = 1;
-            if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
-            {
-                velocity.y = jumpVelocityMax;
-                velocity.x = -1 * activeSpeed / 2;
-            }
-        }
-        // When Left is first input.
-        else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
-            directionFacing = -1;
-            if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
-            {
-                velocity.y = jumpVelocityMax;
-                velocity.x = activeSpeed / 2;
-            }
-        }
-
-        // When Right or Left is held down.
-        if (Input.GetKey(KeyCode.RightArrow)) {
-            if (isTouchingLeft) {
-                if (Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
+        // Only Touching one side.
+        if (!(isTouchingLeft && isTouchingRight)) {
+            // When Up is first input.
+            if (Input.GetKeyDown(KeyCode.UpArrow)) {
+                if (isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward left wall.
                 {
                     velocity.y = jumpVelocityMax;
-                    velocity.x = activeSpeed;
+                    velocity.x = activeSpeed / 2;
+                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
                 }
-                else // Fall away from wall
-                    velocity.x += lateralAccelAirborne * Time.deltaTime;
-            }
-
-        }
-        else if (Input.GetKey(KeyCode.LeftArrow)) {
-            if (isTouchingRight) {
-                if (Input.GetKey(KeyCode.UpArrow)) // Jump away from right wall.
-                    {
+                else if (isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward right wall.
+                {
                     velocity.y = jumpVelocityMax;
                     velocity.x = -1 * activeSpeed / 2;
+                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
                 }
-                else // Fall away from wall
-                    velocity.x -= lateralAccelAirborne * Time.deltaTime;
+            }
+            // When Up is released in this frame.
+            if (Input.GetKeyUp(KeyCode.UpArrow)) {
+                if (velocity.y > jumpVelocityMin) { // Keep applying velocity up while key is pressed - variable jump
+                    velocity.y = jumpVelocityMin;
+                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                }
+            }
+            // When Right is first input.
+            if (Input.GetKeyDown(KeyCode.RightArrow)) { // on L/R input - setting conditions.
+                directionFacing = 1;
+                if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
+                {
+                    velocity.y = jumpVelocityMax;
+                    velocity.x = -1 * activeSpeed / 2;
+                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                }
+            }
+            // When Left is first input.
+            else if (Input.GetKeyDown(KeyCode.LeftArrow)) {
+                print("WALL - State Change 1");
+                directionFacing = -1;
+                if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
+                {
+                    velocity.y = jumpVelocityMax;
+                    velocity.x = activeSpeed / 2;
+                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                }
+            }
+
+            // When Right or Left is held down.
+            if (Input.GetKey(KeyCode.RightArrow)) {
+                if (isTouchingLeft) {
+                    if (Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
+                    {
+                        velocity.y = jumpVelocityMax;
+                        velocity.x = activeSpeed;
+                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    }
+                    else{ // Fall away from wall
+                        velocity.x += lateralAccelAirborne * Time.deltaTime;
+                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    }
+                }
+                else if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
+                {
+                    // When coming from a non-grounded state, immediately jump when hit wall
+                    if (velocity.y < 0) {
+                        velocity.y = jumpVelocityMax;
+                        velocity.x = -1 * activeSpeed / 2;
+                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    }
+                }
+
+            }
+            else if (Input.GetKey(KeyCode.LeftArrow)) {
+                if (isTouchingRight) {
+                    print("WALL - State Change 2");
+                    if (Input.GetKey(KeyCode.UpArrow)) // Jump away from right wall.
+                        {
+                        print("WALL - State Change 3");
+                        velocity.y = jumpVelocityMax;
+                        velocity.x = -1 * activeSpeed / 2;
+                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    }
+                    else { // Fall away from wall
+                        velocity.x -= lateralAccelAirborne * Time.deltaTime;
+                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    }
+                }
+                else if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
+                {
+                    // When coming from a non-grounded state, immediately jump when hit wall
+                    if (velocity.y < 0) {
+                        velocity.y = jumpVelocityMax;
+                        velocity.x = activeSpeed / 2;
+                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    }
+                }
             }
         }
 
+        rigidBody.velocity = velocity;
+        print("ONWALL - End of FixedUpdate");
+    }
+
+    void OnWall_OnCollisionEnter2D(Collision2D collision) {
+        BaseCollisionEnter2D(collision);
+        Debug.Log("ONWALL - OnCollisionEnter");
+        if (enterCollisionTypes.Count > 0) {
+            if (enterCollisionTypes.Contains(CollisionType.Bot)) {
+                velocity.y = 0;
+                enterCollisionTypes.Remove(CollisionType.Bot); // Addressed this collision so delete.
+                if (velocity.x == 0) {
+                    fsm.ChangeState(States.Idle, StateTransition.Overwrite);
+                }
+                else {
+                    fsm.ChangeState(States.Running, StateTransition.Overwrite);
+                }
+                // Continues execution from here after NextState.Enter() before FixedUpdate() next frame.
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Left)) {
+                enterCollisionTypes.Remove(CollisionType.Left);
+                Debug.Log("This should not usually occur. Addressed in FixedUpdate.");
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Right)) {
+                enterCollisionTypes.Remove(CollisionType.Right);
+                Debug.Log("This should not usually occur. Addressed in FixedUpdate.");
+            }
+            else {
+                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
+            }
+        }
+    }
+
+    void OnWall_OnCollisionExit2D(Collision2D collision) {
+        BaseCollisionExit2D(collision);
+        Debug.Log("ONWALL - Exit2D");
     }
 }
 
