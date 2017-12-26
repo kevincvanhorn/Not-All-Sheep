@@ -99,5 +99,18 @@ public class CCollisionState : MonoBehaviour {
         }
     }
 
+    public void printStates() {
+        print("TOP : "+ top);
+        print("BOT : " + bot);
+        print("LEFT : " + left);
+        print("RIGHT : " + right);
+        print("SLOPE : " + slope);
+        print("NONE : " + none);
+    }
+
+    public void printStatesShort() {
+        print("--------- T" + top + " B"+bot+" L"+left+ " R"+right + " S"+slope + " N"+none);
+    }
+
     
 }

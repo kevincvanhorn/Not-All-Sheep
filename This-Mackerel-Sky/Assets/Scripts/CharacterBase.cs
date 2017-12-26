@@ -75,7 +75,8 @@ public class CharacterBase : MonoBehaviour {
         OnWall,
         Running,
         Dashing,
-        ClimbingSlope
+        ClimbingSlope,
+        Simulate
     }
 
     CCollisionState collisionState;
@@ -116,6 +117,7 @@ public class CharacterBase : MonoBehaviour {
     void  Update() {
 
         Debug.Log("Main -  Update");
+        collisionState.printStatesShort();
         enterCollisionTypes.Clear();
         rigidBody.velocity = velocity;
 
@@ -198,7 +200,7 @@ public class CharacterBase : MonoBehaviour {
         if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
-            fsm.ChangeState(States.Airborne, StateTransition.Safe);
+            fsm.ChangeState(States.Simulate, StateTransition.Safe);
             print("Idle Transition 1");
         }
 
@@ -244,6 +246,9 @@ public class CharacterBase : MonoBehaviour {
 
         // Jumping While Against Wall.
         if (collisionState.Right || collisionState.Left) {
+            print("CollisionState -------------");
+            collisionState.printStates();
+            print("----------------------------");
             fsm.ChangeState(States.OnWall);
         }
 
@@ -280,7 +285,7 @@ public class CharacterBase : MonoBehaviour {
                 }
                 else {
                     velocity.x = 0;
-                    print("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
+                    Debug.LogWarning("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
                 }
             }
             else if (enterCollisionTypes.Contains(CollisionType.Right)) {
@@ -290,7 +295,7 @@ public class CharacterBase : MonoBehaviour {
                 }
                 else {
                     velocity.x = 0;
-                    print("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
+                    Debug.LogWarning("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
                 }
             }
             else if (enterCollisionTypes.Contains(CollisionType.Top)) {
@@ -325,13 +330,17 @@ public class CharacterBase : MonoBehaviour {
             activeSpeed = moveSpeed;
         }
 
+        if (collisionState.None) {
+            fsm.ChangeState(States.Simulate);
+        }
+
         /* Vertical JUMP Calc ------------------------------------------ */
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
         if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
             print("Running Transition 1");
-            fsm.ChangeState(States.Airborne, StateTransition.Safe);
+            fsm.ChangeState(States.Simulate, StateTransition.Safe);
         }
 
         /* Lateral Calc -------------------------------------------------- */
@@ -374,8 +383,8 @@ public class CharacterBase : MonoBehaviour {
         }
 
         if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
-            print("Running Transition 2");
-            fsm.ChangeState(States.Idle, StateTransition.Safe);
+            Debug.Log("Running Transition 2");
+            fsm.ChangeState(States.Idle, StateTransition.Safe); 
         }
 
         // Trigger Action.
@@ -426,36 +435,38 @@ public class CharacterBase : MonoBehaviour {
 
         // Only Touching one side.
         if (!(isTouchingLeft && isTouchingRight)) {
+
+            // When Up is released in this frame.
+            if (Input.GetKeyUp(KeyCode.UpArrow)) {
+                if (velocity.y > jumpVelocityMin) { // Keep applying velocity up while key is pressed - variable jump
+                    velocity.y = jumpVelocityMin;
+                    //fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                }
+            }
             // When Up is first input.
             if (Input.GetKeyDown(KeyCode.UpArrow)) {
                 if (isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward left wall.
                 {
                     velocity.y = jumpVelocityMax;
                     velocity.x = activeSpeed / 2;
-                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    fsm.ChangeState(States.Simulate, StateTransition.Safe);
                 }
                 else if (isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward right wall.
                 {
                     velocity.y = jumpVelocityMax;
                     velocity.x = -1 * activeSpeed / 2;
-                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    fsm.ChangeState(States.Simulate, StateTransition.Safe);
                 }
             }
-            // When Up is released in this frame.
-            if (Input.GetKeyUp(KeyCode.UpArrow)) {
-                if (velocity.y > jumpVelocityMin) { // Keep applying velocity up while key is pressed - variable jump
-                    velocity.y = jumpVelocityMin;
-                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
-                }
-            }
+            
             // When Right is first input.
-            if (Input.GetKeyDown(KeyCode.RightArrow)) { // on L/R input - setting conditions.
+            else if (Input.GetKeyDown(KeyCode.RightArrow)) { // on L/R input - setting conditions.
                 directionFacing = 1;
                 if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
                 {
                     velocity.y = jumpVelocityMax;
                     velocity.x = -1 * activeSpeed / 2;
-                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    fsm.ChangeState(States.Simulate, StateTransition.Safe);
                 }
             }
             // When Left is first input.
@@ -466,22 +477,22 @@ public class CharacterBase : MonoBehaviour {
                 {
                     velocity.y = jumpVelocityMax;
                     velocity.x = activeSpeed / 2;
-                    fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                    fsm.ChangeState(States.Simulate, StateTransition.Safe);
                 }
             }
 
             // When Right or Left is held down.
-            if (Input.GetKey(KeyCode.RightArrow)) {
+            else if (Input.GetKey(KeyCode.RightArrow)) {
                 if (isTouchingLeft) {
                     if (Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
                     {
                         velocity.y = jumpVelocityMax;
                         velocity.x = activeSpeed;
-                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                        fsm.ChangeState(States.Simulate, StateTransition.Safe);
                     }
                     else{ // Fall away from wall
                         velocity.x += lateralAccelAirborne * Time.deltaTime;
-                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                        fsm.ChangeState(States.Simulate, StateTransition.Safe);
                     }
                 }
                 else if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
@@ -490,7 +501,7 @@ public class CharacterBase : MonoBehaviour {
                     if (velocity.y < 0) {
                         velocity.y = jumpVelocityMax;
                         velocity.x = -1 * activeSpeed / 2;
-                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                        fsm.ChangeState(States.Simulate, StateTransition.Safe);
                     }
                 }
 
@@ -503,11 +514,11 @@ public class CharacterBase : MonoBehaviour {
                         print("WALL - State Change 3");
                         velocity.y = jumpVelocityMax;
                         velocity.x = -1 * activeSpeed / 2;
-                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                        fsm.ChangeState(States.Simulate, StateTransition.Safe);
                     }
                     else { // Fall away from wall
                         velocity.x -= lateralAccelAirborne * Time.deltaTime;
-                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                        fsm.ChangeState(States.Simulate, StateTransition.Safe);
                     }
                 }
                 else if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
@@ -516,13 +527,12 @@ public class CharacterBase : MonoBehaviour {
                     if (velocity.y < 0) {
                         velocity.y = jumpVelocityMax;
                         velocity.x = activeSpeed / 2;
-                        fsm.ChangeState(States.Airborne, StateTransition.Safe);
+                        fsm.ChangeState(States.Simulate, StateTransition.Safe);
                     }
                 }
             }
         }
 
-        rigidBody.velocity = velocity;
         print("ONWALL - End of Update");
     }
 
@@ -554,6 +564,92 @@ public class CharacterBase : MonoBehaviour {
             }
         }
     }
+
+    void Simulate_Update() {
+        Debug.Log("Simulate_Update");
+
+        /* Lateral Calc -------------------------------------------*/
+        if (Input.GetKey(KeyCode.RightArrow) && velocity.x < activeSpeed) { // in-air lateral move right
+            velocity.x += lateralAccelAirborne * Time.deltaTime;
+        }
+        else if (Input.GetKey(KeyCode.LeftArrow) && velocity.x > -activeSpeed) { // in-air lateral move left
+            velocity.x -= lateralAccelAirborne * Time.deltaTime;
+        }
+        velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+
+        // Trigger Action.
+        if (inputManager.ActionKeyPressed()) {
+            fsm.ChangeState(States.Action);
+        }
+        else if (fsm.LastState == States.Running) {
+            if (!collisionState.Bot) {
+                fsm.ChangeState(States.Airborne);
+            }
+        }
+        else if (fsm.LastState == States.Idle) {
+            if (!collisionState.Bot) {
+                fsm.ChangeState(States.Airborne);
+            }
+        }
+        else if (fsm.LastState == States.OnWall) {
+            if (!collisionState.Left && !collisionState.Right) {
+                fsm.ChangeState(States.Airborne);
+            }
+        }
+        else {
+            Debug.LogWarning("Simulate_Update: State Simulate not defined from " + fsm.LastState);
+        }
+
+    }
+    void Simulate_OnCollisionEnter2D(Collision2D collision) {
+        BaseCollisionEnter2D(collision);
+        Debug.LogWarning("Simulate - OnCollisionEnter from "+ fsm.LastState);
+        /* These are the new collisions this frame from this specific collision. */
+        // ? Iterate for all combinations not needed with contains.
+        if (enterCollisionTypes.Count > 0) {
+            // Grounded.
+            if (enterCollisionTypes.Contains(CollisionType.Bot)) {
+                velocity.y = 0;
+                enterCollisionTypes.Remove(CollisionType.Bot); // Addressed this collision so delete.
+                if (velocity.x == 0) {
+                    fsm.ChangeState(States.Idle, StateTransition.Overwrite);
+                }
+                else {
+                    fsm.ChangeState(States.Running, StateTransition.Overwrite);
+                }
+                // Continues execution from here after NextState.Enter() before Update() next frame.
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Left)) {
+                // OnWall.
+                enterCollisionTypes.Remove(CollisionType.Left);
+                if (!collisionState.Bot) {
+                    fsm.ChangeState(States.OnWall, StateTransition.Overwrite);
+                }
+                else {
+                    velocity.x = 0;
+                    Debug.LogWarning("SIMULATE: This state should be inaccessible - grounded & touchingWall");
+                }
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Right)) {
+                enterCollisionTypes.Remove(CollisionType.Right);
+                if (!collisionState.Bot) {
+                    fsm.ChangeState(States.OnWall, StateTransition.Overwrite);
+                }
+                else {
+                    velocity.x = 0;
+                    Debug.LogWarning("SIMULATE: This state should be inaccessible - grounded & touchingWall");
+                }
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Top)) {
+                enterCollisionTypes.Remove(CollisionType.Top);
+                velocity.y = 0;
+            }
+            else {
+                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
+            }
+        }
+    }
+
 }
 
 // Fianlly: Reset object to desired configuration
