@@ -4,8 +4,10 @@ using UnityEngine;
 
 using MonsterLove.StateMachine; // State-Machine Package.
 
-// FixedUpdate -> OnTrigger -> OnCollision
+// Update -> OnTrigger -> OnCollision
 
+[RequireComponent(typeof(CInputManager))]
+[RequireComponent(typeof(CCollisionState))]
 [RequireComponent(typeof(Rigidbody2D))]
 public class CharacterBase : MonoBehaviour {
 
@@ -55,6 +57,15 @@ public class CharacterBase : MonoBehaviour {
 
     CInputManager inputManager;
 
+    public enum CollisionType {
+        None,
+        Top,
+        Bot,
+        Left,
+        Right,
+        Slope
+    };
+
     /* Define States */
     public enum States {
         FindState,
@@ -67,18 +78,10 @@ public class CharacterBase : MonoBehaviour {
         ClimbingSlope
     }
 
-    private enum CollisionType {
-        None,
-        Top,
-        Bot,
-        Left,
-        Right,
-        Slope
-    };
+    CCollisionState collisionState;
 
     HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame.
-    HashSet<CollisionType> exitCollisionTypes = new HashSet<CollisionType>();
-    HashSet<CollisionType> collisionTypes = new HashSet<CollisionType>();
+    //HashSet<CollisionType> collisionTypes; // For use in that frame.
 
     private StateMachine<States> fsm;
 
@@ -102,6 +105,7 @@ public class CharacterBase : MonoBehaviour {
         rigidBody = GetComponent<Rigidbody2D>();
 
         inputManager = GetComponent<CInputManager>();
+        collisionState = GetComponent<CCollisionState>();
 
         /* Calc constants in terms of Jump time and apex height. */
         gravity = -(2 * jumpHeightMax) / Mathf.Pow(timeToJumpApex, 2);
@@ -109,10 +113,10 @@ public class CharacterBase : MonoBehaviour {
         jumpVelocityMin = Mathf.Sqrt(2 * Mathf.Abs(gravity) * jumpHeightMin);
     }
 
-    void FixedUpdate() {
-        Debug.Log("Main - Fixed Update");
+    void  Update() {
+
+        Debug.Log("Main -  Update");
         enterCollisionTypes.Clear();
-        exitCollisionTypes.Clear();
         rigidBody.velocity = velocity;
 
         /* Update directionFacing ------------------------------------------ */
@@ -131,25 +135,10 @@ public class CharacterBase : MonoBehaviour {
         }
     }
 
-    private void OnCollisionExit2D(Collision2D collision) {
-        BaseCollisionExit2D(collision);
-        Debug.Log("BASE - Exit2D");
-    }
-
     /** Called on Player collision with a new object. **/
     void BaseCollisionEnter2D(Collision2D collision) { // ~ Could convert Collision2D to Collider2D
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
         collision.GetContacts(contactsIn);
-
-        /* Add new contact points to hash. */
-        for (int i = 0; i < contactsIn.Length; i++) {
-            if (contactsIn[i].normal != Vector2.zero) {
-                if (!contacts.Contains(contactsIn[i].normal)) {
-                    contacts.Add(contactsIn[i].normal);
-                    //print(contactsIn[i].normal);
-                }
-            }
-        }
 
         /* Call Collider Enter Functions */
         for (int i = 0; i < contactsIn.Length; i++) {
@@ -161,22 +150,18 @@ public class CharacterBase : MonoBehaviour {
                 if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
                     if (contactsIn[i].normal.y == 1) {
                         enterCollisionTypes.Add(CollisionType.Bot); // For this frame.
-                        collisionTypes.Add(CollisionType.Bot);      // For all states.
                     }
                     else if (contactsIn[i].normal.y == -1) { // contactsIn[i].normal.y == -1
                         enterCollisionTypes.Add(CollisionType.Top);
-                        collisionTypes.Add(CollisionType.Top);
                     }
                 }
                 /* Horizontal Collision */
                 else if (slopeAngle > maxAngle) { // contactsIn[i].normal.y == 0
                     if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
                         enterCollisionTypes.Add(CollisionType.Left);
-                        collisionTypes.Add(CollisionType.Left);
                     }
                     else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
                         enterCollisionTypes.Add(CollisionType.Right);
-                        collisionTypes.Add(CollisionType.Right);
                     }
                 }
                 /* Slope Collision */
@@ -184,63 +169,6 @@ public class CharacterBase : MonoBehaviour {
                     slopeDir = (contactsIn[i].normal.x < 0) ? 1 : -1; // 1 = right, -1 = left
                     //slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
                     enterCollisionTypes.Add(CollisionType.Slope);
-                    collisionTypes.Add(CollisionType.Slope);
-                }
-            }
-        }
-    }
-
-    /** Called on Player collision Exit. **/
-    void BaseCollisionExit2D(Collision2D collision) { // ~ Could convert Collision2D to Collider2D
-        ContactPoint2D[] contactsRB = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
-        rigidBody.GetContacts(contactsRB);
-
-        float slopeAngleExit = 0;
-
-        /* Make a hash with the current normals touching the object. */
-        HashSet<Vector2> contactNormalsRB = new HashSet<Vector2>();
-        foreach (ContactPoint2D c in contactsRB) {
-            contactNormalsRB.Add(c.normal);
-        }
-
-        HashSet<Vector2> exitContacts = new HashSet<Vector2>();
-        exitContacts.UnionWith(contacts);           // exitContacts = contacts
-
-        exitContacts.ExceptWith(contactNormalsRB);  // Set ExitContacts.
-        contacts.ExceptWith(exitContacts);          // Remove Exit contacts from Hash.
-
-        /* Call Collider Enter Functions */
-        foreach (Vector2 exitContact in exitContacts) {
-            /* If contact exists (entries are zero in larger allocated ContactPoint2D[])*/
-            if (exitContact != Vector2.zero) {
-                slopeAngleExit = Vector2.Angle(exitContact, Vector2.up);
-                //print("EXIT --- " + slopeAngleExit);
-                /* Vertical Collision */
-                if (exitContact.x == 0) {
-                    if (exitContact.y == 1) {
-                        exitCollisionTypes.Add(CollisionType.Bot);
-                        collisionTypes.Remove(CollisionType.Bot);
-                    }
-                    else if (exitContact.y == -1) {
-                        exitCollisionTypes.Add(CollisionType.Top);
-                        collisionTypes.Remove(CollisionType.Top);
-                    }
-                }
-                /* Horizontal Collision */
-                else if (slopeAngleExit > maxAngle) { //exitContact.y == 0
-                    if (exitContact.x > 0) {
-                        exitCollisionTypes.Add(CollisionType.Left);
-                        collisionTypes.Remove(CollisionType.Left);
-                    }
-                    else if (exitContact.x < 0) {
-                        exitCollisionTypes.Add(CollisionType.Right);
-                        collisionTypes.Remove(CollisionType.Right);
-                    }
-                }
-                /* Slope Collision */
-                else {
-                    exitCollisionTypes.Add(CollisionType.Slope);
-                    collisionTypes.Remove(CollisionType.Slope);
                 }
             }
         }
@@ -248,9 +176,9 @@ public class CharacterBase : MonoBehaviour {
 
     /* Collision Methods: Custom ---------------------------------------------*/
     // EXECUTION ORDER:
-    // Enter - Called immediately when changeState is called (before Main FixedUpdate).
+    // Enter - Called immediately when changeState is called (before Main Update).
     // Exit
-    // FixedUpdate - Called after Main FixedUpdate
+    // Update - Called after Main Update
     // Collision Enter/Exit
     // Input Events
     // Update
@@ -262,12 +190,12 @@ public class CharacterBase : MonoBehaviour {
         Debug.Log("IDLE - Enter");
     }
 
-    void Idle_FixedUpdate() {
-        Debug.Log("IDLE - FixedUpdate");
+    void Idle_Update() {
+        Debug.Log("IDLE - Update");
 
         /* Vertical JUMP Calc ------------------------------------------ */
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
-        if (Input.GetKey(KeyCode.UpArrow) && !collisionTypes.Contains(CollisionType.Top)) {
+        if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
             fsm.ChangeState(States.Airborne, StateTransition.Safe);
@@ -291,16 +219,12 @@ public class CharacterBase : MonoBehaviour {
         BaseCollisionEnter2D(collision);
     }
 
-    void Idle_OnCollisionExit2D(Collision2D collision) {
-        BaseCollisionExit2D(collision);
-    }
-
     void Airborne_Enter() {
         Debug.Log("AIRBORNE - Enter");
     }
 
-    void Airborne_FixedUpdate() {
-        Debug.Log("AIRBORNE - Fixed Update");
+    void Airborne_Update() {
+        Debug.Log("AIRBORNE -  Update");
         /* Vertical Calc ----------------------------------------- */
         if (Input.GetKeyUp(KeyCode.UpArrow)) {  // Variable jump - When Up is released in this frame.
             if (velocity.y > jumpVelocityMin) {
@@ -319,11 +243,7 @@ public class CharacterBase : MonoBehaviour {
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
         // Jumping While Against Wall.
-        if (collisionTypes.Contains(CollisionType.Right) || collisionTypes.Contains(CollisionType.Left)) {
-            print(collisionTypes);
-            foreach(CollisionType coll in collisionTypes) {
-                print(coll);
-            }
+        if (collisionState.Right || collisionState.Left) {
             fsm.ChangeState(States.OnWall);
         }
 
@@ -350,12 +270,12 @@ public class CharacterBase : MonoBehaviour {
                 else {
                     fsm.ChangeState(States.Running, StateTransition.Overwrite);
                 }
-                // Continues execution from here after NextState.Enter() before FixedUpdate() next frame.
+                // Continues execution from here after NextState.Enter() before Update() next frame.
             }
             else if (enterCollisionTypes.Contains(CollisionType.Left)) {
                 // OnWall.
                 enterCollisionTypes.Remove(CollisionType.Left);
-                if (!collisionTypes.Contains(CollisionType.Bot)) {
+                if (!collisionState.Bot) {
                     fsm.ChangeState(States.OnWall, StateTransition.Overwrite);
                 }
                 else {
@@ -365,7 +285,7 @@ public class CharacterBase : MonoBehaviour {
             }
             else if (enterCollisionTypes.Contains(CollisionType.Right)) {
                 enterCollisionTypes.Remove(CollisionType.Right);
-                if (!collisionTypes.Contains(CollisionType.Bot)) {
+                if (!collisionState.Bot) {
                     fsm.ChangeState(States.OnWall, StateTransition.Overwrite);
                 }
                 else {
@@ -384,11 +304,6 @@ public class CharacterBase : MonoBehaviour {
 
     }
 
-    void Airborne_OnCollisionExit2D(Collision2D collision) {
-        BaseCollisionExit2D(collision);
-        Debug.Log("AIRBORNE - Exit2D");
-    }
-
     void Running_Enter() {
         Debug.Log("RUNNING - Enter");
         /* If Enter State and Collision has not been addressed. */
@@ -398,8 +313,8 @@ public class CharacterBase : MonoBehaviour {
         }*/
     }
 
-    void Running_FixedUpdate() {
-        Debug.Log("RUNNING - FixedUpdate");
+    void Running_Update() {
+        Debug.Log("RUNNING - Update");
         //check conatcts and set velocity.x = 0 should be touching the ground still
 
         /* Sprint Calc ------------------------------------------------- */
@@ -412,7 +327,7 @@ public class CharacterBase : MonoBehaviour {
 
         /* Vertical JUMP Calc ------------------------------------------ */
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
-        if (Input.GetKey(KeyCode.UpArrow) && !collisionTypes.Contains(CollisionType.Top)) {
+        if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
             velocity.y = jumpVelocityMax;
             isGrounded = false;
             print("Running Transition 1");
@@ -438,10 +353,10 @@ public class CharacterBase : MonoBehaviour {
         }
 
         /* Run/deccelerate into wall - Applied here once instead of conditionals above. */
-        if (velocity.x > 0 && collisionTypes.Contains(CollisionType.Right)) {
+        if (velocity.x > 0 && collisionState.Right) {
             velocity.x = 0;
         }
-        else if (velocity.x < 0 && collisionTypes.Contains(CollisionType.Left)) {
+        else if (velocity.x < 0 && collisionState.Left) {
             velocity.x = 0;
         }
 
@@ -488,7 +403,7 @@ public class CharacterBase : MonoBehaviour {
                 velocity.x = 0;
             }
             else if (enterCollisionTypes.Contains(CollisionType.Top)) {
-                velocity.y = 0; // Redundancy case - addressed in this.FixedUpdate.
+                velocity.y = 0; // Redundancy case - addressed in this.Update.
                 enterCollisionTypes.Remove(CollisionType.Top);
             }
             else {
@@ -497,20 +412,15 @@ public class CharacterBase : MonoBehaviour {
         }
     }
 
-    void Running_OnCollisionExit2D(Collision2D collision) {
-        BaseCollisionExit2D(collision);
-        Debug.Log("RUNNING - Exit2D");
-    }
-
     void OnWall_Enter() {
         Debug.Log("ONWALL - Enter");
     }
 
-    void OnWall_FixedUpdate() {
-        Debug.Log("ONWALL - FixedUpdate");
+    void OnWall_Update() {
+        Debug.Log("ONWALL - Update");
 
-        bool isTouchingLeft = collisionTypes.Contains(CollisionType.Left);
-        bool isTouchingRight = collisionTypes.Contains(CollisionType.Right);
+        bool isTouchingLeft = collisionState.Left;
+        bool isTouchingRight = collisionState.Right;
 
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
@@ -613,7 +523,7 @@ public class CharacterBase : MonoBehaviour {
         }
 
         rigidBody.velocity = velocity;
-        print("ONWALL - End of FixedUpdate");
+        print("ONWALL - End of Update");
     }
 
     void OnWall_OnCollisionEnter2D(Collision2D collision) {
@@ -629,25 +539,20 @@ public class CharacterBase : MonoBehaviour {
                 else {
                     fsm.ChangeState(States.Running, StateTransition.Safe);
                 }
-                // Continues execution from here after NextState.Enter() before FixedUpdate() next frame.
+                // Continues execution from here after NextState.Enter() before Update() next frame.
             }
             else if (enterCollisionTypes.Contains(CollisionType.Left)) {
                 enterCollisionTypes.Remove(CollisionType.Left);
-                Debug.Log("This should not usually occur. Addressed in FixedUpdate.");
+                Debug.Log("This should not usually occur. Addressed in Update.");
             }
             else if (enterCollisionTypes.Contains(CollisionType.Right)) {
                 enterCollisionTypes.Remove(CollisionType.Right);
-                Debug.Log("This should not usually occur. Addressed in FixedUpdate.");
+                Debug.Log("This should not usually occur. Addressed in Update.");
             }
             else {
                 fsm.ChangeState(States.FindState, StateTransition.Safe);
             }
         }
-    }
-
-    void OnWall_OnCollisionExit2D(Collision2D collision) {
-        BaseCollisionExit2D(collision);
-        Debug.Log("ONWALL - Exit2D");
     }
 }
 
