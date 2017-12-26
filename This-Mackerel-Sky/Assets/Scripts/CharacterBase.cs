@@ -624,10 +624,10 @@ public class CharacterBase : MonoBehaviour {
                 velocity.y = 0;
                 enterCollisionTypes.Remove(CollisionType.Bot); // Addressed this collision so delete.
                 if (velocity.x == 0) {
-                    fsm.ChangeState(States.Idle, StateTransition.Overwrite);
+                    fsm.ChangeState(States.Idle, StateTransition.Safe);
                 }
                 else {
-                    fsm.ChangeState(States.Running, StateTransition.Overwrite);
+                    fsm.ChangeState(States.Running, StateTransition.Safe);
                 }
                 // Continues execution from here after NextState.Enter() before FixedUpdate() next frame.
             }
@@ -640,7 +640,7 @@ public class CharacterBase : MonoBehaviour {
                 Debug.Log("This should not usually occur. Addressed in FixedUpdate.");
             }
             else {
-                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
+                fsm.ChangeState(States.FindState, StateTransition.Safe);
             }
         }
     }
