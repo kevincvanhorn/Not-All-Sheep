@@ -38,6 +38,7 @@ public class CCollisionState : MonoBehaviour {
     private void FixedUpdate() {
         ClearOverlaps();
         CheckOverlaps();
+        printStatesShort();
     }
 
     private void ClearOverlaps() {
@@ -49,15 +50,16 @@ public class CCollisionState : MonoBehaviour {
         slope = false;
     }
 
-    private void CheckOverlaps() {
+    public void CheckOverlaps() {
         Collider2D[] collidersTouching = new Collider2D[4];      
         Physics2D.OverlapCollider(collider, contactFilter, collidersTouching);
         float slopeAngle;
-
         foreach (Collider2D coll in collidersTouching) {
+            
             if (coll != null) {
+                Debug.LogError(coll);
 
-                ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
+                ContactPoint2D[] contactsIn = new ContactPoint2D[8]; // 2 when side collides (each corner) || 1 when on slope
                 coll.GetContacts(contactsIn);
 
                 /* Call Collider Enter Functions */
@@ -111,6 +113,4 @@ public class CCollisionState : MonoBehaviour {
     public void printStatesShort() {
         print("--------- T" + top + " B"+bot+" L"+left+ " R"+right + " S"+slope + " N"+none);
     }
-
-    
 }

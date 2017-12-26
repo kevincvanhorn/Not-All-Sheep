@@ -114,10 +114,10 @@ public class CharacterBase : MonoBehaviour {
         jumpVelocityMin = Mathf.Sqrt(2 * Mathf.Abs(gravity) * jumpHeightMin);
     }
 
-    void  Update() {
+    void Update() {
 
         Debug.Log("Main -  Update");
-        collisionState.printStatesShort();
+        //collisionState.printStatesShort();
         enterCollisionTypes.Clear();
         rigidBody.velocity = velocity;
 
@@ -139,6 +139,8 @@ public class CharacterBase : MonoBehaviour {
 
     /** Called on Player collision with a new object. **/
     void BaseCollisionEnter2D(Collision2D collision) { // ~ Could convert Collision2D to Collider2D
+        collisionState.CheckOverlaps();
+
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
         collision.GetContacts(contactsIn);
 
@@ -330,19 +332,6 @@ public class CharacterBase : MonoBehaviour {
             activeSpeed = moveSpeed;
         }
 
-        if (collisionState.None) {
-            fsm.ChangeState(States.Simulate);
-        }
-
-        /* Vertical JUMP Calc ------------------------------------------ */
-        // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
-        if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
-            velocity.y = jumpVelocityMax;
-            isGrounded = false;
-            print("Running Transition 1");
-            fsm.ChangeState(States.Simulate, StateTransition.Safe);
-        }
-
         /* Lateral Calc -------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
             velocity.x = activeSpeed * directionFacing;
@@ -377,20 +366,29 @@ public class CharacterBase : MonoBehaviour {
                 }
                 else
                     velocity.x = activeSpeed; // since isGrounded
-
             }
-
         }
 
-        if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
-            Debug.Log("Running Transition 2");
-            fsm.ChangeState(States.Idle, StateTransition.Safe); 
+        /* Priority Cases*/
+        if (collisionState.None) { // Case - slide off edge
+            fsm.ChangeState(States.Simulate, StateTransition.Safe);
         }
-
-        // Trigger Action.
-        if (inputManager.ActionKeyPressed()) {
+        if (inputManager.ActionKeyPressed()) { // Trigger Action.
             print("Running Transition 3");
             fsm.ChangeState(States.Action);
+        }
+
+        /* Vertical JUMP Calc ------------------------------------------ */
+        // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
+        else if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
+            velocity.y = jumpVelocityMax;
+            isGrounded = false;
+            print("Running Transition 1");
+            fsm.ChangeState(States.Simulate, StateTransition.Safe);
+        }
+        else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
+            Debug.Log("Running Transition 2");
+            fsm.ChangeState(States.Idle, StateTransition.Safe);
         }
     }
 
@@ -458,7 +456,7 @@ public class CharacterBase : MonoBehaviour {
                     fsm.ChangeState(States.Simulate, StateTransition.Safe);
                 }
             }
-            
+
             // When Right is first input.
             else if (Input.GetKeyDown(KeyCode.RightArrow)) { // on L/R input - setting conditions.
                 directionFacing = 1;
@@ -490,7 +488,7 @@ public class CharacterBase : MonoBehaviour {
                         velocity.x = activeSpeed;
                         fsm.ChangeState(States.Simulate, StateTransition.Safe);
                     }
-                    else{ // Fall away from wall
+                    else { // Fall away from wall
                         velocity.x += lateralAccelAirborne * Time.deltaTime;
                         fsm.ChangeState(States.Simulate, StateTransition.Safe);
                     }
@@ -565,6 +563,10 @@ public class CharacterBase : MonoBehaviour {
         }
     }
 
+    void Simulate_Enter() {
+        Debug.Log("SIMULATE - Enter");
+    }
+
     void Simulate_Update() {
         Debug.Log("Simulate_Update");
 
@@ -601,9 +603,10 @@ public class CharacterBase : MonoBehaviour {
         }
 
     }
+
     void Simulate_OnCollisionEnter2D(Collision2D collision) {
         BaseCollisionEnter2D(collision);
-        Debug.LogWarning("Simulate - OnCollisionEnter from "+ fsm.LastState);
+        Debug.LogWarning("Simulate - OnCollisionEnter from " + fsm.LastState);
         /* These are the new collisions this frame from this specific collision. */
         // ? Iterate for all combinations not needed with contains.
         if (enterCollisionTypes.Count > 0) {
@@ -648,6 +651,10 @@ public class CharacterBase : MonoBehaviour {
                 fsm.ChangeState(States.FindState, StateTransition.Overwrite);
             }
         }
+    }
+
+    void FindState_Enter() {
+        Debug.LogWarning("FINDSTATE - Enter");
     }
 
 }
