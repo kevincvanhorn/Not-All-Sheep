@@ -114,12 +114,9 @@ public class CharacterBase : MonoBehaviour {
         jumpVelocityMin = Mathf.Sqrt(2 * Mathf.Abs(gravity) * jumpHeightMin);
     }
 
-    void Update() {
-
-        Debug.Log("Main -  Update");
-        //collisionState.printStatesShort();
+    void PreStateUpdate() {
+        //Debug.Log("PRESTATE - Update");
         enterCollisionTypes.Clear();
-        rigidBody.velocity = velocity;
 
         /* Update directionFacing ------------------------------------------ */
         if (Input.GetKeyDown(KeyCode.RightArrow)) {
@@ -137,8 +134,16 @@ public class CharacterBase : MonoBehaviour {
         }
     }
 
+    void Update() {
+        Debug.Log("Main -  Update");
+        //collisionState.printStatesShort();
+        rigidBody.velocity = velocity;
+    }
+
+
     /** Called on Player collision with a new object. **/
     void BaseCollisionEnter2D(Collision2D collision) { // ~ Could convert Collision2D to Collider2D
+        PreStateUpdate();
         collisionState.CheckOverlaps();
 
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
@@ -177,9 +182,14 @@ public class CharacterBase : MonoBehaviour {
             }
         }
 
-        if (enterCollisionTypes.Count > 1) {
+        /*if (contactsIn.Length > 1) {
             Debug.LogError("ERROR: Multiple Collision Points.");
-        }
+            foreach(var e in contactsIn) {
+                Debug.LogError(e.normal);
+            }
+            Debug.LogError("Slope " + collisionState.Slope + " Right " + collisionState.Right);
+            Debug.LogError("-----------");
+        }*/
     }
 
     /* Collision Methods: Custom ---------------------------------------------*/
@@ -201,6 +211,7 @@ public class CharacterBase : MonoBehaviour {
 
     void Idle_Update() {
         Debug.Log("IDLE - Update");
+        PreStateUpdate();
 
         /* Vertical JUMP Calc ------------------------------------------ */
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
@@ -242,6 +253,8 @@ public class CharacterBase : MonoBehaviour {
 
     void Airborne_Update() {
         Debug.Log("AIRBORNE -  Update");
+        PreStateUpdate();
+
         /* Vertical Calc ----------------------------------------- */
         if (Input.GetKeyUp(KeyCode.UpArrow)) {  // Variable jump - When Up is released in this frame.
             if (velocity.y > jumpVelocityMin) {
@@ -344,6 +357,8 @@ public class CharacterBase : MonoBehaviour {
 
     void Running_Update() {
         Debug.Log("RUNNING - Update");
+        PreStateUpdate();
+
         //check contacts and set velocity.x = 0 should be touching the ground still
 
         /* Sprint Calc ------------------------------------------------- */
@@ -361,7 +376,8 @@ public class CharacterBase : MonoBehaviour {
 
         /* X Acceleration ---------------------------------------------- */
         else if (!Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) { // On-release of Lateral Movement controls - Deccelerate
-            if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
+            velocity.x = 0;
+            /*if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
                 velocity.x = 0;
             }
             if (directionFacing == 1 && velocity.x > 0) { // Decceleration Right
@@ -369,7 +385,7 @@ public class CharacterBase : MonoBehaviour {
             }
             else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
                 velocity.x += lateralAccelGrounded * Time.deltaTime;
-            }
+            }*/
         }
 
         /* Run/deccelerate into wall - Applied here once instead of conditionals above. */
@@ -452,11 +468,16 @@ public class CharacterBase : MonoBehaviour {
 
     void OnWall_Update() {
         Debug.Log("ONWALL - Update");
+        PreStateUpdate();
 
         bool isTouchingLeft = collisionState.Left;
         bool isTouchingRight = collisionState.Right;
 
-        if (!collisionState.Right && !collisionState.Left) { // Case - slide off edge
+        if (collisionState.Slope) {
+            velocity.y = 0;
+            velocity.x = 0;
+        }
+        else if (!collisionState.Right && !collisionState.Left) { // Case - slide off edge
             fsm.ChangeState(States.Simulate, StateTransition.Safe);
         }
         else {
@@ -562,7 +583,8 @@ public class CharacterBase : MonoBehaviour {
                 }
             }
         }
-        print("ONWALL - End of Update");
+        collisionState.printStatesShort();
+        print("ONWALL - End of Update. Vel " + velocity);
     }
 
     void OnWall_OnCollisionEnter2D(Collision2D collision) {
@@ -580,6 +602,12 @@ public class CharacterBase : MonoBehaviour {
                     fsm.ChangeState(States.Running, StateTransition.Safe);
                 }
                 // Continues execution from here after NextState.Enter() before Update() next frame.
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
+                velocity.x = 0;
+                velocity.y = 0;
+                fsm.ChangeState(States.ClimbingSlope, StateTransition.Safe);
+                enterCollisionTypes.Remove(CollisionType.Slope);
             }
             else if (enterCollisionTypes.Contains(CollisionType.Top)) {
                 velocity.y = 0;
@@ -599,10 +627,6 @@ public class CharacterBase : MonoBehaviour {
                 enterCollisionTypes.Remove(CollisionType.Right);
                 Debug.LogWarning("This should not usually occur. Addressed in Update.");
             }
-            /*else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
-                fsm.ChangeState(States.ClimbingSlope, StateTransition.Safe);
-                enterCollisionTypes.Remove(CollisionType.Right);
-            }*/
             else {
                 fsm.ChangeState(States.FindState, StateTransition.Safe);
             }
@@ -614,8 +638,12 @@ public class CharacterBase : MonoBehaviour {
     }
 
     void ClimbingSlope_Update() {
+        PreStateUpdate();
         Debug.Log("SLOPE - Update " + velocity);
-        Debug.Log("dir: " + directionFacing + " L/R:" + Input.GetKey(KeyCode.RightArrow) +" "+Input.GetKey(KeyCode.LeftArrow));
+        Debug.Log("dir: " + directionFacing + " R/L:" + Input.GetKey(KeyCode.RightArrow) +" "+Input.GetKey(KeyCode.LeftArrow));
+        collisionState.printStatesShort();
+
+        slopeAngle = collisionState.curSlopeAngle;
 
         /* Sprint Calc ------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftShift)) {
@@ -627,11 +655,16 @@ public class CharacterBase : MonoBehaviour {
 
         /* Lateral Calc -------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
-            if(collisionState.Right || collisionState.Left) {
+            if(collisionState.Right && Input.GetKey(KeyCode.RightArrow)) {
+                velocity.x = 0;
+                velocity.y = 0;
+            }
+            else if (collisionState.Left && Input.GetKey(KeyCode.LeftArrow)) {
                 velocity.x = 0;
                 velocity.y = 0;
             }
             else {
+                Debug.Log("SLOPE - Lateral Calc. ");
                 velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * directionFacing;
                 velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing;
             }
@@ -640,7 +673,9 @@ public class CharacterBase : MonoBehaviour {
 
         /* X Acceleration ---------------------------------------------- */
         else if (!Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) { // On-release of Lateral Movement controls - Deccelerate
-            if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
+            velocity.x = 0;
+            velocity.y = 0;
+            /*if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
                 velocity.x = 0;
                 velocity.y = 0;
             }
@@ -656,18 +691,20 @@ public class CharacterBase : MonoBehaviour {
                 Debug.LogWarning("SLOPE - Decel stopping early. ");
                 velocity.y = 0;
                 velocity.x = 0;
-            }
+            }*/
         }
 
         /* Run/deccelerate into wall - Applied here once instead of conditionals above. */
-        if (velocity.x > 0 && collisionState.Right) {
+        /*if (velocity.x > 0 && collisionState.Right) {
+            Debug.LogError("ERROR1.");
             velocity.x = 0;
             velocity.y = 0;
         }
         else if (velocity.x < 0 && collisionState.Left) {
+            Debug.LogError("ERROR2.");
             velocity.x = 0;
             velocity.y = 0;
-        }
+        }*/
 
         /* Priority Cases*/
         if (inputManager.ActionKeyPressed()) { // Trigger Action.
@@ -677,17 +714,35 @@ public class CharacterBase : MonoBehaviour {
             fsm.ChangeState(States.Simulate, StateTransition.Safe);
             Debug.LogError("Sliding off Slope");
         }
+        else if ((collisionState.Left || collisionState.Right) && !collisionState.Slope) { // Ran up slope and skid up wall
+            // Case1.03: not on slope - just above at corner of slope and wall. 
+            if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
+                velocity.y = jumpVelocityMax;
+                fsm.ChangeState(States.OnWall, StateTransition.Safe);
+            }
+        }
 
         /* Vertical JUMP Calc ------------------------------------------ */
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
         else if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
+            //NOTE! Remember to copy this jump behavior to the Case1.03 Above
             velocity.y = jumpVelocityMax;
             fsm.ChangeState(States.Simulate, StateTransition.Safe);
         }
         else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
-            //Debug.Log("Slope - Transition 1");
+            
+            velocity.y = 0;
+            if (collisionState.Slope) {
+                Debug.Log("Slope - Transition 1");
+            }
+            else{
+                Debug.Log("Slope - Transition 2");
+            }
+
             //fsm.ChangeState(States.Idle, StateTransition.Safe);
         }
+
+        Debug.Log(velocity);
     }
 
     private void ClimbingSlope_OnCollisionEnter2D(Collision2D collision) {
@@ -736,6 +791,7 @@ public class CharacterBase : MonoBehaviour {
 
     void Simulate_Update() {
         Debug.Log("Simulate_Update");
+        PreStateUpdate();
 
         /* Lateral Calc -------------------------------------------*/
         if (Input.GetKey(KeyCode.RightArrow) && velocity.x < activeSpeed) { // in-air lateral move right
@@ -822,6 +878,10 @@ public class CharacterBase : MonoBehaviour {
                 enterCollisionTypes.Remove(CollisionType.Top);
                 velocity.y = 0;
             }
+            else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
+                enterCollisionTypes.Remove(CollisionType.Slope);
+                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
+            }
             else {
                 fsm.ChangeState(States.FindState, StateTransition.Overwrite);
             }
@@ -830,6 +890,10 @@ public class CharacterBase : MonoBehaviour {
 
     void FindState_Enter() {
         Debug.LogWarning("FINDSTATE - Enter from " + fsm.LastState);
+    }
+
+    void FindState_Update() {
+        PreStateUpdate();
     }
 
 }

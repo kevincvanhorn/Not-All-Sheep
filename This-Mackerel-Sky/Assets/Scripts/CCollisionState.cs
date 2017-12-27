@@ -6,7 +6,8 @@ public class CCollisionState : MonoBehaviour {
 
     public LayerMask collisionLayer;
     public float maxAngle = 80;
-    public float debugSlopeAngle = 0;
+    public float curSlopeAngle = 0;
+    public float curWallAngle = 0;
 
     private Collider2D collider;
     private ContactFilter2D contactFilter = new ContactFilter2D();
@@ -70,7 +71,7 @@ public class CCollisionState : MonoBehaviour {
                     if (contactsIn[i].normal != Vector2.zero) {
                         /* Vertical Collision */
                         slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.down);
-                        debugSlopeAngle = slopeAngle;
+                        
                         if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
                             if (contactsIn[i].normal.y == 1) {
                                 top = true;
@@ -91,6 +92,7 @@ public class CCollisionState : MonoBehaviour {
                         /* Slope Collision */
                         else {
                             slope = true;
+                            curSlopeAngle = slopeAngle;
                         }
                     }
                 }
