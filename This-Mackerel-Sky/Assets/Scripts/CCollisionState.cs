@@ -112,6 +112,10 @@ public class CCollisionState : MonoBehaviour {
         print("NONE : " + none);
     }
 
+    public void printStatesError() {
+        Debug.LogError("--------- T" + top + " B" + bot + " L" + left + " R" + right + " S" + slope + " N" + none);
+    }
+
     public void printStatesShort() {
         print("--------- T" + top + " B"+bot+" L"+left+ " R"+right + " S"+slope + " N"+none);
     }

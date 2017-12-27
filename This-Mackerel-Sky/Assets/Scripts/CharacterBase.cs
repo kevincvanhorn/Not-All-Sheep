@@ -176,6 +176,10 @@ public class CharacterBase : MonoBehaviour {
                 }
             }
         }
+
+        if (enterCollisionTypes.Count > 1) {
+            Debug.LogError("ERROR: Multiple Collision Points.");
+        }
     }
 
     /* Collision Methods: Custom ---------------------------------------------*/
@@ -189,6 +193,7 @@ public class CharacterBase : MonoBehaviour {
     // LateUpdate
     // Finally
 
+        /* Should be a buffer state active when no input is pressed. */
     void Idle_Enter() {
         // velocity.x = 0
         Debug.Log("IDLE - Enter");
@@ -204,19 +209,21 @@ public class CharacterBase : MonoBehaviour {
             fsm.ChangeState(States.Simulate, StateTransition.Safe);
         }
 
+        /*if (!collisionState.Bot || !collisionState.Slope) {
+            fsm.ChangeState(States.Simulate, StateTransition.Safe);
+        }*/
+
         /* Lateral Calc -------------------------------------------------- */
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
+        else if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
             if (collisionState.Slope) {
-                velocity.x = activeSpeed;
                 fsm.ChangeState(States.ClimbingSlope, StateTransition.Safe);
             }
             else if(collisionState.Bot) {
-                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * directionFacing;
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing;
                 fsm.ChangeState(States.Running, StateTransition.Safe);
             }
             else {
                 Debug.LogError("ERROR: Invalid Idle Transition.");
+                collisionState.printStatesError();
             }
         }
 
@@ -287,6 +294,7 @@ public class CharacterBase : MonoBehaviour {
             }
             else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
                 velocity.y = 0;
+                velocity.x = 0;
                 // TODO : make x and y relate to the angle?
                 enterCollisionTypes.Remove(CollisionType.Slope);
                 fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
@@ -384,12 +392,13 @@ public class CharacterBase : MonoBehaviour {
         }*/
 
         /* Priority Cases*/
-        if (collisionState.None) { // Case - slide off edge
-            fsm.ChangeState(States.Simulate, StateTransition.Safe);
-        }
         if (inputManager.ActionKeyPressed()) { // Trigger Action.
             print("Running Transition 3");
             fsm.ChangeState(States.Action);
+        }
+
+        else if (collisionState.None) { // Case - slide off edge
+            fsm.ChangeState(States.Simulate, StateTransition.Safe);
         }
 
         /* Vertical JUMP Calc ------------------------------------------ */
@@ -581,15 +590,19 @@ public class CharacterBase : MonoBehaviour {
                 velocity.x = 0;
 
                 enterCollisionTypes.Remove(CollisionType.Left);
-                Debug.Log("This should not usually occur. Addressed in Update.");
+                Debug.LogWarning("This should not usually occur. Addressed in Update.");
             }
             else if (enterCollisionTypes.Contains(CollisionType.Right)) {
                 wallImpactSpeed = velocity.x;
                 velocity.x = 0;
 
                 enterCollisionTypes.Remove(CollisionType.Right);
-                Debug.Log("This should not usually occur. Addressed in Update.");
+                Debug.LogWarning("This should not usually occur. Addressed in Update.");
             }
+            /*else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
+                fsm.ChangeState(States.ClimbingSlope, StateTransition.Safe);
+                enterCollisionTypes.Remove(CollisionType.Right);
+            }*/
             else {
                 fsm.ChangeState(States.FindState, StateTransition.Safe);
             }
@@ -601,7 +614,8 @@ public class CharacterBase : MonoBehaviour {
     }
 
     void ClimbingSlope_Update() {
-        Debug.Log("SLOPE - Update");
+        Debug.Log("SLOPE - Update " + velocity);
+        Debug.Log("dir: " + directionFacing + " L/R:" + Input.GetKey(KeyCode.RightArrow) +" "+Input.GetKey(KeyCode.LeftArrow));
 
         /* Sprint Calc ------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftShift)) {
@@ -613,8 +627,15 @@ public class CharacterBase : MonoBehaviour {
 
         /* Lateral Calc -------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
-            velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * directionFacing;
-            velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing;
+            if(collisionState.Right || collisionState.Left) {
+                velocity.x = 0;
+                velocity.y = 0;
+            }
+            else {
+                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * directionFacing;
+                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing;
+            }
+            
         }
 
         /* X Acceleration ---------------------------------------------- */
@@ -623,13 +644,18 @@ public class CharacterBase : MonoBehaviour {
                 velocity.x = 0;
                 velocity.y = 0;
             }
-            if (directionFacing == 1 && velocity.x > 0) { // Decceleration Right
-                velocity.x -= lateralAccelGrounded * Time.deltaTime;
-                velocity.y -= lateralAccelGrounded * Time.deltaTime;
+            if (directionFacing == 1 && velocity.x > 0) { // Decceleration Right //Journal: 12-27-17
+                velocity.x -= lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad)* Time.deltaTime;
+                velocity.y += slopeDir * -1 * lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
             }
             else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
-                velocity.x += lateralAccelGrounded * Time.deltaTime;
-                velocity.y -= lateralAccelGrounded * Time.deltaTime;
+                velocity.x += lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
+                velocity.y += slopeDir *lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
+            }
+            else if(velocity.y != 0){
+                Debug.LogWarning("SLOPE - Decel stopping early. ");
+                velocity.y = 0;
+                velocity.x = 0;
             }
         }
 
@@ -649,6 +675,7 @@ public class CharacterBase : MonoBehaviour {
         }
         else if (collisionState.None) { // Case - slide off edge
             fsm.ChangeState(States.Simulate, StateTransition.Safe);
+            Debug.LogError("Sliding off Slope");
         }
 
         /* Vertical JUMP Calc ------------------------------------------ */
@@ -657,15 +684,46 @@ public class CharacterBase : MonoBehaviour {
             velocity.y = jumpVelocityMax;
             fsm.ChangeState(States.Simulate, StateTransition.Safe);
         }
-
         else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
-            fsm.ChangeState(States.Idle, StateTransition.Safe);
+            //Debug.Log("Slope - Transition 1");
+            //fsm.ChangeState(States.Idle, StateTransition.Safe);
         }
     }
 
     private void ClimbingSlope_OnCollisionEnter2D(Collision2D collision) {
         Debug.Log("SLOPE - OnCollisionEnter2D");
         BaseCollisionEnter2D(collision);
+
+        if (enterCollisionTypes.Count > 0) {
+            if (enterCollisionTypes.Contains(CollisionType.Right)) {
+                // TouchingWall.
+                velocity.x = 0;
+                velocity.y = 0;
+                enterCollisionTypes.Remove(CollisionType.Right);
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Left)) {
+                // TouchingWall.
+                velocity.x = 0;
+                velocity.y = 0;
+                enterCollisionTypes.Remove(CollisionType.Left);
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Top)) {
+                velocity.x = 0;
+                velocity.y = 0; // Redundancy case - addressed in this.Update.
+                enterCollisionTypes.Remove(CollisionType.Top);
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
+                //fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+                enterCollisionTypes.Remove(CollisionType.Slope);
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Bot)) {
+                fsm.ChangeState(States.Running, StateTransition.Overwrite);
+                enterCollisionTypes.Remove(CollisionType.Slope);
+            }
+            else {
+                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
+            }
+        }
     }
 
     /* Simulate is for the 4-5 frames after a jump/transition away from an object into empty space occurs.
@@ -673,7 +731,7 @@ public class CharacterBase : MonoBehaviour {
      in an update does not occur immediately at the first frame of up pressed out of the grounded state while the object is 
      still "grounded" by the bounding check.*/
     void Simulate_Enter() {
-        Debug.Log("SIMULATE - Enter");
+        Debug.Log("SIMULATE - Enter from" + fsm.LastState);
     }
 
     void Simulate_Update() {
@@ -699,6 +757,9 @@ public class CharacterBase : MonoBehaviour {
         }
         else if (fsm.LastState == States.Idle) {
             if (!collisionState.Bot) {
+                fsm.ChangeState(States.Airborne);
+            }
+            else if (!collisionState.Slope) {
                 fsm.ChangeState(States.Airborne);
             }
         }
@@ -768,7 +829,7 @@ public class CharacterBase : MonoBehaviour {
     }
 
     void FindState_Enter() {
-        Debug.LogWarning("FINDSTATE - Enter");
+        Debug.LogWarning("FINDSTATE - Enter from " + fsm.LastState);
     }
 
 }
