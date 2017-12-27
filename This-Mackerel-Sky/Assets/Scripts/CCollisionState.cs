@@ -38,7 +38,7 @@ public class CCollisionState : MonoBehaviour {
     private void FixedUpdate() {
         ClearOverlaps();
         CheckOverlaps();
-        printStatesShort();
+        //printStatesShort();
     }
 
     private void ClearOverlaps() {
@@ -57,7 +57,7 @@ public class CCollisionState : MonoBehaviour {
         foreach (Collider2D coll in collidersTouching) {
             
             if (coll != null) {
-                Debug.LogError(coll);
+                //Debug.LogError(coll);
 
                 ContactPoint2D[] contactsIn = new ContactPoint2D[8]; // 2 when side collides (each corner) || 1 when on slope
                 coll.GetContacts(contactsIn);
