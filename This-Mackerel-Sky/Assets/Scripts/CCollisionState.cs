@@ -78,7 +78,7 @@ public class CCollisionState : MonoBehaviour {
                             if (contactsIn[i].normal.y > 0.9) { // 12.28.16b03 (== 1)
                                 top = true;
                             }
-                            else if (contactsIn[i].normal.y == -1) { // contactsIn[i].normal.y == -1
+                            else if (contactsIn[i].normal.y < -.99) { // contactsIn[i].normal.y == -1
                                 bot = true;
                             }
                         }
