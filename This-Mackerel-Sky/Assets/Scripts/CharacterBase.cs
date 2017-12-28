@@ -144,11 +144,11 @@ public class CharacterBase : MonoBehaviour {
 
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
         collision.GetContacts(contactsIn);
-        Debug.LogError("BASECOLLISIONENTER");
+        /*Debug.LogError("BASECOLLISIONENTER");
         foreach (ContactPoint2D e in contactsIn) {
             Debug.LogError(e.normal);
         }
-        Debug.LogError("----------");
+        Debug.LogError("----------");*/
 
 
         /* Call Collider Enter Functions */
@@ -225,7 +225,7 @@ public class CharacterBase : MonoBehaviour {
         Debug.Log("IDLE - Update");
         PreStateUpdate();
 
-        collisionState.printStatesError();
+        //collisionState.printStatesError();
 
         /* Vertical JUMP Calc ------------------------------------------ */
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
@@ -309,17 +309,6 @@ public class CharacterBase : MonoBehaviour {
         BaseCollisionEnter2D(collision);
 
         Debug.Log("AIRBORNE - OnCollisionEnter");
-
-        collisionState.printStatesError();
-        Debug.LogError("TOP " + enterCollisionTypes.Contains(CollisionType.Top) + " SLOPE " + enterCollisionTypes.Contains(CollisionType.Slope));
-        foreach (CollisionType e in enterCollisionTypes) {
-            Debug.LogError("---- " + e);
-        }
-        foreach (ContactPoint2D c in collision.contacts) {
-            Debug.LogError("THIS - " + c.normal);
-        }
-
-        
         /* These are the new collisions this frame from this specific collision. */
         // ? Iterate for all combinations not needed with contains.
         if (enterCollisionTypes.Count > 0) {
@@ -457,7 +446,6 @@ public class CharacterBase : MonoBehaviour {
         }
         else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
             Debug.Log("Running Transition 2");
-            collisionState.printStatesError();
             fsm.ChangeState(States.Idle, StateTransition.Safe);
             
         }
@@ -884,14 +872,14 @@ public class CharacterBase : MonoBehaviour {
         Debug.Log("Simulate - OnCollisionEnter from " + fsm.LastState);
         BaseCollisionEnter2D(collision);
 
-        collisionState.printStatesError();
+        /*collisionState.printStatesError();
         Debug.LogError("TOP " + enterCollisionTypes.Contains(CollisionType.Top) + " SLOPE " + enterCollisionTypes.Contains(CollisionType.Slope));
         foreach (CollisionType e in enterCollisionTypes) {
             Debug.LogError("---- " + e);
         }
         foreach (ContactPoint2D c in collision.contacts) {
             Debug.LogError("THIS - " + c.normal);
-        }
+        }*/
 
 
         /* These are the new collisions this frame from this specific collision. */
