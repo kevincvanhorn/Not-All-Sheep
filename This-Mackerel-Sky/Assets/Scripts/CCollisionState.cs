@@ -9,6 +9,9 @@ public class CCollisionState : MonoBehaviour {
     public float curSlopeAngle = 0;
     public float curWallAngle = 0;
 
+    public float debugX = 0;
+    public float debugY = 0;
+
     private Collider2D collider;
     private ContactFilter2D contactFilter = new ContactFilter2D();
 
@@ -18,6 +21,7 @@ public class CCollisionState : MonoBehaviour {
     public bool left;
     public bool right;
     public bool slope;
+    public bool topSlant;
 
     public bool None { get { return none; } }
     public bool Top { get { return top; }  }
@@ -25,6 +29,7 @@ public class CCollisionState : MonoBehaviour {
     public bool Left { get { return left; } }
     public bool Right { get { return right; } }
     public bool Slope { get { return slope; } }
+    public bool topSlant { get { return slope; } }
 
     // Use this for initialization
     void Start () {
@@ -67,14 +72,37 @@ public class CCollisionState : MonoBehaviour {
                 /* Call Collider Enter Functions */
                 for (int i = 0; i < contactsIn.Length; i++) {
                     /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
-                    //print("--------------" + slopeAngle + " " + contactsIn[i].normal);
-                    
                     if (contactsIn[i].normal != Vector2.zero) {
-                        /* Vertical Collision */
-                        //Debug.LogWarning("" + contactsIn[i].normal);
                         slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.down);
                         
-                        if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
+                        /* Wall Collision */
+                        if(slopeAngle < 91 && slopeAngle > 89) {
+                            if(contactsIn[i].normal.x < 0) {
+                                left = true;
+                            }
+                            if (contactsIn[i].normal.x > 0) {
+                                right = true;
+                            }
+                        }
+                        //Horizontal Collision
+                        else if (slopeAngle >) { // contactsIn[i].normal.y == 0
+                            if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
+                                right = true;
+                            }
+                            else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
+                                left = true;
+                            }
+                        /* Slope Collision */
+                            else {
+                            slope = true;
+                            curSlopeAngle = slopeAngle;
+                        }
+
+
+                        //curSlopeAngle = slopeAngle; // DEBUG
+                        //debugX = contactsIn[i].normal.x; //DEBUG
+                        //debugY = contactsIn[i].normal.y; //DEBUG
+                        /*if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
                             if (contactsIn[i].normal.y > 0.9) { // 12.28.16b03 (== 1)
                                 top = true;
                             }
@@ -82,7 +110,7 @@ public class CCollisionState : MonoBehaviour {
                                 bot = true;
                             }
                         }
-                        /* Horizontal Collision */
+                        //Horizontal Collision
                         else if (slopeAngle > maxAngle) { // contactsIn[i].normal.y == 0
                             if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
                                 right = true;
@@ -90,12 +118,7 @@ public class CCollisionState : MonoBehaviour {
                             else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
                                 left = true;
                             }
-                        }
-                        /* Slope Collision */
-                        else {
-                            slope = true;
-                            curSlopeAngle = slopeAngle;
-                        }
+                        }*/
                     }
                 }
             }
