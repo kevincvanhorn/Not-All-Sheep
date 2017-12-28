@@ -68,12 +68,14 @@ public class CCollisionState : MonoBehaviour {
                 for (int i = 0; i < contactsIn.Length; i++) {
                     /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
                     //print("--------------" + slopeAngle + " " + contactsIn[i].normal);
+                    
                     if (contactsIn[i].normal != Vector2.zero) {
                         /* Vertical Collision */
+                        //Debug.LogWarning("" + contactsIn[i].normal);
                         slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.down);
                         
                         if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
-                            if (contactsIn[i].normal.y == 1) {
+                            if (contactsIn[i].normal.y > 0.9) { // 12.28.16b03 (== 1)
                                 top = true;
                             }
                             else if (contactsIn[i].normal.y == -1) { // contactsIn[i].normal.y == -1
@@ -98,6 +100,7 @@ public class CCollisionState : MonoBehaviour {
                 }
             }
         }
+        
 
         
         if(bot || top || left || right || slope) {

@@ -116,7 +116,6 @@ public class CharacterBase : MonoBehaviour {
 
     void PreStateUpdate() {
         //Debug.Log("PRESTATE - Update");
-        enterCollisionTypes.Clear();
 
         /* Update directionFacing ------------------------------------------ */
         if (Input.GetKeyDown(KeyCode.RightArrow)) {
@@ -135,7 +134,8 @@ public class CharacterBase : MonoBehaviour {
     }
 
     void Update() {
-        Debug.Log("Main -  Update");
+        //Debug.Log("Main -  Update");
+        //Debug.Log(velocity);
         //collisionState.printStatesShort();
         rigidBody.velocity = velocity;
     }
@@ -144,10 +144,16 @@ public class CharacterBase : MonoBehaviour {
     /** Called on Player collision with a new object. **/
     void BaseCollisionEnter2D(Collision2D collision) { // ~ Could convert Collision2D to Collider2D
         PreStateUpdate();
+        enterCollisionTypes.Clear();
         collisionState.CheckOverlaps();
 
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
         collision.GetContacts(contactsIn);
+        Debug.LogError("BASECOLLISIONENTER");
+        foreach (ContactPoint2D e in contactsIn) {
+            Debug.LogError(e.normal);
+        }
+        Debug.LogError("----------");
 
         /* Call Collider Enter Functions */
         for (int i = 0; i < contactsIn.Length; i++) {
@@ -159,18 +165,22 @@ public class CharacterBase : MonoBehaviour {
                 if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
                     if (contactsIn[i].normal.y == 1) {
                         enterCollisionTypes.Add(CollisionType.Bot); // For this frame.
+                        collisionState.bot = true; // Set here so collision state and contacts in are in sync.
                     }
-                    else if (contactsIn[i].normal.y == -1) { // contactsIn[i].normal.y == -1
+                    else if (contactsIn[i].normal.y <0.99) { // (contactsIn[i].normal.y == -1) // BUG: 12.28.16b04
                         enterCollisionTypes.Add(CollisionType.Top);
+                        collisionState.top = true;
                     }
                 }
                 /* Horizontal Collision */
                 else if (slopeAngle > maxAngle) { // contactsIn[i].normal.y == 0
                     if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
                         enterCollisionTypes.Add(CollisionType.Left);
+                        collisionState.left = true;
                     }
                     else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
                         enterCollisionTypes.Add(CollisionType.Right);
+                        collisionState.right = true;
                     }
                 }
                 /* Slope Collision */
@@ -178,6 +188,7 @@ public class CharacterBase : MonoBehaviour {
                     slopeDir = (contactsIn[i].normal.x < 0) ? 1 : -1; // 1 = right, -1 = left
                     //slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
                     enterCollisionTypes.Add(CollisionType.Slope);
+                    collisionState.slope = true;
                 }
             }
         }
@@ -270,13 +281,18 @@ public class CharacterBase : MonoBehaviour {
             velocity.x -= lateralAccelAirborne * Time.deltaTime;
         }
 
+        if (collisionState.Top && velocity.y > 0) {
+            velocity.y = 0;
+        }
+
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
         // Jumping While Against Wall.
         if (collisionState.Right || collisionState.Left) {
-            print("CollisionState -------------");
+            /*print("CollisionState -------------");
             collisionState.printStates();
-            print("----------------------------");
+            print("----------------------------");*/
+            velocity.x = 0;
             fsm.ChangeState(States.OnWall);
         }
 
@@ -583,8 +599,8 @@ public class CharacterBase : MonoBehaviour {
                 }
             }
         }
-        collisionState.printStatesShort();
-        print("ONWALL - End of Update. Vel " + velocity);
+        //collisionState.printStatesShort();
+        //print("ONWALL - End of Update. Vel " + velocity);
     }
 
     void OnWall_OnCollisionEnter2D(Collision2D collision) {
@@ -639,8 +655,8 @@ public class CharacterBase : MonoBehaviour {
 
     void ClimbingSlope_Update() {
         PreStateUpdate();
-        Debug.Log("SLOPE - Update " + velocity);
-        Debug.Log("dir: " + directionFacing + " R/L:" + Input.GetKey(KeyCode.RightArrow) +" "+Input.GetKey(KeyCode.LeftArrow));
+        Debug.Log("SLOPE - Update ");
+        //Debug.Log("dir: " + directionFacing + " R/L:" + Input.GetKey(KeyCode.RightArrow) +" "+Input.GetKey(KeyCode.LeftArrow));
         collisionState.printStatesShort();
 
         slopeAngle = collisionState.curSlopeAngle;
@@ -706,6 +722,13 @@ public class CharacterBase : MonoBehaviour {
             velocity.y = 0;
         }*/
 
+        if (collisionState.Top) { //NOTE: Do not else with above, uses calculated velocity.
+            if(velocity.y > 0) {
+                velocity.x = 0;
+                velocity.y = 0;
+            }
+        }
+
         /* Priority Cases*/
         if (inputManager.ActionKeyPressed()) { // Trigger Action.
             fsm.ChangeState(States.Action);
@@ -717,6 +740,7 @@ public class CharacterBase : MonoBehaviour {
         else if ((collisionState.Left || collisionState.Right) && !collisionState.Slope) { // Ran up slope and skid up wall
             // Case1.03: not on slope - just above at corner of slope and wall. 
             if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
+                //Debug.LogError("Case1.03");
                 velocity.y = jumpVelocityMax;
                 fsm.ChangeState(States.OnWall, StateTransition.Safe);
             }
@@ -727,6 +751,7 @@ public class CharacterBase : MonoBehaviour {
         else if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top) {
             //NOTE! Remember to copy this jump behavior to the Case1.03 Above
             velocity.y = jumpVelocityMax;
+            Debug.LogError("Vertical Jump");
             fsm.ChangeState(States.Simulate, StateTransition.Safe);
         }
         else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow)) {
@@ -742,7 +767,7 @@ public class CharacterBase : MonoBehaviour {
             //fsm.ChangeState(States.Idle, StateTransition.Safe);
         }
 
-        Debug.Log(velocity);
+       Debug.Log(velocity);
     }
 
     private void ClimbingSlope_OnCollisionEnter2D(Collision2D collision) {
@@ -823,6 +848,12 @@ public class CharacterBase : MonoBehaviour {
             if (!collisionState.Left && !collisionState.Right) {
                 fsm.ChangeState(States.Airborne);
             }
+            if (collisionState.Bot) {
+                fsm.ChangeState(States.Idle);
+            }
+            else if (collisionState.Slope) {
+                fsm.ChangeState(States.ClimbingSlope);
+            }
         }
         else if (fsm.LastState == States.ClimbingSlope) {
             if (!collisionState.Slope) {
@@ -836,8 +867,18 @@ public class CharacterBase : MonoBehaviour {
     }
 
     void Simulate_OnCollisionEnter2D(Collision2D collision) {
+        Debug.LogError("Simulate - OnCollisionEnter from " + fsm.LastState);
         BaseCollisionEnter2D(collision);
-        Debug.LogWarning("Simulate - OnCollisionEnter from " + fsm.LastState);
+        collisionState.printStatesError();
+        Debug.LogError("TOP "+enterCollisionTypes.Contains(CollisionType.Top) + " SLOPE "+ enterCollisionTypes.Contains(CollisionType.Slope));
+        foreach(CollisionType e in enterCollisionTypes) {
+            Debug.LogError("---- "+ e);
+        }
+        foreach(ContactPoint2D c in collision.contacts) {
+            Debug.LogError("THIS - " + c.normal);
+        }
+        
+        
         /* These are the new collisions this frame from this specific collision. */
         // ? Iterate for all combinations not needed with contains.
         if (enterCollisionTypes.Count > 0) {
@@ -875,14 +916,31 @@ public class CharacterBase : MonoBehaviour {
                 }
             }
             else if (enterCollisionTypes.Contains(CollisionType.Top)) {
-                enterCollisionTypes.Remove(CollisionType.Top);
                 velocity.y = 0;
+                if (!collisionState.Slope && !collisionState.Left && !collisionState.Right && !collisionState.Bot) {
+                    fsm.ChangeState(States.Airborne);
+                }
+                // Case1.04: climbing slope topcollision (touching top == true, touching slope == true) skips airborne, 
+                // directly from slope to top in simulation, skipping the airborne that would be there with finer calculations..
+                else if (collisionState.Slope) {
+                    fsm.ChangeState(States.ClimbingSlope);
+                }
+                else {
+                    Debug.LogError("ERROR: State Transition Top Corner");
+                }
+                
+                /*if (fsm.LastState == States.ClimbingSlope) {
+                    velocity.x = 0;
+                    fsm.ChangeState(States.ClimbingSlope);
+                }*/
+                enterCollisionTypes.Remove(CollisionType.Top);
             }
             else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
                 enterCollisionTypes.Remove(CollisionType.Slope);
-                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
+                fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
             }
             else {
+                Debug.LogError(""+enterCollisionTypes);
                 fsm.ChangeState(States.FindState, StateTransition.Overwrite);
             }
         }
