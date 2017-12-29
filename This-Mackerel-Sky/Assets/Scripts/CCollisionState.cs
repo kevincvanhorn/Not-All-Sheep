@@ -29,7 +29,7 @@ public class CCollisionState : MonoBehaviour {
     public bool Left { get { return left; } }
     public bool Right { get { return right; } }
     public bool Slope { get { return slope; } }
-    public bool topSlant { get { return slope; } }
+    public bool TopSlant { get { return topSlant; } }
 
     // Use this for initialization
     void Start () {
@@ -74,51 +74,34 @@ public class CCollisionState : MonoBehaviour {
                     /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
                     if (contactsIn[i].normal != Vector2.zero) {
                         slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.down);
-                        
+
+                        curSlopeAngle = slopeAngle; // DEBUG
+                        debugX = contactsIn[i].normal.x; //DEBUG
+                        debugY = contactsIn[i].normal.y; //DEBUG
+
                         /* Wall Collision */
-                        if(slopeAngle < 91 && slopeAngle > 89) {
+                        if (slopeAngle < 91 && slopeAngle > 89) {
                             if(contactsIn[i].normal.x < 0) {
                                 left = true;
                             }
                             if (contactsIn[i].normal.x > 0) {
                                 right = true;
                             }
-                        }
-                        //Horizontal Collision
-                        else if (slopeAngle >) { // contactsIn[i].normal.y == 0
+                        } 
+                        /* Top Collision*/
+                        else if (slopeAngle > 175 && slopeAngle <= 180) {
                             if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
-                                right = true;
+                                top = true;
                             }
-                            else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
-                                left = true;
-                            }
+                        }
+                        else if (slopeAngle == 0) { // contactsIn[i].normal.y == -1
+                            bot = true;
+                        }
                         /* Slope Collision */
-                            else {
+                        else { // This is now bot.
                             slope = true;
                             curSlopeAngle = slopeAngle;
                         }
-
-
-                        //curSlopeAngle = slopeAngle; // DEBUG
-                        //debugX = contactsIn[i].normal.x; //DEBUG
-                        //debugY = contactsIn[i].normal.y; //DEBUG
-                        /*if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
-                            if (contactsIn[i].normal.y > 0.9) { // 12.28.16b03 (== 1)
-                                top = true;
-                            }
-                            else if (contactsIn[i].normal.y < -.99) { // contactsIn[i].normal.y == -1
-                                bot = true;
-                            }
-                        }
-                        //Horizontal Collision
-                        else if (slopeAngle > maxAngle) { // contactsIn[i].normal.y == 0
-                            if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
-                                right = true;
-                            }
-                            else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
-                                left = true;
-                            }
-                        }*/
                     }
                 }
             }

@@ -150,41 +150,40 @@ public class CharacterBase : MonoBehaviour {
         }
         Debug.LogError("----------");*/
 
-
         /* Call Collider Enter Functions */
         for (int i = 0; i < contactsIn.Length; i++) {
             /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
-            //print("--------------" + slopeAngle + " " + contactsIn[i].normal);
             if (contactsIn[i].normal != Vector2.zero) {
-                /* Vertical Collision */
-                slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
-                if (contactsIn[i].normal.x == 0) { // contactsIn[i].normal.x == 0
-                    if (contactsIn[i].normal.y > 0.9) { // .y == 1 // BUG: 12.28.16b04
-                        enterCollisionTypes.Add(CollisionType.Bot); // For this frame.
-                        collisionState.bot = true; // Set here so collision state and contacts in are in sync.
-                        collisionState.none = false;
-                    }
-                    else if (contactsIn[i].normal.y <-0.99) { // (contactsIn[i].normal.y == -1) // BUG: 12.28.16b04
-                        enterCollisionTypes.Add(CollisionType.Top);
-                        collisionState.top = true;
-                        collisionState.none = false;
-                    }
-                }
-                /* Horizontal Collision */
-                else if (slopeAngle > maxAngle) { // contactsIn[i].normal.y == 0
-                    if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
+                slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.down);
+                /* Wall Collision */
+                if (slopeAngle < 91 && slopeAngle > 89) {
+                    if (contactsIn[i].normal.x > 0) {
                         enterCollisionTypes.Add(CollisionType.Left);
                         collisionState.left = true;
                         collisionState.none = false;
                     }
-                    else if (contactsIn[i].normal.x < 0) { // contactsIn[i].normal.x == -1
+                    if (contactsIn[i].normal.x < 0) {
                         enterCollisionTypes.Add(CollisionType.Right);
                         collisionState.none = false;
                         collisionState.right = true;
                     }
                 }
+                /* Top Collision*/
+                else if (slopeAngle >= 0 && slopeAngle < 5) {
+                    if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
+                        enterCollisionTypes.Add(CollisionType.Top);
+                        collisionState.top = true;
+                        collisionState.none = false;
+                    }
+                }
+                else if (slopeAngle == 180) { // contactsIn[i].normal.y == -1
+                    enterCollisionTypes.Add(CollisionType.Bot);
+                    collisionState.bot = true;
+                    collisionState.none = false;
+                }
                 /* Slope Collision */
-                else {
+                else { // This is now bot.
+                    Debug.LogError(slopeAngle);
                     slopeDir = (contactsIn[i].normal.x < 0) ? 1 : -1; // 1 = right, -1 = left
                     //slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
                     enterCollisionTypes.Add(CollisionType.Slope);
