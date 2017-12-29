@@ -11,6 +11,8 @@ public class CCollisionState : MonoBehaviour {
 
     public float debugX = 0;
     public float debugY = 0;
+    public float debugSlopeAngle = 0;
+    public float debugSlopeAngle2 = 0;
 
     private Collider2D collider;
     private ContactFilter2D contactFilter = new ContactFilter2D();
@@ -73,29 +75,32 @@ public class CCollisionState : MonoBehaviour {
                 for (int i = 0; i < contactsIn.Length; i++) {
                     /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
                     if (contactsIn[i].normal != Vector2.zero) {
-                        slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.down);
+                        //Debug.DrawLine(contactsIn[i].point, contactsIn[i].point + contactsIn[i].normal, Color.yellow, 20);
+                        //Debug.DrawLine(contactsIn[i].point, contactsIn[i].point + contactsIn[i].normal * -1, Color.green, 20);
+                        //Debug.DrawLine(contactsIn[i].point, contactsIn[i].point + Vector2.down, Color.green, 20);
+                        slopeAngle = Vector2.Angle(Vector2.down, contactsIn[i].normal);
+                        //debugSlopeAngle = slopeAngle;
+                        //debugSlopeAngle = Vector2.Angle(Vector2.up, contactsIn[i].normal * -1);
 
-                        curSlopeAngle = slopeAngle; // DEBUG
-                        debugX = contactsIn[i].normal.x; //DEBUG
-                        debugY = contactsIn[i].normal.y; //DEBUG
-
+                        /* Flat Ground */
+                        if (slopeAngle == CStats.botAngle) { // == 0 // contactsIn[i].normal.y == -1
+                            bot = true;
+                        }
                         /* Wall Collision */
-                        if (slopeAngle < 91 && slopeAngle > 89) {
+                        else if (slopeAngle <= CStats.wallAngleMax && slopeAngle >= CStats.wallAngleMin) {
                             if(contactsIn[i].normal.x < 0) {
                                 left = true;
                             }
-                            if (contactsIn[i].normal.x > 0) {
+                            else if (contactsIn[i].normal.x > 0) {
                                 right = true;
+                            }
+                            else {
+                                Debug.Log("ERROR: Invalid Angle.");
                             }
                         } 
                         /* Top Collision*/
-                        else if (slopeAngle > 175 && slopeAngle <= 180) {
-                            if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
-                                top = true;
-                            }
-                        }
-                        else if (slopeAngle == 0) { // contactsIn[i].normal.y == -1
-                            bot = true;
+                        else if (slopeAngle >= CStats.topAngleMin && slopeAngle <= CStats.topAngleMax) { 
+                            top = true;
                         }
                         /* Slope Collision */
                         else { // This is now bot.

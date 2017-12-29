@@ -55,7 +55,7 @@ public class CharacterBase : MonoBehaviour {
     public float slopeAngle = 0;
     public float maxAngle = 80;
 
-    CInputManager inputManager;
+    private CInputManager inputManager;
 
     public enum CollisionType {
         None,
@@ -154,32 +154,37 @@ public class CharacterBase : MonoBehaviour {
         for (int i = 0; i < contactsIn.Length; i++) {
             /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
             if (contactsIn[i].normal != Vector2.zero) {
-                slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.down);
+                //Debug.DrawLine(contactsIn[i].point, contactsIn[i].point + Vector2.up, Color.blue, 20);
+                //Debug.DrawLine(contactsIn[i].point, contactsIn[i].point+contactsIn[i].normal, Color.red, 20);
+                slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
+
+                /* Flat Ground */
+                if (slopeAngle == CStats.botAngle) { // contactsIn[i].normal.y == -1
+                    enterCollisionTypes.Add(CollisionType.Bot);
+                    collisionState.bot = true;
+                    collisionState.none = false;
+                }
                 /* Wall Collision */
-                if (slopeAngle < 91 && slopeAngle > 89) {
+                if (slopeAngle <= CStats.wallAngleMax && slopeAngle >= CStats.wallAngleMin) {
                     if (contactsIn[i].normal.x > 0) {
                         enterCollisionTypes.Add(CollisionType.Left);
                         collisionState.left = true;
                         collisionState.none = false;
                     }
-                    if (contactsIn[i].normal.x < 0) {
+                    else if (contactsIn[i].normal.x < 0) {
                         enterCollisionTypes.Add(CollisionType.Right);
                         collisionState.none = false;
                         collisionState.right = true;
                     }
+                    else {
+                        Debug.Log("ERROR: Invalid Angle.");
+                    }
                 }
                 /* Top Collision*/
-                else if (slopeAngle >= 0 && slopeAngle < 5) {
-                    if (contactsIn[i].normal.x > 0) { // contactsIn[i].normal.x == 1
+                else if (slopeAngle >= CStats.topAngleMin && slopeAngle <= CStats.topAngleMax) {
                         enterCollisionTypes.Add(CollisionType.Top);
                         collisionState.top = true;
                         collisionState.none = false;
-                    }
-                }
-                else if (slopeAngle == 180) { // contactsIn[i].normal.y == -1
-                    enterCollisionTypes.Add(CollisionType.Bot);
-                    collisionState.bot = true;
-                    collisionState.none = false;
                 }
                 /* Slope Collision */
                 else { // This is now bot.
@@ -846,10 +851,13 @@ public class CharacterBase : MonoBehaviour {
             }
         }
         else if (fsm.LastState == States.OnWall) {
+            if (collisionState.top) {
+                //velocity.y = 0;
+            }
             if (!collisionState.Left && !collisionState.Right) {
                 fsm.ChangeState(States.Airborne);
             }
-            if (collisionState.Bot) {
+            else if (collisionState.Bot) {
                 fsm.ChangeState(States.Idle);
             }
             else if (collisionState.Slope) {
