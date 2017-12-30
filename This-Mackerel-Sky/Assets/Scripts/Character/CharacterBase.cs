@@ -54,6 +54,7 @@ public class CharacterBase : MonoBehaviour {
     public float slopeDir;
     public float slopeAngle = 0;
     public float maxAngle = 80;
+    public Vector2 slopeHitSpeed;
 
     private CInputManager inputManager;
 
@@ -76,6 +77,7 @@ public class CharacterBase : MonoBehaviour {
         Running,
         Dashing,
         ClimbingSlope,
+        TopSlope,
         Simulate
     }
 
@@ -188,7 +190,7 @@ public class CharacterBase : MonoBehaviour {
                 }
                 /* Slope Collision */
                 else { // This is now bot.
-                    Debug.LogError(slopeAngle);
+                    //Debug.LogError(slopeAngle);
                     slopeDir = (contactsIn[i].normal.x < 0) ? 1 : -1; // 1 = right, -1 = left
                     //slopeAngle = Vector2.Angle(contactsIn[i].normal, Vector2.up);
                     enterCollisionTypes.Add(CollisionType.Slope);
@@ -331,9 +333,20 @@ public class CharacterBase : MonoBehaviour {
             else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
                 velocity.y = 0;
                 velocity.x = 0;
+                slopeHitSpeed = velocity;
                 // TODO : make x and y relate to the angle?
+                if(slopeAngle > 0 && slopeAngle <= 55) {
+                    fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+                }
+                if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin) {
+                    fsm.ChangeState(States.TopSlope, StateTransition.Overwrite);
+                }
+                else {
+                    Debug.LogError("AirborneCollision - Invalid Angle");
+                }
+
                 enterCollisionTypes.Remove(CollisionType.Slope);
-                fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+                
             }
             else if (enterCollisionTypes.Contains(CollisionType.Left)) {
                 velocity.x = 0;
@@ -812,6 +825,31 @@ public class CharacterBase : MonoBehaviour {
         }
     }
 
+    void TopSlope_Enter() {
+        velocity = slopeHitSpeed;
+        Debug.Log("TOPSLOPE - Enter");
+    }
+
+    void TopSlope_Update() {
+        PreStateUpdate();
+        Debug.Log("TOPSLOPE - Update");
+
+        velocity = slopeHitSpeed;
+
+        velocity.x = slopeHitSpeed.x * Mathf.Cos((180-slopeAngle) * Mathf.Deg2Rad);
+        velocity.y = slopeHitSpeed.x * Mathf.Sin((180-slopeAngle) * Mathf.Deg2Rad);
+
+        slopeHitSpeed.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+        if (!collisionState.slope) {
+            fsm.ChangeState(States.Simulate, StateTransition.Overwrite);
+        }
+    }   
+
+    void TopSlope_OnCollisionEnter2D(Collision2D collision) {
+        Debug.Log("TOPSLOPE - OnCollisionEnter2D");
+        BaseCollisionEnter2D(collision);
+    }
+
     /* Simulate is for the 4-5 frames after a jump/transition away from an object into empty space occurs.
      Needed for the collision state to catch up so that actions like airborne checking if it's touching the floor
      in an update does not occur immediately at the first frame of up pressed out of the grounded state while the object is 
@@ -831,6 +869,7 @@ public class CharacterBase : MonoBehaviour {
         else if (Input.GetKey(KeyCode.LeftArrow) && velocity.x > -activeSpeed) { // in-air lateral move left
             velocity.x -= lateralAccelAirborne * Time.deltaTime;
         }
+
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
         // Trigger Action.
@@ -865,7 +904,12 @@ public class CharacterBase : MonoBehaviour {
             }
         }
         else if (fsm.LastState == States.ClimbingSlope) {
-            if (!collisionState.Slope) {
+            if (!collisionState.Slope) { // TODO: Fix this b/c topslopes by adding slope angle aspect
+                fsm.ChangeState(States.Airborne); 
+            }
+        }
+        else if (fsm.LastState == States.TopSlope) {
+            if (!collisionState.Slope) { //TODO - above ex. what if comeout of stop slope into a bot slope = stuck.
                 fsm.ChangeState(States.Airborne);
             }
         }
