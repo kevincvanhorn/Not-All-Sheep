@@ -56,6 +56,8 @@ public class CharacterBase : MonoBehaviour {
     public float maxAngle = 80;
     public Vector2 slopeHitSpeed;
 
+    public Vector3 debugSlopeHitLoc;
+
     private CInputManager inputManager;
 
     public enum CollisionType {
@@ -196,6 +198,8 @@ public class CharacterBase : MonoBehaviour {
                     enterCollisionTypes.Add(CollisionType.Slope);
                     collisionState.slope = true;
                     collisionState.none = false;
+
+                    debugSlopeHitLoc = contactsIn[i].point;
                 }
             }
         }
@@ -331,14 +335,43 @@ public class CharacterBase : MonoBehaviour {
                 // Continues execution from here after NextState.Enter() before Update() next frame.
             }
             else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
-                velocity.y = 0;
-                velocity.x = 0;
+                //velocity.y = 0; // TODO Address this.
+                //velocity.x = 0;
                 slopeHitSpeed = velocity;
                 // TODO : make x and y relate to the angle?
                 if(slopeAngle > 0 && slopeAngle <= 55) {
+                    velocity.y = 0; // TODO Address this.
+                    velocity.x = 0;
                     fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
                 }
-                if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin) {
+                if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin) { // Top Slope Collision.
+
+                    Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.yellow, 20);
+
+                    Vector2 slopeVector = (Vector2)(Quaternion.Euler(0, 0, 180 - slopeAngle) * Vector2.right);
+                    float hitAngle = Vector2.Angle(velocity, slopeVector);
+                    float offAngle = 180 - slopeAngle - hitAngle; // 12.30.17 fig1
+                    
+                    if(offAngle > 0) {
+                        velocity.x = slopeHitSpeed.magnitude * Mathf.Cos(offAngle * Mathf.Deg2Rad);
+                        velocity.y = slopeHitSpeed.magnitude * Mathf.Sin(offAngle * Mathf.Deg2Rad);
+                    }
+                    else if(offAngle <= 0) {
+                        velocity.x = slopeHitSpeed.magnitude * Mathf.Cos(offAngle * Mathf.Deg2Rad);
+                        velocity.y = slopeHitSpeed.magnitude * Mathf.Sin(offAngle * Mathf.Deg2Rad);
+                    }
+                    else {
+                        Debug.LogError("ERROR: Invalid TopAngle - offangle");
+                    }
+                    
+
+
+                    Debug.LogError("Slope Angle: " + (180 - slopeAngle - hitAngle));
+                    Debug.LogError("Slope Vector: " + slopeVector);
+                    Debug.LogError("Hit Angle : " + (180 - slopeAngle - hitAngle));
+                    Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + (Vector3)slopeVector, Color.green, 20);
+                    Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.red, 20);
+
                     fsm.ChangeState(States.TopSlope, StateTransition.Overwrite);
                 }
                 else {
@@ -834,12 +867,21 @@ public class CharacterBase : MonoBehaviour {
         PreStateUpdate();
         Debug.Log("TOPSLOPE - Update");
 
-        velocity = slopeHitSpeed;
+        //velocity = slopeHitSpeed;
 
-        velocity.x = slopeHitSpeed.x * Mathf.Cos((180-slopeAngle) * Mathf.Deg2Rad);
-        velocity.y = slopeHitSpeed.x * Mathf.Sin((180-slopeAngle) * Mathf.Deg2Rad);
+        /*Vector2 slopeVector = (Vector2)(Quaternion.Euler(0, 0, 180 - slopeAngle) * Vector2.right);
+        float hitAngle = Vector2.Angle(velocity, slopeVector);
+        velocity.x = slopeHitSpeed.magnitude * Mathf.Cos((180 - slopeAngle) * Mathf.Deg2Rad);
+        velocity.y = slopeHitSpeed.magnitude * Mathf.Sin((180 - slopeAngle) * Mathf.Deg2Rad);*/
 
-        slopeHitSpeed.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+        /*Debug.LogError("Slope Angle: " + (180 - slopeAngle));
+        Debug.LogError("Slope Vector: " + slopeVector);
+        Debug.LogError("Hit Angle : " + hitAngle);
+        Debug.DrawLine(new Vector3(0,0,0), slopeVector, Color.yellow, 20);
+        Debug.DrawLine(new Vector3(0, 0, 0), velocity, Color.red, 20);*/
+
+        velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+
         if (!collisionState.slope) {
             fsm.ChangeState(States.Simulate, StateTransition.Overwrite);
         }
