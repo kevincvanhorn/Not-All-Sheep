@@ -254,7 +254,17 @@ public class CharacterBase : MonoBehaviour {
         /* Lateral Calc -------------------------------------------------- */
         else if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow)) {
             if (collisionState.Slope) {
-                fsm.ChangeState(States.ClimbingSlope, StateTransition.Safe);
+				/* Calc Top/Bot Slope Collision. - Matches */
+				if(slopeAngle > 0 && slopeAngle <= 55) {
+					fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+				}
+				else if(slopeAngle > 91 && slopeAngle < 175){
+					slopeHitSpeed = velocity;
+					fsm.ChangeState (States.TopSlope);
+				}
+				else {
+					Debug.LogError("TopCollision - Invalid Angle");
+				}
             }
             else if(collisionState.Bot) {
                 fsm.ChangeState(States.Running, StateTransition.Safe);
@@ -340,9 +350,22 @@ public class CharacterBase : MonoBehaviour {
             else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
                 //velocity.y = 0; // TODO Address this.
                 //velocity.x = 0;
-                slopeHitSpeed = velocity;
-
 				Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.yellow, 20);
+
+				/* Top/Slope Choice Calc - Clear. */
+				if(slopeAngle > 0 && slopeAngle <= 55) {
+					velocity.y = 0; // TODO Address this.
+					velocity.x = 0;
+					fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+				}
+				else if(slopeAngle > 91 && slopeAngle < 175){
+					slopeHitSpeed = velocity;
+					fsm.ChangeState (States.TopSlope);
+				}
+                else {
+                    Debug.LogError("TopCollision - Invalid Angle");
+                }
+
 
                 // TODO : make x and y relate to the angle?
                 /*if(slopeAngle > 0 && slopeAngle <= 55) {
@@ -528,7 +551,18 @@ public class CharacterBase : MonoBehaviour {
                 enterCollisionTypes.Remove(CollisionType.Top);
             }
             else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
-                fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+				/*Slope Type calc - Match. */	
+				if(slopeAngle > 0 && slopeAngle <= 55) {
+					fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+				}
+				else if(slopeAngle > 91 && slopeAngle < 175){
+					slopeHitSpeed = velocity;
+					fsm.ChangeState (States.TopSlope);
+				}
+				else {
+					Debug.LogError("TopCollision - Invalid Angle");
+				}
+
                 enterCollisionTypes.Remove(CollisionType.Slope);
             }
             else {
@@ -679,10 +713,20 @@ public class CharacterBase : MonoBehaviour {
                 // Continues execution from here after NextState.Enter() before Update() next frame.
             }
             else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
-                velocity.x = 0;
-                velocity.y = 0;
-                fsm.ChangeState(States.ClimbingSlope, StateTransition.Safe);
-                enterCollisionTypes.Remove(CollisionType.Slope);
+				/* Calc Top/Bot Slope Collision. - Matches. */
+				if(slopeAngle > 0 && slopeAngle <= 55) {
+					velocity.x = 0;
+					velocity.y = 0;
+					fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+				}
+				else if(slopeAngle > 91 && slopeAngle < 175){
+					slopeHitSpeed = velocity;
+					fsm.ChangeState (States.TopSlope);
+				}
+				else {
+					Debug.LogError("TopCollision - Invalid Angle");
+				}
+				enterCollisionTypes.Remove (CollisionType.Slope);
             }
             else if (enterCollisionTypes.Contains(CollisionType.Top)) {
                 velocity.y = 0;
@@ -851,6 +895,20 @@ public class CharacterBase : MonoBehaviour {
             }
             else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
                 //fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+
+				/* Calc Top/Bot Slope Collision. */
+				if(slopeAngle > 0 && slopeAngle <= 55) {
+					//Stay
+					//fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+				}
+				// 01.01.18b01 ?
+				else if(slopeAngle > 91 && slopeAngle < 175){ // TODO: Address this. Should stop moving if hits topSlope.
+					slopeHitSpeed = velocity;
+					fsm.ChangeState (States.TopSlope);
+				}
+				else {
+					Debug.LogError("TopCollision - Invalid Angle");
+				}
                 enterCollisionTypes.Remove(CollisionType.Slope);
             }
             else if (enterCollisionTypes.Contains(CollisionType.Bot)) {
@@ -873,8 +931,8 @@ public class CharacterBase : MonoBehaviour {
         Debug.Log("TOPSLOPE - Update");
 
 		//slideFactor = 2; 
-		float platformSlippiness = 10;
-		slideFactor = 1/(velocity.x) * 100 + platformSlippiness;
+		float platformSlippiness = 20;
+		slideFactor = 1 / (Mathf.Abs(velocity.x)) * 100 + platformSlippiness;
 		if (slideFactor < 1) {
 			slideFactor = 1;
 		}
@@ -884,9 +942,9 @@ public class CharacterBase : MonoBehaviour {
         Vector2 slopeVector = (Vector2)(Quaternion.Euler(0, 0, 180 - slopeAngle) * Vector2.right); //PFEF
         float hitAngle = Vector2.Angle(velocity, slopeVector);
 		//velocity.x = slopeHitSpeed.x * Mathf.Cos((180 - slopeAngle) * Mathf.Deg2Rad); // - velocit?
-		velocity.y = slopeHitSpeed.magnitude * Mathf.Sin((180 - slopeAngle) * Mathf.Deg2Rad);
+	velocity.y = Mathf.Abs(slopeHitSpeed.x) * Mathf.Sin((180 - slopeAngle) * Mathf.Deg2Rad);
 
-	Debug.LogError ("magnitude " + slopeHitSpeed.magnitude);
+		Debug.LogError ("SlideFactor " + slideFactor);
         Debug.LogError("Slope Angle: " + (180 - slopeAngle));
         //Debug.LogError("Slope Vector: " + slopeVector);
         Debug.LogError("Hit Angle : " + hitAngle);
@@ -896,7 +954,14 @@ public class CharacterBase : MonoBehaviour {
 		Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.red, 20);
 
 
-		slopeHitSpeed.y += gravity * slideFactor * Time.deltaTime; // Apply Gravity until grounded
+	if(velocity.x == 0){
+			slopeHitSpeed.y = 0;
+		}
+		else{
+			slopeHitSpeed.y += gravity * slideFactor * Time.deltaTime; // Apply Gravity until grounded
+		}
+
+
 
 		if (slopeHitSpeed.y <= 0) {
 		fsm.ChangeState (States.Simulate, StateTransition.Overwrite);
@@ -965,7 +1030,17 @@ public class CharacterBase : MonoBehaviour {
                 fsm.ChangeState(States.Idle);
             }
             else if (collisionState.Slope) {
-                fsm.ChangeState(States.ClimbingSlope);
+				/* Calc Top/Bot Slope Collision - Clear. */
+				if(slopeAngle > 0 && slopeAngle <= 55) {
+					fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+				}
+				else if(slopeAngle > 91 && slopeAngle < 175){
+					slopeHitSpeed = velocity;
+					fsm.ChangeState (States.TopSlope);
+				}
+				else {
+					Debug.LogError("TopCollision - Invalid Angle");
+				}
             }
         }
         else if (fsm.LastState == States.ClimbingSlope) {
@@ -1042,7 +1117,7 @@ public class CharacterBase : MonoBehaviour {
                 // Case1.04: climbing slope topcollision (touching top == true, touching slope == true) skips airborne, 
                 // directly from slope to top in simulation, skipping the airborne that would be there with finer calculations..
                 else if (collisionState.Slope) {
-                    fsm.ChangeState(States.ClimbingSlope);
+                    fsm.ChangeState(States.ClimbingSlope); //TODO: Check this with topSlopes
                 }
                 else {
                     Debug.LogError("ERROR: State Transition Top Corner");
@@ -1055,8 +1130,19 @@ public class CharacterBase : MonoBehaviour {
                 enterCollisionTypes.Remove(CollisionType.Top);
             }
             else if (enterCollisionTypes.Contains(CollisionType.Slope)) {
+				/* Calc Top/Bot Slope Collision. */
+				if(slopeAngle > 0 && slopeAngle <= 55) {
+					fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
+				}
+				else if(slopeAngle > 91 && slopeAngle < 175){
+					slopeHitSpeed = velocity;
+					fsm.ChangeState (States.TopSlope);
+				}
+				else {
+					Debug.LogError("TopCollision - Invalid Angle");
+				}
+
                 enterCollisionTypes.Remove(CollisionType.Slope);
-                fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
             }
             else {
                 Debug.LogError(""+enterCollisionTypes);
