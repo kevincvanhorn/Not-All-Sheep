@@ -16,6 +16,9 @@ public class CharacterBase : MonoBehaviour {
     /* Collisions Vars */
     public bool isGrounded;
 
+
+	public float slideFactor = 1;
+
     // note: 3 states- left, right, and still: requires two variables
     public bool isRunning;
     public bool isTouchingTop;
@@ -147,7 +150,7 @@ public class CharacterBase : MonoBehaviour {
         collisionState.CheckOverlaps();
 
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
-        collision.GetContacts(contactsIn);
+		contactsIn = collision.contacts;//GetContacts(contactsIn);
         /*Debug.LogError("BASECOLLISIONENTER");
         foreach (ContactPoint2D e in contactsIn) {
             Debug.LogError(e.normal);
@@ -338,8 +341,11 @@ public class CharacterBase : MonoBehaviour {
                 //velocity.y = 0; // TODO Address this.
                 //velocity.x = 0;
                 slopeHitSpeed = velocity;
+
+				Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.yellow, 20);
+
                 // TODO : make x and y relate to the angle?
-                if(slopeAngle > 0 && slopeAngle <= 55) {
+                /*if(slopeAngle > 0 && slopeAngle <= 55) {
                     velocity.y = 0; // TODO Address this.
                     velocity.x = 0;
                     fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
@@ -358,25 +364,24 @@ public class CharacterBase : MonoBehaviour {
                     }
                     else if(offAngle <= 0) {
                         velocity.x = slopeHitSpeed.magnitude * Mathf.Cos(offAngle * Mathf.Deg2Rad);
-                        velocity.y = slopeHitSpeed.magnitude * Mathf.Sin(offAngle * Mathf.Deg2Rad);
+                        velocity.y = slopeHitSpeed.magnitude * Mathf.Sin(offAngle * Mathf.Deg2Rad); //PFEF
                     }
                     else {
                         Debug.LogError("ERROR: Invalid TopAngle - offangle");
                     }
-                    
-
-
-                    Debug.LogError("Slope Angle: " + (180 - slopeAngle - hitAngle));
-                    Debug.LogError("Slope Vector: " + slopeVector);
-                    Debug.LogError("Hit Angle : " + (180 - slopeAngle - hitAngle));
+                   
+                    Debug.LogError("Slope Angle: " + (180 - slopeAngle));
+					Debug.LogError("Hit Angle: " + hitAngle);
+					Debug.LogError("Off Angle : " + offAngle);
                     Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + (Vector3)slopeVector, Color.green, 20);
                     Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.red, 20);
 
-                    fsm.ChangeState(States.TopSlope, StateTransition.Overwrite);
-                }
+					fsm.ChangeState(States.Simulate, StateTransition.Overwrite);*/
+				fsm.ChangeState (States.TopSlope);
+                /*}
                 else {
                     Debug.LogError("AirborneCollision - Invalid Angle");
-                }
+                }*/
 
                 enterCollisionTypes.Remove(CollisionType.Slope);
                 
@@ -867,20 +872,38 @@ public class CharacterBase : MonoBehaviour {
         PreStateUpdate();
         Debug.Log("TOPSLOPE - Update");
 
-        //velocity = slopeHitSpeed;
+		//slideFactor = 2; 
+		float platformSlippiness = 10;
+		slideFactor = 1/(velocity.x) * 100 + platformSlippiness;
+		if (slideFactor < 1) {
+			slideFactor = 1;
+		}
 
-        /*Vector2 slopeVector = (Vector2)(Quaternion.Euler(0, 0, 180 - slopeAngle) * Vector2.right);
+        velocity = slopeHitSpeed;
+
+        Vector2 slopeVector = (Vector2)(Quaternion.Euler(0, 0, 180 - slopeAngle) * Vector2.right); //PFEF
         float hitAngle = Vector2.Angle(velocity, slopeVector);
-        velocity.x = slopeHitSpeed.magnitude * Mathf.Cos((180 - slopeAngle) * Mathf.Deg2Rad);
-        velocity.y = slopeHitSpeed.magnitude * Mathf.Sin((180 - slopeAngle) * Mathf.Deg2Rad);*/
+		//velocity.x = slopeHitSpeed.x * Mathf.Cos((180 - slopeAngle) * Mathf.Deg2Rad); // - velocit?
+		velocity.y = slopeHitSpeed.magnitude * Mathf.Sin((180 - slopeAngle) * Mathf.Deg2Rad);
 
-        /*Debug.LogError("Slope Angle: " + (180 - slopeAngle));
-        Debug.LogError("Slope Vector: " + slopeVector);
+	Debug.LogError ("magnitude " + slopeHitSpeed.magnitude);
+        Debug.LogError("Slope Angle: " + (180 - slopeAngle));
+        //Debug.LogError("Slope Vector: " + slopeVector);
         Debug.LogError("Hit Angle : " + hitAngle);
-        Debug.DrawLine(new Vector3(0,0,0), slopeVector, Color.yellow, 20);
-        Debug.DrawLine(new Vector3(0, 0, 0), velocity, Color.red, 20);*/
+        //Debug.DrawLine(new Vector3(0,0,0), slopeVector, Color.yellow, 20);
+        //Debug.DrawLine(new Vector3(0, 0, 0), velocity, Color.red, 20);
+		Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + (Vector3)slopeVector, Color.green, 20);
+		Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.red, 20);
 
-        velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+
+		slopeHitSpeed.y += gravity * slideFactor * Time.deltaTime; // Apply Gravity until grounded
+
+		if (slopeHitSpeed.y <= 0) {
+		fsm.ChangeState (States.Simulate, StateTransition.Overwrite);
+	}
+
+		Debug.LogError ("slopeHitSpeed" + slopeHitSpeed);
+		Debug.LogError ("velocity" + velocity);
 
         if (!collisionState.slope) {
             fsm.ChangeState(States.Simulate, StateTransition.Overwrite);

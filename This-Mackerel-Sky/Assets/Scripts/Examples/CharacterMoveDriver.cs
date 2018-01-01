@@ -119,7 +119,7 @@ public class CharacterMoveDriver : MonoBehaviour {
     /** Called on Player collision with a new object. **/
     void OnCollisionEnter2D(Collision2D coll) { // ~ Could convert Collision2D to Collider2D
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
-        coll.GetContacts(contactsIn);
+		contactsIn = coll.contacts;//coll.GetContacts(contactsIn);
 
         bool enterSet = false;
 

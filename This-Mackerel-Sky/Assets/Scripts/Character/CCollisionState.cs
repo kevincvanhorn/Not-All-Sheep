@@ -69,7 +69,7 @@ public class CCollisionState : MonoBehaviour {
                 //Debug.LogError(coll);
 
                 ContactPoint2D[] contactsIn = new ContactPoint2D[8]; // 2 when side collides (each corner) || 1 when on slope
-                coll.GetContacts(contactsIn);
+				coll.GetContacts(contactsIn);
 
                 /* Call Collider Enter Functions */
                 for (int i = 0; i < contactsIn.Length; i++) {
