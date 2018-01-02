@@ -23,7 +23,7 @@ public class CCollisionState : MonoBehaviour {
     public bool left;
     public bool right;
     public bool slope;
-    public bool topSlant;
+    public bool topSlope;
 
     public bool None { get { return none; } }
     public bool Top { get { return top; }  }
@@ -31,7 +31,7 @@ public class CCollisionState : MonoBehaviour {
     public bool Left { get { return left; } }
     public bool Right { get { return right; } }
     public bool Slope { get { return slope; } }
-    public bool TopSlant { get { return topSlant; } }
+    public bool TopSlope { get { return topSlope; } }
 
     // Use this for initialization
     void Start () {
@@ -102,6 +102,10 @@ public class CCollisionState : MonoBehaviour {
                         else if (slopeAngle >= CStats.topAngleMin && slopeAngle <= CStats.topAngleMax) { 
                             top = true;
                         }
+						/* Top Slope COllision*/
+						else if (slopeAngle > 91 && slopeAngle < 175) {
+							topSlope = true;
+						}
                         /* Slope Collision */
                         else { // This is now bot.
                             slope = true;
@@ -114,7 +118,7 @@ public class CCollisionState : MonoBehaviour {
         
 
         
-        if(bot || top || left || right || slope) {
+        if(bot || top || left || right || slope || topSlope) {
             none = false;
         }
     }
