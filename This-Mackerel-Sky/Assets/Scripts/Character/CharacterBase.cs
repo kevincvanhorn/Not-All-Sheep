@@ -229,6 +229,7 @@ public class CharacterBase : MonoBehaviour
                 /* Steep Slope Collision. */
                 else if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
                 {
+                    slopeDir = (contactsIn[i].normal.x < 0) ? 1 : -1; // 1 = right, -1 = left
                     enterCollisionTypes.Add(CollisionType.SteepSlope);
                     collisionState.steepSlope = true;
                     collisionState.none = false;
