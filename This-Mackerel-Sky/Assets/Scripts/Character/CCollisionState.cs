@@ -9,6 +9,7 @@ public class CCollisionState : MonoBehaviour
     public float maxAngle = 80;
     public float curSlopeAngle = 0;
     public float curWallAngle = 0;
+    public float curSteepSlopeAngle = 0;
 
     public float debugX = 0;
     public float debugY = 0;
@@ -124,12 +125,13 @@ public class CCollisionState : MonoBehaviour
                         else if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
                         {
                             steepSlope = true;
+                            curSteepSlopeAngle = slopeAngle;
                         }
                         /* Slope Collision */
                         else
                         { // This is now bot.
                             slope = true;
-                            curSlopeAngle = slopeAngle; // DEBUG.
+                            curSlopeAngle = slopeAngle;
                         }
                     }
                 }
@@ -138,7 +140,7 @@ public class CCollisionState : MonoBehaviour
 
 
 
-        if (bot || top || left || right || slope || topSlope)
+        if (bot || top || left || right || slope || topSlope || steepSlope)
         {
             none = false;
         }
