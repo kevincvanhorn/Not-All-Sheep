@@ -72,7 +72,8 @@ public class CharacterBase : MonoBehaviour
         Left,
         Right,
         Slope,
-        TopSlope
+        TopSlope,
+        SteepSlope
     };
 
     /* Define States */
@@ -87,6 +88,7 @@ public class CharacterBase : MonoBehaviour
         Dashing,
         ClimbingSlope,
         TopSlope,
+        SteepSlope,
         Simulate
     }
 
@@ -154,7 +156,6 @@ public class CharacterBase : MonoBehaviour
         rigidBody.velocity = velocity;
     }
 
-
     /** Called on Player collision with a new object. **/
     void BaseCollisionEnter2D(Collision2D collision)
     { // ~ Could convert Collision2D to Collider2D
@@ -216,12 +217,19 @@ public class CharacterBase : MonoBehaviour
                     collisionState.none = false;
                 }
                 /* Top Slope COllision*/
-                else if (slopeAngle > 91 && slopeAngle < 175)
+                else if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                 {
                     enterCollisionTypes.Add(CollisionType.TopSlope);
                     collisionState.topSlope = true;
                     collisionState.none = false;
                     debugSlopeHitLoc = contactsIn[i].point;
+                }
+                /* Steep Slope Collision. */
+                else if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
+                {
+                    enterCollisionTypes.Add(CollisionType.SteepSlope);
+                    collisionState.steepSlope = true;
+                    collisionState.none = false;
                 }
                 /* Slope Collision */
                 else
@@ -288,8 +296,7 @@ public class CharacterBase : MonoBehaviour
         {
             if (collisionState.Slope)
             {
-                /* Calc Top/Bot Slope Collision. - Matches */
-                if (slopeAngle > 0 && slopeAngle <= 55)
+                if (slopeAngle > CStats.slopeAngleMin && slopeAngle <= CStats.slopeAngleMax)
                 {
                     fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
                 }
@@ -301,6 +308,10 @@ public class CharacterBase : MonoBehaviour
             else if (collisionState.Bot)
             {
                 fsm.ChangeState(States.Running, StateTransition.Safe);
+            }
+            else if (collisionState.SteepSlope)
+            {
+                fsm.ChangeState(States.SteepSlope, StateTransition.Safe);
             }
             else
             {
@@ -382,56 +393,57 @@ public class CharacterBase : MonoBehaviour
         // ? Iterate for all combinations not needed with contains.
         if (enterCollisionTypes.Count > 0)
         {
-            // Grounded.
+            /* Bot Collision. */
             if (enterCollisionTypes.Contains(CollisionType.Bot))
             {
                 velocity.y = 0;
                 enterCollisionTypes.Remove(CollisionType.Bot); // Addressed this collision so delete.
-                if (velocity.x == 0)
-                {
-                    fsm.ChangeState(States.Idle, StateTransition.Overwrite);
-                }
-                else
-                {
-                    fsm.ChangeState(States.Running, StateTransition.Overwrite);
-                }
+                if (velocity.x == 0){ fsm.ChangeState(States.Idle, StateTransition.Overwrite); }
+                else { fsm.ChangeState(States.Running, StateTransition.Overwrite); }
                 // Continues execution from here after NextState.Enter() before Update() next frame.
             }
+
+            /* Steep Slope Collision. */
+            else if (enterCollisionTypes.Contains(CollisionType.SteepSlope))
+            {
+                if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
+                {
+                    fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+                }
+                else { Debug.LogError("SteepSlope Collision - Invalid Angle"); }
+                enterCollisionTypes.Remove(CollisionType.SteepSlope);
+            }
+
+            /* Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Slope))
             {
-                /* Top/Slope Choice Calc - Clear. */
-                if (slopeAngle > 0 && slopeAngle <= 55)
+                if (slopeAngle > CStats.slopeAngleMin && slopeAngle <= CStats.slopeAngleMax)
                 {
                     velocity.y = 0; // TODO Address this.
                     velocity.x = 0;
                     fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
                 }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle");
-                }
-
+                else { Debug.LogError("Slope Collision - Invalid Angle"); }
                 enterCollisionTypes.Remove(CollisionType.Slope);
-
             }
+
+            /* Top Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.TopSlope))
             {
-                if (slopeAngle > 91 && slopeAngle < 175)
+                if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                 {
                     slopeHitSpeed = velocity;
                     fsm.ChangeState(States.TopSlope);
                 }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle");
-                }
-                //Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.yellow, 20);
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
                 enterCollisionTypes.Remove(CollisionType.TopSlope);
+                //Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.yellow, 20);
             }
+
+            /* Wall Collision (Including Wall Slope). */
             else if (enterCollisionTypes.Contains(CollisionType.Left))
             {
                 velocity.x = 0;
-                // OnWall.
                 enterCollisionTypes.Remove(CollisionType.Left);
                 if (!collisionState.Bot)
                 {
@@ -457,27 +469,20 @@ public class CharacterBase : MonoBehaviour
                     Debug.LogWarning("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
                 }
             }
+
+            /* Top Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Top))
             {
                 enterCollisionTypes.Remove(CollisionType.Top);
                 velocity.y = 0;
             }
-            else
-            {
-                fsm.ChangeState(States.FindState, StateTransition.Overwrite);
-            }
+            else { fsm.ChangeState(States.FindState, StateTransition.Overwrite); }
         }
-
     }
 
     void Running_Enter()
     {
         Debug.Log("RUNNING - Enter");
-        /* If Enter State and Collision has not been addressed. */
-        /*if (enterCollisionTypes.Count > 0 && enterCollisionTypes.Contains(CollisionType.Left)) {
-            velocity.x = 0;
-            enterCollisionTypes.Remove(CollisionType.Left); // Addressed this collision so delete.
-        }*/
     }
 
     void Running_Update()
@@ -485,7 +490,7 @@ public class CharacterBase : MonoBehaviour
         Debug.Log("RUNNING - Update");
         PreStateUpdate();
 
-        //check contacts and set velocity.x = 0 should be touching the ground still
+        // check contacts and set velocity.x = 0 should be touching the ground still
 
         /* Sprint Calc ------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftShift))
@@ -564,62 +569,69 @@ public class CharacterBase : MonoBehaviour
         {
             Debug.Log("Running Transition 2");
             fsm.ChangeState(States.Idle, StateTransition.Safe);
-
         }
     }
 
     void Running_OnCollisionEnter2D(Collision2D collision)
     {
         BaseCollisionEnter2D(collision);
-
         Debug.Log("RUNNING - OnCollisionEnter");
-        /* These are the new collisions this frame from this specific collision. */
-        // ? Iterate for all combinations not needed with contains.
+
         if (enterCollisionTypes.Count > 0)
         {
-            if (enterCollisionTypes.Contains(CollisionType.Right))
-            {
-                // TouchingWall.
+            /* Wall Collision (Including Wall Slopes). */
+            if (enterCollisionTypes.Contains(CollisionType.Right)) // TouchingWall.
+            {  
                 enterCollisionTypes.Remove(CollisionType.Right);
                 velocity.x = 0;
             }
-            else if (enterCollisionTypes.Contains(CollisionType.Left))
+            else if (enterCollisionTypes.Contains(CollisionType.Left)) // TouchingWall.
             {
-                // TouchingWall.
                 enterCollisionTypes.Remove(CollisionType.Left);
                 velocity.x = 0;
             }
+
+            /* Top Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Top))
             {
                 velocity.y = 0; // Redundancy case - addressed in this.Update.
                 enterCollisionTypes.Remove(CollisionType.Top);
             }
+
+            /* Steep Slope Collision. */
+            else if (enterCollisionTypes.Contains(CollisionType.SteepSlope))
+            {
+                if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
+                {
+                    fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+                }
+                else { Debug.LogError("SteepSlope Collision - Invalid Angle"); }
+                enterCollisionTypes.Remove(CollisionType.SteepSlope);
+            }
+
+            /* Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Slope))
             {
-                /*Slope Type calc - Match. */
-                if (slopeAngle > 0 && slopeAngle <= 55)
+                if (slopeAngle > CStats.slopeAngleMin && slopeAngle <= CStats.slopeAngleMax)
                 {
                     fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
                 }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle");
-                }
-
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
                 enterCollisionTypes.Remove(CollisionType.Slope);
             }
+
+            /* Top Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.TopSlope))
             {
-                if (slopeAngle > 91 && slopeAngle < 175)
+                if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                 {
                     velocity.y = 0; // Top Slope Collisions
                 }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle");
-                }
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
                 enterCollisionTypes.Remove(CollisionType.TopSlope);
             }
+
+            /* Invalid State. */
             else
             {
                 fsm.ChangeState(States.FindState, StateTransition.Overwrite);
@@ -656,14 +668,12 @@ public class CharacterBase : MonoBehaviour
             // Only Touching one side.
             if (!(isTouchingLeft && isTouchingRight))
             {
-
                 // When Up is released in this frame.
                 if (Input.GetKeyUp(KeyCode.UpArrow))
                 {
                     if (velocity.y > jumpVelocityMin)
                     { // Keep applying velocity up while key is pressed - variable jump
                         velocity.y = jumpVelocityMin;
-                        //fsm.ChangeState(States.Airborne, StateTransition.Safe);
                     }
                 }
                 // When Up is first input.
@@ -682,7 +692,6 @@ public class CharacterBase : MonoBehaviour
                         fsm.ChangeState(States.Simulate, StateTransition.Safe);
                     }
                 }
-
                 // When Right is first input.
                 else if (Input.GetKeyDown(KeyCode.RightArrow))
                 { // on L/R input - setting conditions.
@@ -778,52 +787,59 @@ public class CharacterBase : MonoBehaviour
 
         if (enterCollisionTypes.Count > 0)
         {
+            /* Bot Collision. */
             if (enterCollisionTypes.Contains(CollisionType.Bot))
             {
                 velocity.y = 0;
+                if (velocity.x == 0) { fsm.ChangeState(States.Idle, StateTransition.Safe); }
+                else { fsm.ChangeState(States.Running, StateTransition.Safe); }
                 enterCollisionTypes.Remove(CollisionType.Bot); // Addressed this collision so delete.
-                if (velocity.x == 0)
-                {
-                    fsm.ChangeState(States.Idle, StateTransition.Safe);
-                }
-                else
-                {
-                    fsm.ChangeState(States.Running, StateTransition.Safe);
-                }
                 // Continues execution from here after NextState.Enter() before Update() next frame.
             }
+
+            /* Steep Slope Collision. */
+            else if (enterCollisionTypes.Contains(CollisionType.SteepSlope))
+            {
+                if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
+                {
+                    fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+                }
+                else { Debug.LogError("SteepSlope Collision - Invalid Angle"); }
+                enterCollisionTypes.Remove(CollisionType.SteepSlope);
+            }
+
+            /* Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Slope))
             {
-                /* Calc Top/Bot Slope Collision. - Matches. */
-                if (slopeAngle > 0 && slopeAngle <= 55)
+                if (slopeAngle > CStats.slopeAngleMin && slopeAngle <= CStats.slopeAngleMax)
                 {
                     velocity.x = 0;
                     velocity.y = 0;
                     fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
                 }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle");
-                }
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
                 enterCollisionTypes.Remove(CollisionType.Slope);
             }
+
+            /* Top Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.TopSlope))
             {
                 if (slopeAngle > 91 && slopeAngle < 175)
                 {
                     velocity.y = 0;
                 }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle");
-                }
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
                 enterCollisionTypes.Remove(CollisionType.TopSlope);
             }
+
+            /* Top Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Top))
             {
                 velocity.y = 0;
                 enterCollisionTypes.Remove(CollisionType.Top);
             }
+
+            /* Wall Collision (Including Wall Slopes). */
             else if (enterCollisionTypes.Contains(CollisionType.Left))
             {
                 wallImpactSpeed = velocity.x;
@@ -840,6 +856,8 @@ public class CharacterBase : MonoBehaviour
                 enterCollisionTypes.Remove(CollisionType.Right);
                 Debug.LogWarning("This should not usually occur. Addressed in Update.");
             }
+
+            /* Invalid State - Unfound. */
             else
             {
                 fsm.ChangeState(States.FindState, StateTransition.Safe);
@@ -859,22 +877,11 @@ public class CharacterBase : MonoBehaviour
         //Debug.Log("dir: " + directionFacing + " R/L:" + Input.GetKey(KeyCode.RightArrow) +" "+Input.GetKey(KeyCode.LeftArrow));
         collisionState.printStatesShort();
 
-        //DEBUG
-        if (!collisionState.Slope) {
-
-        }
-
         slopeAngle = collisionState.curSlopeAngle;
 
         /* Sprint Calc ------------------------------------------------- */
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            activeSpeed = sprintSpeed;
-        }
-        else
-        {
-            activeSpeed = moveSpeed;
-        }
+        if (Input.GetKey(KeyCode.LeftShift)) { activeSpeed = sprintSpeed; }
+        else { activeSpeed = moveSpeed; }
 
         /* Lateral Calc -------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
@@ -935,7 +942,7 @@ public class CharacterBase : MonoBehaviour
         }*/
 
         if (collisionState.Top || collisionState.TopSlope)
-        { //NOTE: Do not else with above, uses calculated velocity.
+        { // NOTE: Do not else with above, uses calculated velocity.
             if (velocity.y > 0)
             {
                 velocity.x = 0;
@@ -943,7 +950,7 @@ public class CharacterBase : MonoBehaviour
             }
         }
 
-        /* Priority Cases*/
+        /* Priority Cases (Change the actual state). */
         if (inputManager.ActionKeyPressed())
         { // Trigger Action.
             fsm.ChangeState(States.Action);
@@ -983,7 +990,7 @@ public class CharacterBase : MonoBehaviour
         }
         else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         {
-
+            // TODO: This is where idle would go. 
             velocity.y = 0;
             if (collisionState.Slope)
             {
@@ -1000,13 +1007,14 @@ public class CharacterBase : MonoBehaviour
         Debug.Log(velocity);
     }
 
-    private void ClimbingSlope_OnCollisionEnter2D(Collision2D collision)
+    void ClimbingSlope_OnCollisionEnter2D(Collision2D collision)
     {
         Debug.Log("SLOPE - OnCollisionEnter2D");
         BaseCollisionEnter2D(collision);
 
         if (enterCollisionTypes.Count > 0)
         {
+            /* Wall Collision (Including Wall Slopes). */
             if (enterCollisionTypes.Contains(CollisionType.Right))
             {
                 // TouchingWall.
@@ -1021,12 +1029,16 @@ public class CharacterBase : MonoBehaviour
                 velocity.y = 0;
                 enterCollisionTypes.Remove(CollisionType.Left);
             }
+
+            /* Top Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Top))
             {
                 velocity.x = 0;
                 velocity.y = 0; // Redundancy case - addressed in this.Update.
                 enterCollisionTypes.Remove(CollisionType.Top);
             }
+
+            /* Top Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.TopSlope))
             {
                 // 01.01.18b01 ?
@@ -1035,33 +1047,31 @@ public class CharacterBase : MonoBehaviour
                     velocity.x = 0;
                     velocity.y = 0; // Redundancy case - addressed in this.Update.
                 }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle");
-                }
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
 
                 enterCollisionTypes.Remove(CollisionType.TopSlope);
             }
+
+            /* Bot Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Bot))
             {
                 fsm.ChangeState(States.Running, StateTransition.Overwrite);
                 enterCollisionTypes.Remove(CollisionType.Bot);
             }
+
+            /* Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Slope))
             {
                 //fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
-
-                if (slopeAngle > 0 && slopeAngle <= 55)
+                if (slopeAngle > CStats.slopeAngleMin && slopeAngle <= CStats.slopeAngleMax)
                 {
                     //Stay
-                    //fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
                 }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle " + slopeAngle);
-                }
+                else { Debug.LogError("TopCollision - Invalid Angle " + slopeAngle); }
                 enterCollisionTypes.Remove(CollisionType.Slope);
             }
+
+            /* Undefined State. */
             else
             {
                 fsm.ChangeState(States.FindState, StateTransition.Overwrite);
@@ -1080,7 +1090,6 @@ public class CharacterBase : MonoBehaviour
         PreStateUpdate();
         Debug.Log("TOPSLOPE - Update");
 
-        //slideFactor = 2; 
         float platformSlippiness = 20;
         slideFactor = 1 / (Mathf.Abs(velocity.x)) * 100 + platformSlippiness;
         if (slideFactor < 1)
@@ -1114,8 +1123,6 @@ public class CharacterBase : MonoBehaviour
             slopeHitSpeed.y += gravity * slideFactor * Time.deltaTime; // Apply Gravity until grounded
         }
 
-
-
         if (slopeHitSpeed.y <= 0)
         {
             fsm.ChangeState(States.Simulate, StateTransition.Overwrite);
@@ -1124,7 +1131,7 @@ public class CharacterBase : MonoBehaviour
         Debug.Log("slopeHitSpeed" + slopeHitSpeed);
         Debug.Log("velocity" + velocity);
 
-        if (!collisionState.slope)
+        if (!collisionState.Slope)
         {
             fsm.ChangeState(States.Simulate, StateTransition.Overwrite);
         }
@@ -1132,7 +1139,24 @@ public class CharacterBase : MonoBehaviour
 
     void TopSlope_OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.LogError("TOPSLOPE - OnCollisionEnter2D");
+        Debug.LogError("TOPSLOPE - OnCollisionEnter2D - TODO Address this.");
+        BaseCollisionEnter2D(collision);
+    }
+
+    void SteepSlope_Enter()
+    {
+        Debug.Log("SLOPE - Enter");
+    }
+
+    void SteepSlope_Update()
+    {
+        PreStateUpdate();
+        Debug.Log("SteepSlope_Enter - Update");
+    }
+
+    void SteepSlope_OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.LogError("STEEPSLOPE - OnCollisionEnter2D");
         BaseCollisionEnter2D(collision);
     }
 
@@ -1167,6 +1191,7 @@ public class CharacterBase : MonoBehaviour
         {
             fsm.ChangeState(States.Action);
         }
+        /* From Running State */
         else if (fsm.LastState == States.Running)
         {
             if (!collisionState.Bot)
@@ -1174,6 +1199,8 @@ public class CharacterBase : MonoBehaviour
                 fsm.ChangeState(States.Airborne);
             }
         }
+
+        /* From Idle State. */
         else if (fsm.LastState == States.Idle)
         {
             if (!collisionState.Bot)
@@ -1185,6 +1212,8 @@ public class CharacterBase : MonoBehaviour
                 fsm.ChangeState(States.Airborne);
             }
         }
+
+        /* From Wall State. */
         else if (fsm.LastState == States.OnWall)
         {
             if (collisionState.top)
@@ -1199,24 +1228,26 @@ public class CharacterBase : MonoBehaviour
             {
                 fsm.ChangeState(States.Idle);
             }
-            else if (collisionState.Slope)
+            else if (collisionState.TopSlope)
             {
-                /* Calc Top/Bot Slope Collision - Clear. */
-                if (slopeAngle > 0 && slopeAngle <= 55)
-                {
-                    fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
-                }
-                else if (slopeAngle > 91 && slopeAngle < 175)
+                if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                 {
                     slopeHitSpeed = velocity;
                     fsm.ChangeState(States.TopSlope);
                 }
-                else
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
+            }
+            else if (collisionState.Slope)
+            {
+                if (slopeAngle > CStats.slopeAngleMin && slopeAngle <= CStats.slopeAngleMax)
                 {
-                    Debug.LogError("TopCollision - Invalid Angle");
+                    fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
                 }
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
             }
         }
+
+        /* From Slope State. */
         else if (fsm.LastState == States.ClimbingSlope)
         {
             if (!collisionState.Slope)
@@ -1224,6 +1255,8 @@ public class CharacterBase : MonoBehaviour
                 fsm.ChangeState(States.Airborne);
             }
         }
+
+        /* From Top Slope State. */
         else if (fsm.LastState == States.TopSlope)
         {
             if (!collisionState.TopSlope)
@@ -1235,11 +1268,12 @@ public class CharacterBase : MonoBehaviour
                 fsm.ChangeState(States.Idle);
             }
         }
+
+        /* From Undefined State. */
         else
         {
             Debug.LogWarning("Simulate_Update: State Simulate not defined from " + fsm.LastState);
         }
-
     }
 
     void Simulate_OnCollisionEnter2D(Collision2D collision)
@@ -1261,7 +1295,7 @@ public class CharacterBase : MonoBehaviour
         // ? Iterate for all combinations not needed with contains.
         if (enterCollisionTypes.Count > 0)
         {
-            // Grounded.
+            /* Bot Collision. */
             if (enterCollisionTypes.Contains(CollisionType.Bot))
             {
                 velocity.y = 0;
@@ -1276,6 +1310,8 @@ public class CharacterBase : MonoBehaviour
                 }
                 // Continues execution from here after NextState.Enter() before Update() next frame.
             }
+
+            /* Wall Collision (Including SLoped Wall). */
             else if (enterCollisionTypes.Contains(CollisionType.Left))
             {
                 // OnWall.
@@ -1303,6 +1339,8 @@ public class CharacterBase : MonoBehaviour
                     Debug.LogWarning("SIMULATE: This state should be inaccessible - grounded & touchingWall");
                 }
             }
+
+            /* Top Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Top))
             {
                 velocity.y = 0;
@@ -1316,10 +1354,7 @@ public class CharacterBase : MonoBehaviour
                 {
                     fsm.ChangeState(States.ClimbingSlope); //TODO: Check this with topSlopes
                 }
-                else
-                {
-                    Debug.LogError("ERROR: State Transition Top Corner");
-                }
+                else { Debug.LogError("ERROR: State Transition Top Corner"); }
 
                 /*if (fsm.LastState == States.ClimbingSlope) {
                     velocity.x = 0;
@@ -1327,14 +1362,16 @@ public class CharacterBase : MonoBehaviour
                 }*/
                 enterCollisionTypes.Remove(CollisionType.Top);
             }
+
+            /* Top Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.TopSlope)) // Heavy Check this.
             {
-                if (slopeAngle > 91 && slopeAngle < 175)
+                if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                 {
                     slopeHitSpeed = velocity;
                     //fsm.ChangeState(States.TopSlope);
                 }
-                else{ Debug.LogError("TopCollision - Invalid Angle");}
+                else{ Debug.LogError("TopCollision - Invalid Angle"); }
 
                 velocity.y = 0;
 
@@ -1351,29 +1388,36 @@ public class CharacterBase : MonoBehaviour
                 else if (collisionState.Slope)
                 {
                     fsm.ChangeState(States.TopSlope); // Case 1.06
-                    //fsm.ChangeState(States.ClimbingSlope); //TODO: Check this with topSlopes
                 }
-                else
-                {
-                    Debug.LogError("ERROR: State Transition Top Corner");
-                }
+                else { Debug.LogError("ERROR: State Transition Top Corner"); }
 
                 enterCollisionTypes.Remove(CollisionType.TopSlope);
             }
+
+            /* Steep Slope Collision. */
+            else if (enterCollisionTypes.Contains(CollisionType.SteepSlope))
+            {
+                if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
+                {
+                    fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+                }
+                else { Debug.LogError("SteepSlope Collision - Invalid Angle"); }
+                enterCollisionTypes.Remove(CollisionType.SteepSlope);
+            }
+
+            /* Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Slope))
             {
                 /* Calc Top/Bot Slope Collision. */
-                if (slopeAngle > 0 && slopeAngle <= 55)
+                if (slopeAngle > CStats.slopeAngleMin && slopeAngle <= CStats.slopeAngleMax)
                 {
                     fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
                 }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle");
-                }
-
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
                 enterCollisionTypes.Remove(CollisionType.Slope);
             }
+
+            /* Undefined Collision. */
             else
             {
                 Debug.LogError("" + enterCollisionTypes);
