@@ -59,6 +59,7 @@ public class CharacterBase : MonoBehaviour
     public float slopeAngle = 0;
     public float maxAngle = 80;
     public Vector2 slopeHitSpeed;
+    public float steepSlopeMinEnterSpeed = 20;
 
     public Vector3 debugSlopeHitLoc;
 
@@ -534,6 +535,24 @@ public class CharacterBase : MonoBehaviour
             velocity.x = 0;
         }
 
+        /* Steep Slope Min Velocity. */
+        if(collisionState.SteepSlope)
+        {
+            if(velocity.x > -steepSlopeMinEnterSpeed && velocity.x < 0 && slopeDir == -1)
+            {
+                velocity.x = 0;
+            }
+            else if(velocity.x < steepSlopeMinEnterSpeed && velocity.x > 0 && slopeDir == 1)
+            {
+                velocity.x = 0;
+            }
+        }
+
+        /* Steep Slope min speed of enter. */
+        /*if (collisionState.SteepSlope && fsm.LastState == States.SteepSlope){
+            velocity.x = 0;
+        }*/
+
         /*if (Input.GetKeyDown(KeyCode.RightArrow)) {
             directionFacing = 1;
             if (isGrounded) {
@@ -571,6 +590,10 @@ public class CharacterBase : MonoBehaviour
             Debug.Log("Running Transition 2");
             fsm.ChangeState(States.Idle, StateTransition.Safe);
         }
+        else if(Mathf.Abs(velocity.x) >= steepSlopeMinEnterSpeed && collisionState.SteepSlope)
+        {
+            fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+        }
     }
 
     void Running_OnCollisionEnter2D(Collision2D collision)
@@ -605,7 +628,15 @@ public class CharacterBase : MonoBehaviour
                 Debug.LogError("Steep Slope Collision from Running. ");
                 if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
                 {
-                    fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+                    if(Mathf.Abs(velocity.x) >= 20)
+                    {
+                        fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+                    }
+                    else
+                    {
+                        velocity.x = 0;
+                    }
+                              
                 }
                 else { Debug.LogError("SteepSlope Collision - Invalid Angle"); }
                 enterCollisionTypes.Remove(CollisionType.SteepSlope);
@@ -1202,8 +1233,8 @@ public class CharacterBase : MonoBehaviour
 
         steepSlopeSpeed += gravity * Time.deltaTime; // Slide down Slope
 
-        velocity.x = steepSlopeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * directionFacing;
-        velocity.y = steepSlopeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing;
+        velocity.x = steepSlopeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * slopeDir;
+        velocity.y = steepSlopeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
 
         if (collisionState.Top || collisionState.TopSlope)
         { // NOTE: Do not else with above, uses calculated velocity.
@@ -1296,6 +1327,8 @@ public class CharacterBase : MonoBehaviour
             /* Bot Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Bot))
             {
+                velocity.x = activeSpeed;
+                velocity.y = 0;
                 fsm.ChangeState(States.Running, StateTransition.Overwrite);
                 enterCollisionTypes.Remove(CollisionType.Bot);
             }

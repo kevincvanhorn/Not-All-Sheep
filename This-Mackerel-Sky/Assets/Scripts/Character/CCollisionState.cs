@@ -60,6 +60,7 @@ public class CCollisionState : MonoBehaviour
         right = false;
         slope = false;
         topSlope = false;
+        steepSlope = false;
     }
 
     public void CheckOverlaps()
