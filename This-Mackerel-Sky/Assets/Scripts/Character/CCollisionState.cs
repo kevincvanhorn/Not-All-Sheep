@@ -10,7 +10,7 @@ public class CCollisionState : MonoBehaviour
     public float curSlopeAngle = 0;
     public float curWallAngle = 0;
     public float curSteepSlopeAngle = 0;
-
+    public int steepSlopeDir;
     public float debugX = 0;
     public float debugY = 0;
     public float debugSlopeAngle = 0;
@@ -69,6 +69,8 @@ public class CCollisionState : MonoBehaviour
         Collider2D[] collidersTouching = new Collider2D[4];
         Physics2D.OverlapCollider(collider, contactFilter, collidersTouching);
         float slopeAngle;
+
+
         foreach (Collider2D coll in collidersTouching)
         {
 
@@ -130,7 +132,7 @@ public class CCollisionState : MonoBehaviour
                         {
                             steepSlope = true;
                             curSteepSlopeAngle = slopeAngle;
-                            slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
+                            steepSlopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                         }
                         /* Slope Collision */
                         else

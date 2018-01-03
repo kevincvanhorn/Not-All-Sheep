@@ -593,9 +593,20 @@ public class CharacterBase : MonoBehaviour
             Debug.Log("Running Transition 2");
             fsm.ChangeState(States.Idle, StateTransition.Safe);
         }
-        else if (Mathf.Abs(velocity.x) >= steepSlopeMinEnterSpeed && collisionState.SteepSlope)
+        /*(else if (Mathf.Abs(velocity.x) >= steepSlopeMinEnterSpeed && collisionState.SteepSlope)
         {
             fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+        }*/
+        else if (collisionState.SteepSlope && Mathf.Abs(velocity.x) >= steepSlopeMinEnterSpeed)
+        {
+            if (velocity.x < 0 && slopeDir == -1)
+            {
+                fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+            }
+            else if (velocity.x > 0 && slopeDir == 1)
+            {
+                fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+            }
         }
     }
 
@@ -988,12 +999,12 @@ public class CharacterBase : MonoBehaviour
         /* Steep Slope Min Velocity. */
         if (collisionState.SteepSlope && activeSpeed < steepSlopeMinEnterSpeed)
         {
-            if (velocity.x < 0 && slopeDir == -1)
+            if (velocity.x < 0 && collisionState.steepSlopeDir == -1)
             {
                 velocity.x = 0;
                 velocity.y = 0;
             }
-            else if (velocity.x > 0 && slopeDir == 1)
+            else if (velocity.x > 0 && collisionState.steepSlopeDir == 1)
             {
                 velocity.x = 0;
                 velocity.y = 0;
@@ -1053,6 +1064,19 @@ public class CharacterBase : MonoBehaviour
             }
 
             //fsm.ChangeState(States.Idle, StateTransition.Safe);
+        }
+
+        /* Steep Slope Min Velocity. */
+        else if (collisionState.SteepSlope && activeSpeed >= steepSlopeMinEnterSpeed)
+        {
+            if (velocity.x < 0 && collisionState.steepSlopeDir == -1)
+            {
+                fsm.ChangeState(States.SteepSlope, StateTransition.Safe);
+            }
+            else if (velocity.x > 0 && collisionState.steepSlopeDir == 1)
+            {
+                fsm.ChangeState(States.SteepSlope, StateTransition.Safe);
+            }
         }
 
         Debug.Log(velocity);
@@ -1229,10 +1253,10 @@ public class CharacterBase : MonoBehaviour
         }
 
         steepSlopeSpeed = velocity.magnitude;
-        if (velocity.y < 0)
+        /*if (velocity.y < 0)
         {
             steepSlopeSpeed *= -1;
-        }
+        }*/
     }
 
     void SteepSlope_Update()
@@ -1275,7 +1299,7 @@ public class CharacterBase : MonoBehaviour
 
         steepSlopeSpeed += gravity * Time.deltaTime; // Slide down Slope
 
-        velocity.x = steepSlopeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * slopeDir; // steepSlopeSpeed
+        velocity.x = steepSlopeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * collisionState.steepSlopeDir; // steepSlopeSpeed
         velocity.y = steepSlopeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
 
         if (collisionState.Top || collisionState.TopSlope)
