@@ -1340,23 +1340,43 @@ public class CharacterBase : MonoBehaviour
         else if ((collisionState.Left || collisionState.Right) && !collisionState.steepSlope) // TODO: Test this. 
         { // Ran up slope and skid up wall
             // Case1.03: not on slope - just above at corner of slope and wall. 
-            if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top && !collisionState.TopSlope)
+            if (!collisionState.Top && !collisionState.TopSlope)
             {
-                Debug.Log("STEEPSLOPE - Transition 4");
-                //Debug.LogError("Case1.03");
-                velocity.y = jumpVelocityMax;
-                fsm.ChangeState(States.OnWall, StateTransition.Safe);
+                if (Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    Debug.Log("STEEPSLOPE - Transition 4");
+                    //NOTE! Remember to copy this jump behavior to the Case1.03 Above
+                    velocity.y = jumpVelocityMax;
+                    fsm.ChangeState(States.Simulate, StateTransition.Safe);
+                }
+                else if (velocity.y >= 0 && (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow)))
+                {
+                    Debug.Log("STEEPSLOPE - Transition 7");
+                    velocity.y = jumpVelocityMax;
+                    fsm.ChangeState(States.Simulate, StateTransition.Safe);
+                }
+
             }
         }
 
         /* Vertical JUMP Calc ------------------------------------------ */
-        // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
-        else if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top && !collisionState.TopSlope)
+        // Jump if pressed && not touchingTop (ex: sandwiched between two platforms).
+        else if (!collisionState.Top && !collisionState.TopSlope)
         {
-            Debug.Log("STEEPSLOPE - Transition 3");
-            //NOTE! Remember to copy this jump behavior to the Case1.03 Above
-            velocity.y = jumpVelocityMax;
-            fsm.ChangeState(States.Simulate, StateTransition.Safe);
+            if(Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                Debug.Log("STEEPSLOPE - Transition 3");
+                //NOTE! Remember to copy this jump behavior to the Case1.03 Above
+                velocity.y = jumpVelocityMax;
+                fsm.ChangeState(States.Simulate, StateTransition.Safe);
+            }
+            else if(velocity.y >= 0 && (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.RightArrow)))
+            {
+                Debug.Log("STEEPSLOPE - Transition 6");
+                velocity.y = jumpVelocityMax;
+                fsm.ChangeState(States.Simulate, StateTransition.Safe);
+            }
+            
         }
         Debug.Log(velocity);
     }
@@ -1543,11 +1563,33 @@ public class CharacterBase : MonoBehaviour
         {
             if (!collisionState.TopSlope)
             { //TODO - above ex. what if comeout of stop slope into a bot slope = stuck.
-                fsm.ChangeState(States.Airborne);
+                if (collisionState.None)
+                {
+                    fsm.ChangeState(States.Airborne);
+                }
+                else
+                {
+                    Debug.LogError("ERROR: Simulate - Top Slope - Can't transition to airborne. ");
+                }
             }
             else if (collisionState.Bot || collisionState.Slope)
             {
                 fsm.ChangeState(States.Idle);
+            }
+        }
+
+        else if(fsm.LastState == States.SteepSlope)
+        {
+            if (!collisionState.SteepSlope)
+            {
+                if (collisionState.None)
+                {
+                    fsm.ChangeState(States.Airborne);
+                }
+                else
+                {
+                    Debug.LogError("ERROR: Simulate - Top Slope - Can't transition to airborne. ");
+                }
             }
         }
 
