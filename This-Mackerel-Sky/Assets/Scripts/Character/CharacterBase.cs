@@ -100,6 +100,7 @@ public class CharacterBase : MonoBehaviour
 
     private StateMachine<States> fsm;
     private float steepSlopeSpeed;
+    private Vector2 steepSlopeHitNormal;
 
     public void Awake()
     {
@@ -235,6 +236,9 @@ public class CharacterBase : MonoBehaviour
                     enterCollisionTypes.Add(CollisionType.SteepSlope);
                     collisionState.steepSlope = true;
                     collisionState.none = false;
+
+                    debugSlopeHitLoc = contactsIn[i].point;
+                    steepSlopeHitNormal = contactsIn[i].normal;
                 }
                 /* Slope Collision */
                 else
@@ -1252,11 +1256,23 @@ public class CharacterBase : MonoBehaviour
             activeSpeed = moveSpeed;
         }
 
-        steepSlopeSpeed = velocity.magnitude;
-        /*if (velocity.y < 0)
+        
+
+        if (velocity.y < 0 && !collisionState.Bot && !collisionState.Slope)
         {
-            steepSlopeSpeed *= -1;
-        }*/
+            //Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + (Vector3)steepSlopeHitNormal * 5, Color.blue, 10f);
+            //Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity * -1, Color.yellow, 10f);
+            float steepNormalAngle = Vector2.Angle(velocity * -1, steepSlopeHitNormal);
+            steepSlopeSpeed = Mathf.Sin(steepNormalAngle * Mathf.Deg2Rad) * velocity.magnitude * Mathf.Sign(velocity.y);
+
+            //Debug.LogError("Velocity   " + velocity.magnitude);
+            //Debug.LogError("Angle      " + steepNormalAngle);
+            //Debug.LogError("Speed Calc " + steepSlopeSpeed);
+        }
+        else
+        {
+            steepSlopeSpeed = velocity.magnitude;
+        }
     }
 
     void SteepSlope_Update()
