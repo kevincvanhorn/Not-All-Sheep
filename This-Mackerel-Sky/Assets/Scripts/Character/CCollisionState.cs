@@ -15,6 +15,7 @@ public class CCollisionState : MonoBehaviour
     public float debugY = 0;
     public float debugSlopeAngle = 0;
     public float debugSlopeAngle2 = 0;
+    public int slopeDir = 1;
 
     private Collider2D collider;
     private ContactFilter2D contactFilter = new ContactFilter2D();
@@ -111,6 +112,7 @@ public class CCollisionState : MonoBehaviour
                             {
                                 Debug.Log("ERROR: Invalid Angle.");
                             }
+                            slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                         }
                         /* Top Collision*/
                         else if (slopeAngle >= CStats.topAngleMin && slopeAngle <= CStats.topAngleMax)
@@ -121,18 +123,21 @@ public class CCollisionState : MonoBehaviour
                         else if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                         {
                             topSlope = true;
+                            slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                         }
                         /* Steep Slope Collision. */
                         else if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
                         {
                             steepSlope = true;
                             curSteepSlopeAngle = slopeAngle;
+                            slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                         }
                         /* Slope Collision */
                         else
                         { // This is now bot.
                             slope = true;
                             curSlopeAngle = slopeAngle;
+                            slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                         }
                     }
                 }

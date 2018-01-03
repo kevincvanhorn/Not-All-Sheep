@@ -151,6 +151,8 @@ public class CharacterBase : MonoBehaviour
         {
             directionFacing = 1;
         }
+
+        slopeDir = collisionState.slopeDir;
     }
 
     void Update()
@@ -626,7 +628,7 @@ public class CharacterBase : MonoBehaviour
             /* Steep Slope Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.SteepSlope))
             {
-                Debug.LogError("Steep Slope Collision from Running. ");
+                Debug.Log("Steep Slope Collision from Running. ");
                 if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
                 {
                     if(Mathf.Abs(velocity.x) >= 20)
@@ -637,7 +639,6 @@ public class CharacterBase : MonoBehaviour
                     {
                         velocity.x = 0;
                     }
-                              
                 }
                 else { Debug.LogError("SteepSlope Collision - Invalid Angle"); }
                 enterCollisionTypes.Remove(CollisionType.SteepSlope);
@@ -984,6 +985,22 @@ public class CharacterBase : MonoBehaviour
             }
         }
 
+        /* Steep Slope Min Velocity. */
+        if (collisionState.SteepSlope && activeSpeed < steepSlopeMinEnterSpeed)
+        {
+            if (velocity.x < 0 && slopeDir == -1)
+            {
+                velocity.x = 0;
+                velocity.y = 0;
+            }
+            else if (velocity.x > 0 && slopeDir == 1)
+            {
+                velocity.x = 0;
+                velocity.y = 0;
+            }
+        }
+
+
         /* Priority Cases (Change the actual state). */
         if (inputManager.ActionKeyPressed())
         { // Trigger Action.
@@ -1091,6 +1108,26 @@ public class CharacterBase : MonoBehaviour
             {
                 fsm.ChangeState(States.Running, StateTransition.Overwrite);
                 enterCollisionTypes.Remove(CollisionType.Bot);
+            }
+
+            /* Steep Slope Collision. */
+            else if (enterCollisionTypes.Contains(CollisionType.SteepSlope))
+            {
+                Debug.Log("Steep Slope Collision from Running. ");
+                if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
+                {
+                    if (activeSpeed >= 20)//Mathf.Abs(velocity.x) >= 20)
+                    {
+                        fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
+                    }
+                    else
+                    {
+                        velocity.x = 0;
+                        velocity.y = 0;
+                    }
+                }
+                else { Debug.LogError("SteepSlope Collision - Invalid Angle"); }
+                enterCollisionTypes.Remove(CollisionType.SteepSlope);
             }
 
             /* Slope Collision. */
@@ -1282,7 +1319,7 @@ public class CharacterBase : MonoBehaviour
 
     void SteepSlope_OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.LogError("STEEPSLOPE - OnCollisionEnter2D");
+        Debug.Log("STEEPSLOPE - OnCollisionEnter2D");
         BaseCollisionEnter2D(collision);
 
         if (enterCollisionTypes.Count > 0)
