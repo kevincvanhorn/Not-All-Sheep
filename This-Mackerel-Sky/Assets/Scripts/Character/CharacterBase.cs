@@ -1229,6 +1229,10 @@ public class CharacterBase : MonoBehaviour
         }
 
         steepSlopeSpeed = velocity.magnitude;
+        if(velocity.y < 0)
+        {
+            steepSlopeSpeed *= -1;
+        }
     }
 
     void SteepSlope_Update()
@@ -1271,7 +1275,7 @@ public class CharacterBase : MonoBehaviour
 
         steepSlopeSpeed += gravity * Time.deltaTime; // Slide down Slope
 
-        velocity.x = steepSlopeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * slopeDir;
+        velocity.x = steepSlopeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * slopeDir; // steepSlopeSpeed
         velocity.y = steepSlopeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
 
         if (collisionState.Top || collisionState.TopSlope)
