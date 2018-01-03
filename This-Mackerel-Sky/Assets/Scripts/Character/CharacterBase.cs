@@ -15,19 +15,7 @@ public class CharacterBase : MonoBehaviour
     Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
 
     /* Collisions Vars */
-    public bool isGrounded;
-
-
     public float slideFactor = 1;
-
-    // note: 3 states- left, right, and still: requires two variables
-    public bool isRunning;
-    public bool isTouchingTop;
-    public bool isTouchingRight;
-    public bool isTouchingLeft;
-    public bool isTouchingBot;
-    public bool onWall;
-    public bool onSlope;
 
     /* Colliders */
     HashSet<Vector2> contacts = new HashSet<Vector2>();
@@ -40,7 +28,8 @@ public class CharacterBase : MonoBehaviour
     public Vector3 velocity;
 
     float wallImpactSpeed;
-    float directionFacing = 1;
+    public float directionFacing = 1;
+    public float directionMoving = 1;
 
     /* Jump Variables */
     public float lateralAccelAirborne = 60;
@@ -111,14 +100,6 @@ public class CharacterBase : MonoBehaviour
     public void Start()
     {
         /* Set collision defaults. */
-        isTouchingTop = false;
-        isTouchingRight = false;
-        isTouchingLeft = false;
-        isGrounded = false;
-        isRunning = false;
-        isTouchingBot = false;
-        onSlope = false;
-
         activeSpeed = moveSpeed;
         wallImpactSpeed = activeSpeed;
         rigidBody = GetComponent<Rigidbody2D>();
@@ -153,11 +134,13 @@ public class CharacterBase : MonoBehaviour
             directionFacing = 1;
         }
 
+        directionMoving = (velocity.x > 0) ? 1 : -1;
         slopeDir = collisionState.slopeDir;
     }
 
     void Update()
     {
+        //Debug.Log("MAIN - Update");
         rigidBody.velocity = velocity;
     }
 
@@ -499,6 +482,8 @@ public class CharacterBase : MonoBehaviour
         Debug.Log("RUNNING - Update");
         PreStateUpdate();
 
+        //Debug.Log("Pre-Velocity" + velocity.x);
+
         // check contacts and set velocity.x = 0 should be touching the ground still
 
         /* Sprint Calc ------------------------------------------------- */
@@ -511,25 +496,33 @@ public class CharacterBase : MonoBehaviour
             activeSpeed = moveSpeed;
         }
 
+        Debug.Log("Accel-Velocity" + velocity.x);
+
         /* Lateral Calc -------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
         {
             velocity.x = activeSpeed * directionFacing;
         }
-
         /* X Acceleration ---------------------------------------------- */
-        else if (!Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
+        else if (velocity.x != 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         { // On-release of Lateral Movement controls - Deccelerate
-            velocity.x = 0;
-            /*if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
-                velocity.x = 0;
+            //velocity.x = 0; //1.3.18
+            Debug.Log(directionMoving + " Pre --" + velocity.x);
+            if (directionMoving == 1) { // Decceleration Right
+                if(velocity.x > 0)
+                {
+                    velocity.x -= lateralAccelGrounded * Time.deltaTime;
+                }
+                if(velocity.x <= 0) { velocity.x = 0; }
             }
-            if (directionFacing == 1 && velocity.x > 0) { // Decceleration Right
-                velocity.x -= lateralAccelGrounded * Time.deltaTime;
+            else if (directionMoving == -1) { // Decceleration Left
+                if(velocity.x < 0)
+                {
+                    velocity.x += lateralAccelGrounded * Time.deltaTime;
+                }
+                if(velocity.x >= 0) { velocity.x = 0; }  
             }
-            else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
-                velocity.x += lateralAccelGrounded * Time.deltaTime;
-            }*/
+            Debug.Log(directionMoving + " Post --" + velocity.x);
         }
 
         /* Run/deccelerate into wall - Applied here once instead of conditionals above. */
@@ -547,29 +540,21 @@ public class CharacterBase : MonoBehaviour
         {
             if (velocity.x > -steepSlopeMinEnterSpeed && velocity.x < 0 && slopeDir == -1)
             {
-                velocity.x = 0;
+                if (Input.GetKey(KeyCode.LeftArrow))
+                {
+                    velocity.x = 0;
+                }
+                   
             }
             else if (velocity.x < steepSlopeMinEnterSpeed && velocity.x > 0 && slopeDir == 1)
             {
-                velocity.x = 0;
-            }
-        }
-
-        /* Steep Slope min speed of enter. */
-        /*if (collisionState.SteepSlope && fsm.LastState == States.SteepSlope){
-            velocity.x = 0;
-        }*/
-
-        /*if (Input.GetKeyDown(KeyCode.RightArrow)) {
-            directionFacing = 1;
-            if (isGrounded) {
-                if (isTouchingRight) {
+                if (Input.GetKey(KeyCode.RightArrow))
+                {
                     velocity.x = 0;
                 }
-                else
-                    velocity.x = activeSpeed; // since isGrounded
+                    
             }
-        }*/
+        }
 
         /* Priority Cases*/
         if (inputManager.ActionKeyPressed())
@@ -588,7 +573,6 @@ public class CharacterBase : MonoBehaviour
         else if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top && !collisionState.TopSlope)
         {
             velocity.y = jumpVelocityMax;
-            isGrounded = false;
             print("Running Transition 1");
             fsm.ChangeState(States.Simulate, StateTransition.Safe);
         }
@@ -612,6 +596,7 @@ public class CharacterBase : MonoBehaviour
                 fsm.ChangeState(States.SteepSlope, StateTransition.Overwrite);
             }
         }
+        //Debug.Log("Post-Velocity" + velocity.x);
     }
 
     void Running_OnCollisionEnter2D(Collision2D collision)
@@ -1429,7 +1414,7 @@ public class CharacterBase : MonoBehaviour
             /* Bot Collision. */
             else if (enterCollisionTypes.Contains(CollisionType.Bot))
             {
-                velocity.x = activeSpeed;
+                //velocity.x = activeSpeed; //1.3.18
                 velocity.y = 0;
                 fsm.ChangeState(States.Running, StateTransition.Overwrite);
                 enterCollisionTypes.Remove(CollisionType.Bot);
