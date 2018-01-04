@@ -47,7 +47,8 @@ public class CharacterBase : MonoBehaviour
     public float slopeDir;
     public float slopeAngle = 0;
     public float maxAngle = 80;
-    public Vector2 slopeHitSpeed;
+    public Vector2 topSlopeSpeedCur;
+    public Vector2 climbSlopeHitSpeed;
     public float steepSlopeMinEnterSpeed = 20;
 
     public Vector3 debugSlopeHitLoc;
@@ -152,8 +153,8 @@ public class CharacterBase : MonoBehaviour
         collisionState.CheckOverlaps();
 
         ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
-        //contactsIn = collision.contacts; //  NETBOOK - Uncomment this.
-        collision.GetContacts(contactsIn); //  NETBOOK - Comment this.
+        contactsIn = collision.contacts; //  NETBOOK - Uncomment this.
+        //collision.GetContacts(contactsIn); //  NETBOOK - Comment this.
         /*Debug.LogError("BASECOLLISIONENTER");
         foreach (ContactPoint2D e in contactsIn) {
             Debug.LogError(e.normal);
@@ -424,7 +425,7 @@ public class CharacterBase : MonoBehaviour
             {
                 if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                 {
-                    slopeHitSpeed = velocity;
+                    topSlopeSpeedCur = velocity;
                     fsm.ChangeState(States.TopSlope);
                 }
                 else { Debug.LogError("TopCollision - Invalid Angle"); }
@@ -509,7 +510,7 @@ public class CharacterBase : MonoBehaviour
             //velocity.x = 0; //1.3.18
             Debug.Log(directionMoving + " Pre --" + velocity.x);
             if (directionMoving == 1) { // Decceleration Right
-                if(velocity.x > 0)
+                   if(velocity.x > 0)
                 {
                     velocity.x -= lateralAccelGrounded * Time.deltaTime;
                 }
@@ -903,6 +904,14 @@ public class CharacterBase : MonoBehaviour
     void ClimbingSlope_Enter()
     {
         Debug.Log("SLOPE - Enter");
+        Debug.Log("Slope E Pre: " + velocity);
+
+        climbSlopeHitSpeed = velocity;
+        velocity.x = climbSlopeHitSpeed.x * Mathf.Cos(slopeAngle * Mathf.Deg2Rad); // * directionMoving if not just .x
+        velocity.y = Mathf.Abs(climbSlopeHitSpeed.x) * Mathf.Sign(velocity.y) * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+        // What if Enter -> velocity change in a collision or before end of current frame update -> First update
+
+        Debug.Log("Slope Enter: " + velocity);
     }
 
     void ClimbingSlope_Update()
@@ -940,12 +949,14 @@ public class CharacterBase : MonoBehaviour
 
         }
 
+
         /* X Acceleration ---------------------------------------------- */
         else if (!Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         { // On-release of Lateral Movement controls - Deccelerate
             //velocity.x = 0;
             //velocity.y = 0;
-            Debug.Log(directionMoving + " Pre: " + velocity.x);
+            Debug.Log(directionMoving + " Pre: " + velocity);
+            Debug.LogError("Slope Angle " + slopeAngle);
             if (directionMoving == 1)
             { // Decceleration Right
                 if (velocity.x > 0)
@@ -954,7 +965,11 @@ public class CharacterBase : MonoBehaviour
                     velocity.x -= lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                     velocity.y += slopeDir * -1 * lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                 }
-                if (velocity.x <= 0) { velocity.x = 0; }
+                if (velocity.x <= 0) {
+                    Debug.Log("Halt 1.");
+                    velocity.y = 0;
+                    velocity.x = 0;
+                }
             }
             else if (directionMoving == -1)
             { // Decceleration Left
@@ -964,9 +979,13 @@ public class CharacterBase : MonoBehaviour
                     velocity.x += lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                     velocity.y += slopeDir * lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                 }
-                if (velocity.x >= 0) { velocity.x = 0; }
+                if (velocity.x >= 0) {
+                    Debug.Log("Halt 2.");
+                    velocity.y = 0;
+                    velocity.x = 0;
+                }
             }
-            Debug.Log(directionMoving + " Post: " + velocity.x);
+            Debug.Log(directionMoving + " Post: " + velocity);
         }
 
         /* Run/deccelerate into wall - Applied here once instead of conditionals above. */
@@ -1170,7 +1189,7 @@ public class CharacterBase : MonoBehaviour
 
     void TopSlope_Enter()
     {
-        velocity = slopeHitSpeed;
+        velocity = topSlopeSpeedCur;
         Debug.Log("TOPSLOPE - Enter");
     }
 
@@ -1186,12 +1205,12 @@ public class CharacterBase : MonoBehaviour
             slideFactor = 1;
         }
 
-        velocity = slopeHitSpeed;
+        velocity = topSlopeSpeedCur;
 
         Vector2 slopeVector = (Vector2)(Quaternion.Euler(0, 0, 180 - slopeAngle) * Vector2.right); //PFEF
         float hitAngle = Vector2.Angle(velocity, slopeVector);
         //velocity.x = slopeHitSpeed.x * Mathf.Cos((180 - slopeAngle) * Mathf.Deg2Rad); // - velocit?
-        velocity.y = Mathf.Abs(slopeHitSpeed.x) * Mathf.Sin((180 - slopeAngle) * Mathf.Deg2Rad);
+        velocity.y = Mathf.Abs(topSlopeSpeedCur.x) * Mathf.Sin((180 - slopeAngle) * Mathf.Deg2Rad);
 
         Debug.Log("SlideFactor " + slideFactor);
         Debug.Log("Slope Angle: " + (180 - slopeAngle));
@@ -1202,22 +1221,21 @@ public class CharacterBase : MonoBehaviour
         Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + (Vector3)slopeVector, Color.green, 20);
         Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.red, 20);
 
-
         if (velocity.x == 0)
         {
-            slopeHitSpeed.y = 0;
+            topSlopeSpeedCur.y = 0;
         }
         else
         {
-            slopeHitSpeed.y += gravity * slideFactor * Time.deltaTime; // Apply Gravity until grounded
+            topSlopeSpeedCur.y += gravity * slideFactor * Time.deltaTime; // Apply Gravity until grounded
         }
 
-        if (slopeHitSpeed.y <= 0)
+        if (topSlopeSpeedCur.y <= 0)
         {
             fsm.ChangeState(States.Simulate, StateTransition.Overwrite);
         }
 
-        Debug.Log("slopeHitSpeed" + slopeHitSpeed);
+        Debug.Log("slopeHitSpeed" + topSlopeSpeedCur);
         Debug.Log("velocity" + velocity);
 
         if (!collisionState.Slope)
@@ -1284,22 +1302,6 @@ public class CharacterBase : MonoBehaviour
             {
                 velocity.x = 0;
                 velocity.y = 0;
-            }
-            else
-            {
-                Debug.Log("STEEPSLOPE - Lateral Calc. ");
-
-                /* Moving Down Slope. */
-                if (slopeDir * directionFacing > 0)
-                {
-                }
-                /* Moving Up Slope. */
-                else
-                {
-                    if (activeSpeed > 0)
-                    {
-                    }
-                }
             }
         }
 
@@ -1524,7 +1526,7 @@ public class CharacterBase : MonoBehaviour
             {
                 if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                 {
-                    slopeHitSpeed = velocity;
+                    topSlopeSpeedCur = velocity;
                     fsm.ChangeState(States.TopSlope);
                 }
                 else { Debug.LogError("TopCollision - Invalid Angle"); }
@@ -1682,7 +1684,7 @@ public class CharacterBase : MonoBehaviour
             {
                 if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                 {
-                    slopeHitSpeed = velocity;
+                    topSlopeSpeedCur = velocity;
                     //fsm.ChangeState(States.TopSlope);
                 }
                 else { Debug.LogError("TopCollision - Invalid Angle"); }
