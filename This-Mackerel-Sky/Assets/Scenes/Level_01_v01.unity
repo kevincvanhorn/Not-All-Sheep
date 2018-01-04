@@ -1357,7 +1357,7 @@ MonoBehaviour:
   directionFacing: 1
   directionMoving: 1
   lateralAccelAirborne: 60
-  lateralAccelGrounded: 100
+  lateralAccelGrounded: 30
   jumpHeightMax: 5
   jumpHeightMin: 0.9
   timeToJumpApex: 0.4
@@ -1931,11 +1931,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 402734, guid: d349c0332b73e8e44a85bf13c8f53daf, type: 2}
       propertyPath: m_LocalPosition.x
-      value: -7.5
+      value: -7.41
       objectReference: {fileID: 0}
     - target: {fileID: 402734, guid: d349c0332b73e8e44a85bf13c8f53daf, type: 2}
       propertyPath: m_LocalPosition.y
-      value: -18.4
+      value: -9.3
       objectReference: {fileID: 0}
     - target: {fileID: 402734, guid: d349c0332b73e8e44a85bf13c8f53daf, type: 2}
       propertyPath: m_LocalPosition.z
