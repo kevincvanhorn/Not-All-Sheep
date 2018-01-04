@@ -411,8 +411,8 @@ public class CharacterBase : MonoBehaviour
             {
                 if (slopeAngle > CStats.slopeAngleMin && slopeAngle <= CStats.slopeAngleMax)
                 {
-                    velocity.y = 0; // TODO Address this.
-                    velocity.x = 0;
+                    //velocity.y = 0; // TODO Address this.
+                    //velocity.x = 0;
                     fsm.ChangeState(States.ClimbingSlope, StateTransition.Overwrite);
                 }
                 else { Debug.LogError("Slope Collision - Invalid Angle"); }
@@ -943,25 +943,30 @@ public class CharacterBase : MonoBehaviour
         /* X Acceleration ---------------------------------------------- */
         else if (!Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         { // On-release of Lateral Movement controls - Deccelerate
-            velocity.x = 0;
-            velocity.y = 0;
-            /*if (directionFacing == 1 && velocity.x < 0 || directionFacing == -1 && velocity.x > 0) { // Stops deccel when hits 0 from the initial negative(left moving) or pos(right moving) val
-                velocity.x = 0;
-                velocity.y = 0;
+            //velocity.x = 0;
+            //velocity.y = 0;
+            Debug.Log(directionMoving + " Pre: " + velocity.x);
+            if (directionMoving == 1)
+            { // Decceleration Right
+                if (velocity.x > 0)
+                {
+                    Debug.LogError("Case 1.");
+                    velocity.x -= lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
+                    velocity.y += slopeDir * -1 * lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
+                }
+                if (velocity.x <= 0) { velocity.x = 0; }
             }
-            if (directionFacing == 1 && velocity.x > 0) { // Decceleration Right //Journal: 12-27-17
-                velocity.x -= lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad)* Time.deltaTime;
-                velocity.y += slopeDir * -1 * lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
+            else if (directionMoving == -1)
+            { // Decceleration Left
+                if (velocity.x < 0)
+                {
+                    Debug.LogError("Case 2.");
+                    velocity.x += lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
+                    velocity.y += slopeDir * lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
+                }
+                if (velocity.x >= 0) { velocity.x = 0; }
             }
-            else if (directionFacing == -1 && velocity.x < 0) { // Decceleration Left
-                velocity.x += lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
-                velocity.y += slopeDir *lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
-            }
-            else if(velocity.y != 0){
-                Debug.LogWarning("SLOPE - Decel stopping early. ");
-                velocity.y = 0;
-                velocity.x = 0;
-            }*/
+            Debug.Log(directionMoving + " Post: " + velocity.x);
         }
 
         /* Run/deccelerate into wall - Applied here once instead of conditionals above. */
@@ -1039,10 +1044,10 @@ public class CharacterBase : MonoBehaviour
             //}
 
         }
-        else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
+        /*else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         {
             // TODO: This is where idle would go. 
-            velocity.y = 0;
+            //velocity.y = 0;
             if (collisionState.Slope)
             {
                 Debug.Log("Slope - Transition 1");
@@ -1053,7 +1058,7 @@ public class CharacterBase : MonoBehaviour
             }
 
             //fsm.ChangeState(States.Idle, StateTransition.Safe);
-        }
+        }*/
 
         /* Steep Slope Min Velocity. */
         else if (collisionState.SteepSlope && activeSpeed >= steepSlopeMinEnterSpeed)
