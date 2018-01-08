@@ -6,7 +6,7 @@ using MonsterLove.StateMachine; // State-Machine Package.
 
 public class CActionsBase : MonoBehaviour {
 
-    private StateMachine<CStatesActionsBase> fsm;
+    public StateMachine<CStatesActionsBase> fsm;
 
     /*Reference movement vars from characterBase. */
     private CharacterBase characterBase; // 1.4.18 - character Base should be a virtual class so that the three forms can each overwrite and add to it.

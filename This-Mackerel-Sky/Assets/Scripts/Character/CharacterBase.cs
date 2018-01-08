@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using MonsterLove.StateMachine; // State-Machine Package.
+using static CActionsBase;
 
 // Update -> OnTrigger -> OnCollision
 
@@ -1792,13 +1793,18 @@ public class CharacterBase : MonoBehaviour
         }
     }
 
-    void Action_Enter()
+    IEnumerator Action_Enter()
     {
-        /* 1. Halts other calculations and states by switching to this state. // This prevents 
-           2. Sets cActionsBase.fsm from Waiting to FindState where the respection actionState is calculated.
+        /* 1. Halts other calculations and states by switching to this state. 
+           2. Sets cActionsBase.fsm from Waiting to FindState where the respective actionState is calculated.
            3. When the action is carried out or interrupted, switches to Waiti
            ng // Must have control of this class's vars
            4. Action continues from previous state.*/
+
+        // TODO: Should wait for all exit functions to finish executing.
+        yield return new WaitForEndOfFrame;// WaitforEndofFrame();
+        Debug.LogError("Should be end of frame.");
+        cActionsBase.fsm.ChangeState(CStatesActionsBase.FindState, StateTransition.Safe);
     }
 
     void Action_Update()
