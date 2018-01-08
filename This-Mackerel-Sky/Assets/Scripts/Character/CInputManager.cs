@@ -15,6 +15,7 @@ public enum Buttons {
 
 public class CInputManager : MonoBehaviour {
 
+    /* Contains all of the keys that differ from normal movement to trigger the action state change in CharacterBase. */
     public bool ActionKeyPressed() {
         if (Input.GetKey(KeyCode.LeftControl)) {
             return true;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using MonsterLove.StateMachine; // State-Machine Package.
-using static CActionsBase;
 
 // Update -> OnTrigger -> OnCollision
 
@@ -91,7 +90,7 @@ public class CharacterBase : MonoBehaviour
     HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame.
     //HashSet<CollisionType> collisionTypes; // For use in that frame.
 
-    private StateMachine<CStatesBase> fsm;
+    public StateMachine<CStatesBase> fsm;
     private float steepSlopeSpeed;
     private Vector2 steepSlopeHitNormal;
     private float wallFrictionDown;
@@ -148,13 +147,13 @@ public class CharacterBase : MonoBehaviour
             directionFacing = 1;
         }
 
-        directionMoving = (velocity.x > 0) ? 1 : -1;
+        directionMoving = (velocity.x >= 0) ? 1 : -1;
         slopeDir = collisionState.slopeDir;
     }
 
     void Update()
     {
-        //Debug.Log("MAIN - Update");
+        Debug.Log("MAIN - Update");
         rigidBody.velocity = velocity;
     }
 
@@ -523,11 +522,11 @@ public class CharacterBase : MonoBehaviour
             //velocity.x = 0; //1.3.18
             Debug.Log(directionMoving + " Pre --" + velocity.x);
             if (directionMoving == 1) { // Decceleration Right
-                   if(velocity.x > 0)
+                   if(velocity.x >= 0)
                 {
                     velocity.x -= lateralAccelGrounded * Time.deltaTime;
                 }
-                if(velocity.x <= 0) { velocity.x = 0; }
+                if(velocity.x < 0) { velocity.x = 0; }
             }
             else if (directionMoving == -1) { // Decceleration Left
                 if(velocity.x < 0)
@@ -1010,13 +1009,13 @@ public class CharacterBase : MonoBehaviour
             Debug.LogError("Slope Angle " + slopeAngle);
             if (directionMoving == 1)
             { // Decceleration Right
-                if (velocity.x > 0)
+                if (velocity.x >= 0)
                 {
                     Debug.LogError("Case 1.");
                     velocity.x -= lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                     velocity.y += slopeDir * -1 * lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                 }
-                if (velocity.x <= 0) {
+                if (velocity.x < 0) {
                     Debug.Log("Halt 1.");
                     velocity.y = 0;
                     velocity.x = 0;
@@ -1798,17 +1797,25 @@ public class CharacterBase : MonoBehaviour
         /* 1. Halts other calculations and states by switching to this state. 
            2. Sets cActionsBase.fsm from Waiting to FindState where the respective actionState is calculated.
            3. When the action is carried out or interrupted, switches to Waiti
-           ng // Must have control of this class's vars
+           // Must have control of this class's vars
            4. Action continues from previous state.*/
 
         // TODO: Should wait for all exit functions to finish executing.
-        yield return new WaitForEndOfFrame;// WaitforEndofFrame();
+        Debug.Log("ACTION - Enter.");
+        yield return new WaitForEndOfFrame();// WaitforEndofFrame();
         Debug.LogError("Should be end of frame.");
-        cActionsBase.fsm.ChangeState(CStatesActionsBase.FindState, StateTransition.Safe);
+        cActionsBase.fsm.ChangeState(CActionsBase.CStatesActionsBase.FindState, StateTransition.Safe); // Access the enum of CActionBase.
     }
 
     void Action_Update()
     {
+        Debug.Log("ACTION - Update. ");
+        PreStateUpdate();
+    }
+
+    void Action_Finally()
+    {
+        Debug.Log("ACTION - Finally. ");
 
     }
 
