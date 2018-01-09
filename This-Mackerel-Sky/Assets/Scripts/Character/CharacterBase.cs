@@ -12,7 +12,6 @@ using MonsterLove.StateMachine; // State-Machine Package.
 [RequireComponent(typeof(Rigidbody2D))]
 public class CharacterBase : MonoBehaviour
 {
-
     Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
 
     /* Collisions Vars */
@@ -95,11 +94,9 @@ public class CharacterBase : MonoBehaviour
     private Vector2 steepSlopeHitNormal;
     private float wallFrictionDown;
 
-
     /* Private State-Specific Vars */
     private bool isSlidingDownWall = false;  // Wall - Friction
     private Vector2 preWallSlideSpeed = new Vector2();
-
 
     public void Awake()
     {
@@ -153,7 +150,7 @@ public class CharacterBase : MonoBehaviour
 
     void Update()
     {
-        Debug.Log("MAIN - Update");
+        //Debug.Log("MAIN - Update");
         rigidBody.velocity = velocity;
     }
 

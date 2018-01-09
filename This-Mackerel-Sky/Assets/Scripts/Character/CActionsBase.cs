@@ -84,10 +84,11 @@ public class CActionsBase : MonoBehaviour {
     {
         Debug.LogError("CActionsBase: DASH - Enter.");
         yield return new WaitForEndOfFrame(); // State Update doesn't start until end of Frame (? Before or after Update Main?). 
-        float velXPrev = character.velocity.x;
+        Vector2 velPrev = character.velocity;
+        character.velocity.y = 0;
         character.velocity.x = character.activeSpeed * 4f * character.directionFacing;
         yield return new WaitForSeconds(.1f);
-        character.velocity.x = velXPrev;
+        character.velocity.x = velPrev.x;
         fsm.ChangeState(CStatesActionsBase.Waiting, StateTransition.Safe);
     }
 

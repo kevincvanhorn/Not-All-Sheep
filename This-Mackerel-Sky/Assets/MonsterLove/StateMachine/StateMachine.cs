@@ -351,9 +351,6 @@ namespace MonsterLove.StateMachine
 			get
 			{
 				if (lastState == null) return default(T);
-
-                Debug.LogError("LASTSTATETETETET: " + lastState.state);
-
 				return (T) lastState.state;
 			}
 		}
