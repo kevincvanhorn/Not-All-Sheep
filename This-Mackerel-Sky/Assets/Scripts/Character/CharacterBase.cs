@@ -10,9 +10,11 @@ using MonsterLove.StateMachine; // State-Machine Package.
 [RequireComponent(typeof(CCollisionState))]
 [RequireComponent(typeof(CActionsBase))]
 [RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Collider2D))]
 public class CharacterBase : MonoBehaviour
 {
     Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
+    public Collider2D collider; 
 
     /* Collisions Vars */
     private float slideFactor = 1;
@@ -97,11 +99,13 @@ public class CharacterBase : MonoBehaviour
     /* Private State-Specific Vars */
     private bool isSlidingDownWall = false;  // Wall - Friction
     private Vector2 preWallSlideSpeed = new Vector2();
+    public bool hasLateralInput; // For camera smoothing.
 
     public void Awake()
     {
         // Initialize State Machine Engine		
         fsm = StateMachine<CStatesBase>.Initialize(this, CStatesBase.Airborne);
+        collider = GetComponent<Collider2D>(); // For CameraFollow's Start Method.
     }
 
     public void Start()
@@ -142,6 +146,15 @@ public class CharacterBase : MonoBehaviour
         else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         {
             directionFacing = 1;
+        }
+
+        if (!Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
+        {
+            hasLateralInput = false;
+        }
+        else
+        {
+            hasLateralInput = true;
         }
 
         directionMoving = (velocity.x >= 0) ? 1 : -1;
