@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,8 +9,8 @@ public class CameraFollow : MonoBehaviour {
 
     public float verticalCameraOffset;
 
+
     /* Lookahead*/
-    // Smoothing - doesn't automatically change position. Takes a smoothed delay
     public float lookAheadDistX;  // How far to look ahead.
     public float xLookSmoothTime; // Smoothing Time. 
     public float yLookSmoothTime; // Smoothing Time.
@@ -19,12 +19,9 @@ public class CameraFollow : MonoBehaviour {
     float targetLookAheadX;       // Flat target distance to move.
     float lookAheadDirX;          // Direction of look ahead.
     float smoothLookVelocityX;    // Mathf.Damping variable modified every frame by func. 
-    float smoothLookVelocityY;        // 
-
-    bool lookAheadStopped;
-    public float xStoppingFraction = 3; // 1 is no limiting on lookahead when stopping, 100 is heavy limiting
+    float smoothLookDistY;        // 
     //---------------------- *
-
+     
     FocusArea focusArea;
 
     void Start()
@@ -49,30 +46,10 @@ public class CameraFollow : MonoBehaviour {
         /* LookAhead */ 
         if(focusArea.moveDist.x != 0)
         {
-            //Debug.LogError(player.hasLateralInput + " : " + lookAheadStopped +" "+player.directionFacing + " " + focusArea.moveDist.x);
-            lookAheadDirX = Mathf.Sign(focusArea.moveDist.x);
-            // Player has decell smoothing already so focus area is always moving same dir as player
-            // -- else could be moving left while player moving right but decell right.
-            // Only set if input is in same direction as focus area is moving.
-            if (Mathf.Sign(player.directionFacing) == Mathf.Sign(focusArea.moveDist.x) && player.hasLateralInput) // Sin(0) = 1
-            {
-                lookAheadStopped = false;
-                targetLookAheadX = lookAheadDirX * lookAheadDistX;
-            }
-            else
-            {
-                if (!lookAheadStopped) {
-                    lookAheadStopped = true;
-                    // Apply only a slight smoothing when condition is not met
-                    targetLookAheadX = curLookAheadX + (lookAheadDirX * lookAheadDistX - curLookAheadX)/xStoppingFraction; // 4: the fraction of smoothing - can be adjusted
-                }
-            }
+            lookAheadDirX = Mathf.Sign(focusArea.moveDist.x); 
         }
-        //targetLookAheadX = lookAheadDirX * lookAheadDistX;
-
+        targetLookAheadX = lookAheadDirX * lookAheadDistX;
         curLookAheadX = Mathf.SmoothDamp(curLookAheadX, targetLookAheadX, ref smoothLookVelocityX, xLookSmoothTime);
-
-        focusPosition.y = Mathf.SmoothDamp(transform.position.y, focusPosition.y, ref smoothLookVelocityY, yLookSmoothTime);
         focusPosition += Vector2.right * curLookAheadX;
 
         transform.position = (Vector3)focusPosition + Vector3.forward * -10; // -10 so camera is always in front.

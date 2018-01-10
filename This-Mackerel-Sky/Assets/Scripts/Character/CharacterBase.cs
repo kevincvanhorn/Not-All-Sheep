@@ -165,6 +165,7 @@ public class CharacterBase : MonoBehaviour
     {
         //Debug.Log("MAIN - Update");
         rigidBody.velocity = velocity;
+        Debug.Log(velocity);
     }
 
     /** Called on Player collision with a new object. **/
@@ -824,7 +825,8 @@ public class CharacterBase : MonoBehaviour
                             fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
                         }
                         else
-                        { // Fall away from wall
+                        { // Fall away from left wall
+                            if(velocity.x < 0) { velocity.x = 0; } // Needed for falling from wall but sticking bc velocity is negative into wall.
                             velocity.x += lateralAccelAirborne * Time.deltaTime;
                             fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
                         }
@@ -855,6 +857,7 @@ public class CharacterBase : MonoBehaviour
                         }
                         else
                         { // Fall away from wall
+                            if (velocity.x > 0) { velocity.x = 0; } // Needed for falling from wall but sticking bc velocity is negative into wall.
                             velocity.x -= lateralAccelAirborne * Time.deltaTime;
                             fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
                         }

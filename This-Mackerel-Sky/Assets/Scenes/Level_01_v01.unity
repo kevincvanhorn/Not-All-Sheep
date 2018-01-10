@@ -1725,6 +1725,7 @@ MonoBehaviour:
   lookAheadDistX: 4
   xLookSmoothTime: 0.5
   yLookSmoothTime: 0.2
+  xStoppingFraction: 3
 --- !u!4 &1516656284 stripped
 Transform:
   m_PrefabParentObject: {fileID: 402734, guid: d349c0332b73e8e44a85bf13c8f53daf, type: 2}
