@@ -8,7 +8,7 @@ public class PixelPerfectCamera : MonoBehaviour {
 
 	public Vector2 nativeResolution = new Vector2 (240, 160);
 
-	void Awake () {
+	/*void Awake () {
 		var camera = GetComponent<Camera> ();
 
 		if (camera.orthographic) {
@@ -16,6 +16,6 @@ public class PixelPerfectCamera : MonoBehaviour {
 			pixelsToUnits *= scale;
 			camera.orthographicSize = (Screen.height / 2.0f) / pixelsToUnits;
 		}
-	}
+	}*/
 
 }
