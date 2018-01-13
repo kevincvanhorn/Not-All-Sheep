@@ -89,6 +89,10 @@ public class CharacterBase : MonoBehaviour
     private bool isSlidingDownWall = false;  // Wall - Friction
     private Vector2 preWallSlideSpeed = new Vector2();
 
+    private Vector3 debugWallHitLoc;
+    private Vector2 wallHitNormal;
+    private float wallFallSpeed;
+
     public bool hasLateralInput; // For camera smoothing.
 
     public void Awake()
@@ -150,7 +154,7 @@ public class CharacterBase : MonoBehaviour
         directionMoving = (velocity.x >= 0) ? 1 : -1;
         slopeDir = collisionState.slopeDir;
 
-        Debug.Log("PRESTATE VEL " + velocity);
+        //Debug.Log("PRESTATE VEL " + velocity);
     }
 
     void Update()
@@ -213,6 +217,8 @@ public class CharacterBase : MonoBehaviour
                     {
                         Debug.Log("ERROR: Invalid Angle.");
                     }
+                    wallHitNormal = contactsIn[i].normal;
+                    debugWallHitLoc = contactsIn[i].point;
                 }
                 /* Top Collision*/
                 else if (slopeAngle >= CStats.topAngleMin && slopeAngle <= CStats.topAngleMax)
@@ -227,7 +233,6 @@ public class CharacterBase : MonoBehaviour
                     enterCollisionTypes.Add(CollisionType.TopSlope);
                     collisionState.topSlope = true;
                     collisionState.none = false;
-                    debugSlopeHitLoc = contactsIn[i].point;
                 }
                 /* Steep Slope Collision. */
                 else if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
@@ -385,7 +390,7 @@ public class CharacterBase : MonoBehaviour
             collisionState.printStates();
             print("----------------------------");*/
             if (velocity.x != 0) wallHitSpeed = velocity;
-            Debug.LogError("wallhitspeed " + wallHitSpeed);
+            //Debug.LogError("wallhitspeed " + wallHitSpeed);
             velocity.x = 0;
             fsm.ChangeState(CStatesBase.OnWall);
         }
@@ -703,12 +708,27 @@ public class CharacterBase : MonoBehaviour
 
     IEnumerator OnWall_Enter()
     {
-        Debug.Log("ONWALL - Enter 1");
         yield return new WaitForEndOfFrame();// WaitforEndofFrame();
-        Debug.LogError("ONWALL - Enter");
+        Debug.Log("ONWALL - Enter");
         velocity.x = wallHitSpeed.x;
-        isSlidingDownWall = false;
-        preWallSlideSpeed = Vector2.zero;
+        //isSlidingDownWall = false;
+        //preWallSlideSpeed = Vector2.zero;
+
+        if (!collisionState.Bot && !collisionState.Slope && !collisionState.TopSlope) // 1.13.18 - had vel > 0?
+        {
+            Debug.DrawLine(debugWallHitLoc, debugWallHitLoc + (Vector3)wallHitNormal * 5, Color.blue, 10f);
+            Debug.DrawLine(debugWallHitLoc, debugWallHitLoc + velocity * -1, Color.yellow, 10f);
+            float wallNormalAngle = Vector2.Angle(velocity * -1, wallHitNormal);
+            wallFallSpeed = Mathf.Sin(wallNormalAngle * Mathf.Deg2Rad) * velocity.magnitude * Mathf.Sign(velocity.y);
+
+            //Debug.LogError("Velocity   " + velocity.magnitude);
+            //Debug.LogError("Angle      " + wallNormalAngle);
+            //Debug.LogError("Speed Calc " + wallFallSpeed);
+        }
+        else
+        {
+            wallFallSpeed = velocity.magnitude;
+        }
     }
 
     void OnWall_Update()
@@ -720,7 +740,7 @@ public class CharacterBase : MonoBehaviour
         bool isTouchingRight = collisionState.Right;
 
 
-        Debug.Log(velocity);
+        //Debug.Log(velocity);
         
         if (collisionState.Slope)
         {
@@ -989,7 +1009,7 @@ public class CharacterBase : MonoBehaviour
         velocity.y = Mathf.Abs(climbSlopeHitSpeed.x) * Mathf.Sign(velocity.y) * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
         // What if Enter -> velocity change in a collision or before end of current frame update -> First update
 
-        Debug.Log("Slope Enter: " + velocity);
+        //Debug.Log("Slope Enter: " + velocity);
     }
 
     void ClimbingSlope_Update()
@@ -997,7 +1017,7 @@ public class CharacterBase : MonoBehaviour
         PreStateUpdate();
         Debug.Log("SLOPE - Update ");
         //Debug.Log("dir: " + directionFacing + " R/L:" + Input.GetKey(KeyCode.RightArrow) +" "+Input.GetKey(KeyCode.LeftArrow));
-        collisionState.printStatesShort();
+        //collisionState.printStatesShort();
 
         slopeAngle = collisionState.curSlopeAngle;
 
@@ -1034,17 +1054,17 @@ public class CharacterBase : MonoBehaviour
             //velocity.x = 0;
             //velocity.y = 0;
             Debug.Log(directionMoving + " Pre: " + velocity);
-            Debug.LogError("Slope Angle " + slopeAngle);
+            //Debug.LogError("Slope Angle " + slopeAngle);
             if (directionMoving == 1)
             { // Decceleration Right
                 if (velocity.x >= 0)
                 {
-                    Debug.LogError("Case 1.");
+                    //Debug.LogError("Case 1.");
                     velocity.x -= lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                     velocity.y += slopeDir * -1 * lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                 }
                 if (velocity.x < 0) {
-                    Debug.Log("Halt 1.");
+                    //Debug.Log("Halt 1.");
                     velocity.y = 0;
                     velocity.x = 0;
                 }
@@ -1053,7 +1073,7 @@ public class CharacterBase : MonoBehaviour
             { // Decceleration Left
                 if (velocity.x < 0)
                 {
-                    Debug.LogError("Case 2.");
+                    //Debug.LogError("Case 2.");
                     velocity.x += lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                     velocity.y += slopeDir * lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime;
                 }
