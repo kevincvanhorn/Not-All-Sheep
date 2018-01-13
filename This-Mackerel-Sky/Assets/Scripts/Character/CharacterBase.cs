@@ -29,7 +29,7 @@ public class CharacterBase : MonoBehaviour
     public float activeSpeed;
     public Vector3 velocity;
 
-    float wallImpactSpeed;
+    public Vector2 wallHitSpeed;
     public float directionFacing = 1;
     public float directionMoving = 1;
 
@@ -41,7 +41,7 @@ public class CharacterBase : MonoBehaviour
     public float jumpHeightMin = .9f;
     public float timeToJumpApex = .4f;
 
-    float gravity;
+    public float gravity;
     float jumpVelocityMax;
     float jumpVelocityMin;
 
@@ -50,25 +50,13 @@ public class CharacterBase : MonoBehaviour
     public float slopeAngle = 0;
     public float maxAngle = 80;
     public Vector2 topSlopeSpeedCur;
-    public Vector2 climbSlopeHitSpeed;
+    private Vector2 climbSlopeHitSpeed;
     public float steepSlopeMinEnterSpeed = 20;
 
     public Vector3 debugSlopeHitLoc;
 
     private CInputManager inputManager;
     private CActionsBase cActionsBase;
-
-    public enum CollisionType
-    {
-        None,
-        Top,
-        Bot,
-        Left,
-        Right,
-        Slope,
-        TopSlope,
-        SteepSlope
-    };
 
     /* Define States */
     public enum CStatesBase
@@ -88,17 +76,19 @@ public class CharacterBase : MonoBehaviour
 
     CCollisionState collisionState;
 
-    HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame.
+    public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame. // Should be virtual
     //HashSet<CollisionType> collisionTypes; // For use in that frame.
 
     public StateMachine<CStatesBase> fsm;
+
+    /* Private State-Specific Vars */
+    // Steep Slopes
     private float steepSlopeSpeed;
     private Vector2 steepSlopeHitNormal;
     private float wallFrictionDown;
-
-    /* Private State-Specific Vars */
     private bool isSlidingDownWall = false;  // Wall - Friction
     private Vector2 preWallSlideSpeed = new Vector2();
+
     public bool hasLateralInput; // For camera smoothing.
 
     public void Awake()
@@ -112,7 +102,7 @@ public class CharacterBase : MonoBehaviour
     {
         /* Set collision defaults. */
         activeSpeed = moveSpeed;
-        wallImpactSpeed = activeSpeed;
+        wallHitSpeed.x = activeSpeed;
         rigidBody = GetComponent<Rigidbody2D>();
 
         inputManager = GetComponent<CInputManager>();
@@ -159,18 +149,21 @@ public class CharacterBase : MonoBehaviour
 
         directionMoving = (velocity.x >= 0) ? 1 : -1;
         slopeDir = collisionState.slopeDir;
+
+        Debug.Log("PRESTATE VEL " + velocity);
     }
 
     void Update()
     {
-        //Debug.Log("MAIN - Update");
+        Debug.Log("MAIN - Update "+ velocity);
         rigidBody.velocity = velocity;
         Debug.Log(velocity);
     }
 
     /** Called on Player collision with a new object. **/
-    void BaseCollisionEnter2D(Collision2D collision)
+    public void BaseCollisionEnter2D(Collision2D collision)
     { // ~ Could convert Collision2D to Collider2D
+        Debug.Log("BaseCollisionEnter2D" + velocity);
         PreStateUpdate();
         enterCollisionTypes.Clear();
         collisionState.CheckOverlaps();
@@ -268,7 +261,9 @@ public class CharacterBase : MonoBehaviour
             Debug.LogError("Slope " + collisionState.Slope + " Right " + collisionState.Right);
             Debug.LogError("-----------");
         }*/
-    }
+
+        Debug.Log("BaseCollisionEnter2D END" + velocity);
+    } // Should be virtual
 
     /* Collision Methods: Custom ---------------------------------------------*/
     // EXECUTION ORDER:
@@ -389,6 +384,8 @@ public class CharacterBase : MonoBehaviour
             /*print("CollisionState -------------");
             collisionState.printStates();
             print("----------------------------");*/
+            if (velocity.x != 0) wallHitSpeed = velocity;
+            Debug.LogError("wallhitspeed " + wallHitSpeed);
             velocity.x = 0;
             fsm.ChangeState(CStatesBase.OnWall);
         }
@@ -402,9 +399,9 @@ public class CharacterBase : MonoBehaviour
 
     void Airborne_OnCollisionEnter2D(Collision2D collision)
     {
+        Debug.Log("AIRBORNE - OnCollisionEnter " + velocity);
         BaseCollisionEnter2D(collision);
 
-        Debug.Log("AIRBORNE - OnCollisionEnter");
         /* These are the new collisions this frame from this specific collision. */
         // ? Iterate for all combinations not needed with contains.
         if (enterCollisionTypes.Count > 0)
@@ -459,7 +456,9 @@ public class CharacterBase : MonoBehaviour
             /* Wall Collision (Including Wall Slope). */
             else if (enterCollisionTypes.Contains(CollisionType.Left))
             {
-                //velocity.x = 0; // Commented Out 1.5.18
+                wallHitSpeed = velocity;
+                Debug.LogError("--Wallhitspeed" + wallHitSpeed);
+                velocity.x = 0; // Commented Out 1.5.18
                 enterCollisionTypes.Remove(CollisionType.Left);
                 if (!collisionState.Bot)
                 {
@@ -473,7 +472,9 @@ public class CharacterBase : MonoBehaviour
             }
             else if (enterCollisionTypes.Contains(CollisionType.Right))
             {
-                //velocity.x = 0; // Commented Out 1.5.18
+                wallHitSpeed = velocity;
+                Debug.LogError("--Wallhitspeed" + wallHitSpeed);
+                velocity.x = 0; // Commented Out 1.5.18
                 enterCollisionTypes.Remove(CollisionType.Right);
                 if (!collisionState.Bot)
                 {
@@ -633,11 +634,13 @@ public class CharacterBase : MonoBehaviour
             /* Wall Collision (Including Wall Slopes). */
             if (enterCollisionTypes.Contains(CollisionType.Right)) // TouchingWall.
             {
+                wallHitSpeed = velocity;
                 enterCollisionTypes.Remove(CollisionType.Right);
                 velocity.x = 0;
             }
             else if (enterCollisionTypes.Contains(CollisionType.Left)) // TouchingWall.
             {
+                wallHitSpeed = velocity;
                 enterCollisionTypes.Remove(CollisionType.Left);
                 velocity.x = 0;
             }
@@ -698,9 +701,12 @@ public class CharacterBase : MonoBehaviour
         }
     }
 
-    void OnWall_Enter()
+    IEnumerator OnWall_Enter()
     {
-        Debug.Log("ONWALL - Enter");
+        Debug.Log("ONWALL - Enter 1");
+        yield return new WaitForEndOfFrame();// WaitforEndofFrame();
+        Debug.LogError("ONWALL - Enter");
+        velocity.x = wallHitSpeed.x;
         isSlidingDownWall = false;
         preWallSlideSpeed = Vector2.zero;
     }
@@ -761,6 +767,11 @@ public class CharacterBase : MonoBehaviour
                 velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
             }*/
             velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+            /*if(-1*velocity.y >= Mathf.Abs(velocity.x)) // breaking off a velx push into wall
+            {
+                velocity.x = 0;
+
+            }*/
 
             // Only Touching one side.
             if (!(isTouchingLeft && isTouchingRight))
@@ -826,7 +837,7 @@ public class CharacterBase : MonoBehaviour
                         }
                         else
                         { // Fall away from left wall
-                            if(velocity.x < 0) { velocity.x = 0; } // Needed for falling from wall but sticking bc velocity is negative into wall.
+                            //if(velocity.x < 0) { velocity.x = 0; } // Needed for falling from wall but sticking bc velocity is negative into wall.
                             velocity.x += lateralAccelAirborne * Time.deltaTime;
                             fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
                         }
@@ -857,7 +868,7 @@ public class CharacterBase : MonoBehaviour
                         }
                         else
                         { // Fall away from wall
-                            if (velocity.x > 0) { velocity.x = 0; } // Needed for falling from wall but sticking bc velocity is negative into wall.
+                            //if (velocity.x > 0) { velocity.x = 0; } // Needed for falling from wall but sticking bc velocity is negative into wall.
                             velocity.x -= lateralAccelAirborne * Time.deltaTime;
                             fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
                         }
@@ -941,16 +952,16 @@ public class CharacterBase : MonoBehaviour
             /* Wall Collision (Including Wall Slopes). */
             else if (enterCollisionTypes.Contains(CollisionType.Left))
             {
-                wallImpactSpeed = velocity.x;
-                //velocity.x = 0; //1.5.18
+                wallHitSpeed = velocity;
+                velocity.x = 0; //1.5.18
 
                 enterCollisionTypes.Remove(CollisionType.Left);
                 Debug.LogWarning("This should not usually occur. Addressed in Update.");
             }
             else if (enterCollisionTypes.Contains(CollisionType.Right))
             {
-                wallImpactSpeed = velocity.x;
-                //velocity.x = 0; // 1.5.18
+                wallHitSpeed = velocity;
+                velocity.x = 0; // 1.5.18
 
                 enterCollisionTypes.Remove(CollisionType.Right);
                 Debug.LogWarning("This should not usually occur. Addressed in Update.");
@@ -967,7 +978,8 @@ public class CharacterBase : MonoBehaviour
     void ClimbingSlope_Enter()
     {
         Debug.Log("SLOPE - Enter");
-        Debug.Log("Slope E Pre: " + velocity);
+        collisionState.printStatesError();
+        //Debug.Log("Slope E Pre: " + velocity);
 
         climbSlopeHitSpeed = velocity;
         velocity.x = climbSlopeHitSpeed.x * Mathf.Cos(slopeAngle * Mathf.Deg2Rad); // * directionMoving if not just .x
@@ -1168,6 +1180,7 @@ public class CharacterBase : MonoBehaviour
             /* Wall Collision (Including Wall Slopes). */
             if (enterCollisionTypes.Contains(CollisionType.Right))
             {
+                wallHitSpeed = velocity;
                 // TouchingWall.
                 velocity.x = 0;
                 velocity.y = 0;
@@ -1175,6 +1188,7 @@ public class CharacterBase : MonoBehaviour
             }
             else if (enterCollisionTypes.Contains(CollisionType.Left))
             {
+                wallHitSpeed = velocity;
                 // TouchingWall.
                 velocity.x = 0;
                 velocity.y = 0;
@@ -1311,6 +1325,25 @@ public class CharacterBase : MonoBehaviour
     {
         Debug.LogError("TOPSLOPE - OnCollisionEnter2D - TODO Address this.");
         BaseCollisionEnter2D(collision);
+
+        /* Wall Collision (Including Wall Slopes). */
+        if (enterCollisionTypes.Contains(CollisionType.Right)) // 1.13.18 Added - untested
+        {
+            wallHitSpeed = velocity;
+            // TouchingWall.
+            velocity.x = 0;
+            velocity.y = 0;
+            enterCollisionTypes.Remove(CollisionType.Right);
+        }
+        else if (enterCollisionTypes.Contains(CollisionType.Left))
+        {
+            wallHitSpeed = velocity;
+            // TouchingWall.
+            velocity.x = 0;
+            velocity.y = 0;
+            enterCollisionTypes.Remove(CollisionType.Left);
+        }
+
     }
 
     void SteepSlope_Enter()
@@ -1326,8 +1359,6 @@ public class CharacterBase : MonoBehaviour
         {
             activeSpeed = moveSpeed;
         }
-
-        
 
         if (velocity.y < 0 && !collisionState.Bot && !collisionState.Slope)
         {
@@ -1446,6 +1477,7 @@ public class CharacterBase : MonoBehaviour
             /* Wall Collision (Including Wall Slopes). */
             if (enterCollisionTypes.Contains(CollisionType.Right))
             {
+                wallHitSpeed = velocity;
                 // TouchingWall.
                 velocity.x = 0;
                 velocity.y = 0;
@@ -1453,6 +1485,7 @@ public class CharacterBase : MonoBehaviour
             }
             else if (enterCollisionTypes.Contains(CollisionType.Left))
             {
+                wallHitSpeed = velocity;
                 // TouchingWall.
                 velocity.x = 0;
                 velocity.y = 0;
@@ -1693,6 +1726,8 @@ public class CharacterBase : MonoBehaviour
             /* Wall Collision (Including SLoped Wall). */
             else if (enterCollisionTypes.Contains(CollisionType.Left))
             {
+                wallHitSpeed = velocity;
+                velocity.x = 0; // Added 1.13.18
                 // OnWall.
                 enterCollisionTypes.Remove(CollisionType.Left);
                 if (!collisionState.Bot)
@@ -1707,6 +1742,7 @@ public class CharacterBase : MonoBehaviour
             }
             else if (enterCollisionTypes.Contains(CollisionType.Right))
             {
+                velocity.x = 0; // Added 1.13.18
                 enterCollisionTypes.Remove(CollisionType.Right);
                 if (!collisionState.Bot)
                 {
@@ -1839,6 +1875,7 @@ public class CharacterBase : MonoBehaviour
 
     void FindState_Update()
     {
+        Debug.LogWarning("FINDSTATE - UPDATE");
         PreStateUpdate();
     }
 
@@ -1846,3 +1883,15 @@ public class CharacterBase : MonoBehaviour
 
 // Fianlly: Reset object to desired configuration
 // For Overwrite: fsm.ChangeState(States.MyNextState, StateTransition.Safe);
+
+public enum CollisionType
+{
+    None,
+    Top,
+    Bot,
+    Left,
+    Right,
+    Slope,
+    TopSlope,
+    SteepSlope
+};

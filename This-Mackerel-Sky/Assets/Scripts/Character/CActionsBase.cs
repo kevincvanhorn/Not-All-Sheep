@@ -52,7 +52,7 @@ public class CActionsBase : MonoBehaviour {
 
     public void Waiting_Update()
     {
-        Debug.Log("CActionsBase - WAITING - Update. ");
+        //Debug.Log("CActionsBase - WAITING - Update. ");
     }
 
     public void Waiting_Finally()
@@ -88,6 +88,7 @@ public class CActionsBase : MonoBehaviour {
         character.velocity.y = 0;
         character.velocity.x = character.activeSpeed * 4f * character.directionFacing;
         yield return new WaitForSeconds(.1f);
+        if (Mathf.Sign(character.velocity.x) != Mathf.Sign(velPrev.x)) velPrev.x *= -1; // TODO: this can be done with fewer comparisions.
         character.velocity.x = velPrev.x;
         fsm.ChangeState(CStatesActionsBase.Waiting, StateTransition.Safe);
     }
@@ -95,6 +96,25 @@ public class CActionsBase : MonoBehaviour {
     public void Dash_Update()
     {
 
+    }
+
+    public void Dash_OnCollisionEnter2D(Collision2D collision)
+    {
+        character.BaseCollisionEnter2D(collision);
+
+        /* Wall Collision (Including Wall Slopes). */ // Added 1.13.18
+        if (character.enterCollisionTypes.Contains(CollisionType.Right)) // TouchingWall.
+        {
+            character.wallHitSpeed = character.velocity;
+            character.enterCollisionTypes.Remove(CollisionType.Right);
+            character.velocity.x = 0;
+        }
+        else if (character.enterCollisionTypes.Contains(CollisionType.Left)) // TouchingWall.
+        {
+            character.wallHitSpeed = character.velocity;
+            character.enterCollisionTypes.Remove(CollisionType.Left);
+            character.velocity.x = 0;
+        }
     }
 
 
