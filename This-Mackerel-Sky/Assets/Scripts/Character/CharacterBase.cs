@@ -767,11 +767,6 @@ public class CharacterBase : MonoBehaviour
                 velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
             }*/
             velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
-            /*if(-1*velocity.y >= Mathf.Abs(velocity.x)) // breaking off a velx push into wall
-            {
-                velocity.x = 0;
-
-            }*/
 
             // Only Touching one side.
             if (!(isTouchingLeft && isTouchingRight))
@@ -837,9 +832,13 @@ public class CharacterBase : MonoBehaviour
                         }
                         else
                         { // Fall away from left wall
-                            //if(velocity.x < 0) { velocity.x = 0; } // Needed for falling from wall but sticking bc velocity is negative into wall.
-                            velocity.x += lateralAccelAirborne * Time.deltaTime;
-                            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                            if (velocity.y <= 0)
+                            {
+                                if (velocity.x < 0) velocity.x = 0;  // Needed for falling from wall but sticking bc velocity is negative into wall.
+                                velocity.x += lateralAccelAirborne * Time.deltaTime;
+                                fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                            }
+                            // Doesn't allow falling away from wall when wallRising
                         }
                     }
                     else if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
@@ -868,10 +867,14 @@ public class CharacterBase : MonoBehaviour
                         }
                         else
                         { // Fall away from wall
-                            //if (velocity.x > 0) { velocity.x = 0; } // Needed for falling from wall but sticking bc velocity is negative into wall.
-                            velocity.x -= lateralAccelAirborne * Time.deltaTime;
-                            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                            if(velocity.y <= 0)
+                            {
+                                if (velocity.x > 0) velocity.x = 0;// Needed for falling from wall but sticking bc velocity is negative into wall.
+                                velocity.x -= lateralAccelAirborne * Time.deltaTime;
+                                fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                            }
                         }
+                        // Doesn't allow falling away from wall when wallRising
                     }
                     else if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
                     {
