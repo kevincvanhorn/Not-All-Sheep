@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/Test/18_01_14.unity
+- path: Assets/Scenes/Level_01_v03_TestBlocking.unity
   isLoaded: 1
   isActive: 1

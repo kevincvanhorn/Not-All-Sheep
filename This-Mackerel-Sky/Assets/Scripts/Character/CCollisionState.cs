@@ -112,9 +112,10 @@ public class CCollisionState : MonoBehaviour
                             }
                             else
                             {
-                                Debug.Log("ERROR: Invalid Angle.");
+                                Debug.LogError("ERROR: Invalid Angle.");
                             }
                             slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
+                            curWallAngle = slopeAngle;
                         }
                         /* Top Collision*/
                         else if (slopeAngle >= CStats.topAngleMin && slopeAngle <= CStats.topAngleMax)
