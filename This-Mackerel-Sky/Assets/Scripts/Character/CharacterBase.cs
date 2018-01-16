@@ -74,7 +74,7 @@ public class CharacterBase : MonoBehaviour
         Simulate
     }
 
-    CCollisionState collisionState;
+    public CCollisionState collisionState;
 
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame. // Should be virtual
     //HashSet<CollisionType> collisionTypes; // For use in that frame.
@@ -161,7 +161,7 @@ public class CharacterBase : MonoBehaviour
     {
         Debug.Log("MAIN - Update "+ velocity);
         rigidBody.velocity = velocity;
-        Debug.Log(velocity);
+        //Debug.Log(velocity);
     }
 
     /** Called on Player collision with a new object. **/
@@ -595,6 +595,8 @@ public class CharacterBase : MonoBehaviour
 
         else if (collisionState.None)
         { // Case - slide off edge
+            Debug.LogError("NONE");
+            collisionState.printStatesError();
             fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
         }
 
@@ -912,6 +914,149 @@ public class CharacterBase : MonoBehaviour
         //collisionState.printStatesShort();
         //print("ONWALL - End of Update. Vel " + velocity);
     }
+
+ /*   void OnWall_Update()
+    {
+        Debug.Log("ONWALL - Update");
+        PreStateUpdate();
+
+        bool isTouchingLeft = collisionState.Left;
+        bool isTouchingRight = collisionState.Right;
+
+
+        //Debug.Log(velocity);
+
+        else if (!collisionState.Right && !collisionState.Left)
+        { // Case - slide off edge
+            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+        }
+        else
+        {
+            velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+
+            // Only Touching one side.
+            if (!(isTouchingLeft && isTouchingRight))
+            {
+                // When Up is released in this frame.
+                if (Input.GetKeyUp(KeyCode.UpArrow))
+                {
+                    if (velocity.y > jumpVelocityMin)
+                    { // Keep applying velocity up while key is pressed - variable jump
+                        velocity.y = jumpVelocityMin;
+                    }
+                }
+                // When Up is first input.
+                if (Input.GetKeyDown(KeyCode.UpArrow))
+                {
+                    if (isTouchingLeft && Input.GetKey(KeyCode.LeftArrow)) // Jump toward left wall.
+                    {
+                        velocity.y = jumpVelocityMax;
+                        velocity.x = activeSpeed / 2;
+                        fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                    }
+                    else if (isTouchingRight && Input.GetKey(KeyCode.RightArrow)) // Jump toward right wall.
+                    {
+                        velocity.y = jumpVelocityMax;
+                        velocity.x = -1 * activeSpeed / 2;
+                        fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                    }
+                }
+                // When Right is first input.
+                else if (Input.GetKeyDown(KeyCode.RightArrow))
+                { // on L/R input - setting conditions.
+                    directionFacing = 1;
+                    if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
+                    {
+                        velocity.y = jumpVelocityMax;
+                        velocity.x = -1 * activeSpeed / 2;
+                        fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                    }
+                }
+                // When Left is first input.
+                else if (Input.GetKeyDown(KeyCode.LeftArrow))
+                {
+                    print("WALL - State Change 1");
+                    directionFacing = -1;
+                    if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
+                    {
+                        velocity.y = jumpVelocityMax;
+                        velocity.x = activeSpeed / 2;
+                        fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                    }
+                }
+
+                // When Right or Left is held down.
+                else if (Input.GetKey(KeyCode.RightArrow))
+                {
+                    if (isTouchingLeft)
+                    {
+                        if (Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
+                        {
+                            velocity.y = jumpVelocityMax;
+                            velocity.x = activeSpeed;
+                            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                        }
+                        else
+                        { // Fall away from left wall
+                            if (velocity.y <= 0)
+                            {
+                                if (velocity.x < 0) velocity.x = 0;  // Needed for falling from wall but sticking bc velocity is negative into wall.
+                                velocity.x += lateralAccelAirborne * Time.deltaTime;
+                                fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                            }
+                            // Doesn't allow falling away from wall when wallRising
+                        }
+                    }
+                    else if (isTouchingRight && Input.GetKey(KeyCode.UpArrow)) // Jumping toward right wall.
+                    {
+                        // When coming from a non-grounded state, immediately jump when hit wall
+                        if (velocity.y < 0)
+                        {
+                            velocity.y = jumpVelocityMax;
+                            velocity.x = -1 * activeSpeed / 2;
+                            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                        }
+                    }
+
+                }
+                else if (Input.GetKey(KeyCode.LeftArrow))
+                {
+                    if (isTouchingRight)
+                    {
+                        print("WALL - State Change 2");
+                        if (Input.GetKey(KeyCode.UpArrow)) // Jump away from right wall.
+                        {
+                            print("WALL - State Change 3");
+                            velocity.y = jumpVelocityMax;
+                            velocity.x = -1 * activeSpeed / 2;
+                            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                        }
+                        else
+                        { // Fall away from wall
+                            if (velocity.y <= 0)
+                            {
+                                if (velocity.x > 0) velocity.x = 0;// Needed for falling from wall but sticking bc velocity is negative into wall.
+                                velocity.x -= lateralAccelAirborne * Time.deltaTime;
+                                fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                            }
+                        }
+                        // Doesn't allow falling away from wall when wallRising
+                    }
+                    else if (isTouchingLeft && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
+                    {
+                        // When coming from a non-grounded state, immediately jump when hit wall
+                        if (velocity.y < 0)
+                        {
+                            velocity.y = jumpVelocityMax;
+                            velocity.x = activeSpeed / 2;
+                            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    */
 
     void OnWall_OnCollisionEnter2D(Collision2D collision)
     {
