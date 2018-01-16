@@ -167,7 +167,7 @@ public class CharacterBase : MonoBehaviour
     /** Called on Player collision with a new object. **/
     public void BaseCollisionEnter2D(Collision2D collision)
     { // ~ Could convert Collision2D to Collider2D
-        Debug.Log("BaseCollisionEnter2D" + velocity);
+        //Debug.Log("BaseCollisionEnter2D" + velocity);
         PreStateUpdate();
         enterCollisionTypes.Clear();
         collisionState.CheckOverlaps();
@@ -267,7 +267,7 @@ public class CharacterBase : MonoBehaviour
             Debug.LogError("-----------");
         }*/
 
-        Debug.Log("BaseCollisionEnter2D END" + velocity);
+        //Debug.Log("BaseCollisionEnter2D END" + velocity);
     } // Should be virtual
 
     /* Collision Methods: Custom ---------------------------------------------*/
@@ -464,6 +464,7 @@ public class CharacterBase : MonoBehaviour
                 wallHitSpeed = velocity;
                 //Debug.LogError("--Wallhitspeed" + wallHitSpeed);
                 velocity.x = 0; // Commented Out 1.5.18
+                velocity.y = 0; // added 1.16.18
                 enterCollisionTypes.Remove(CollisionType.Left);
                 if (!collisionState.Bot)
                 {
@@ -471,7 +472,8 @@ public class CharacterBase : MonoBehaviour
                 }
                 else
                 {
-                    velocity.x = 0; 
+                    velocity.x = 0;
+                    velocity.y = 0; // added 1.16.18
                     Debug.LogWarning("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
                 }
             }
@@ -480,6 +482,7 @@ public class CharacterBase : MonoBehaviour
                 wallHitSpeed = velocity;
                 //Debug.LogError("--Wallhitspeed" + wallHitSpeed);
                 velocity.x = 0; // Commented Out 1.5.18
+                velocity.y = 0; // added 1.16.18
                 enterCollisionTypes.Remove(CollisionType.Right);
                 if (!collisionState.Bot)
                 {
@@ -488,6 +491,7 @@ public class CharacterBase : MonoBehaviour
                 else
                 {
                     velocity.x = 0;
+                    velocity.y = 0; // added 1.16.18
                     Debug.LogWarning("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
                 }
             }
@@ -711,8 +715,8 @@ public class CharacterBase : MonoBehaviour
     IEnumerator OnWall_Enter()
     {
         yield return new WaitForEndOfFrame();// WaitforEndofFrame();
-        Debug.Log("ONWALL - Enter");
-        velocity.x = wallHitSpeed.x;
+        Debug.Log("ONWALL - Enter " + velocity + " " + wallHitSpeed);
+        velocity = wallHitSpeed;
         //isSlidingDownWall = false;
         //preWallSlideSpeed = Vector2.zero;
 
@@ -730,6 +734,7 @@ public class CharacterBase : MonoBehaviour
         else
         {
             wallFallSpeed = velocity.magnitude;
+            collisionState.printStatesError();
             Debug.LogWarning("ERROR: Probably should not be here");
         }
     }
@@ -767,7 +772,6 @@ public class CharacterBase : MonoBehaviour
             velocity.y = 0;
             velocity.x = 0;
             */
-
         }
         else if (!collisionState.Right && !collisionState.Left)
         { 
@@ -801,9 +805,17 @@ public class CharacterBase : MonoBehaviour
                     {
                         jumpTowardWall(1);
                     }
+                    else if(collisionState.Left && Input.GetKey(KeyCode.RightArrow)) // Jump away from left wall
+                    {
+                        jumpAwayFromWall(1);
+                    }
                     else if (collisionState.Right && Input.GetKey(KeyCode.RightArrow)) // Jump toward right wall.
                     {
                         jumpTowardWall(-1);
+                    }
+                    else if (collisionState.Right && Input.GetKey(KeyCode.LeftArrow)) // Jump away from right wall.
+                    {
+                        jumpAwayFromWall(-1);
                     }
                 }
                 // When Right is first input.
@@ -814,6 +826,10 @@ public class CharacterBase : MonoBehaviour
                     {
                         jumpTowardWall(-1);
                     }
+                    else if(collisionState.Left && Input.GetKey(KeyCode.UpArrow)) // Jump away from left wall.
+                    {
+                        jumpAwayFromWall(1);
+                    }
                 }
                 // When Left is first input.
                 else if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -823,6 +839,10 @@ public class CharacterBase : MonoBehaviour
                     if (collisionState.Left && Input.GetKey(KeyCode.UpArrow)) // Jumping toward left wall.
                     {
                         jumpTowardWall(1);
+                    }
+                    else if(collisionState.Right && Input.GetKey(KeyCode.UpArrow)) // Jump away from right wall.
+                    {
+                        jumpAwayFromWall(-1);
                     }
                 }
 
@@ -1705,6 +1725,7 @@ public class CharacterBase : MonoBehaviour
     void Simulate_Enter()
     {
         Debug.Log("SIMULATE - Enter from" + fsm.LastState);
+        collisionState.printStatesError();
     }
 
     void Simulate_Update()
@@ -1876,6 +1897,7 @@ public class CharacterBase : MonoBehaviour
             {
                 wallHitSpeed = velocity;
                 velocity.x = 0; // Added 1.13.18
+                velocity.y = 0; // added 1.16.18
                 // OnWall.
                 enterCollisionTypes.Remove(CollisionType.Left);
                 if (!collisionState.Bot)
@@ -1885,6 +1907,7 @@ public class CharacterBase : MonoBehaviour
                 else
                 {
                     velocity.x = 0;
+                    velocity.y = 0; // added 1.16.18
                     Debug.LogWarning("SIMULATE: This state should be inaccessible - grounded & touchingWall");
                 }
             }
