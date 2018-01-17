@@ -109,7 +109,7 @@ MonoBehaviour:
   m_MinSize: {x: 787, y: 342}
   m_MaxSize: {x: 16012, y: 8042}
   vertical: 0
-  controlID: 73
+  controlID: 136
 --- !u!114 &6
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -202,8 +202,8 @@ MonoBehaviour:
     y: 0
     width: 559
     height: 483
-  m_MinSize: {x: 204, y: 221}
-  m_MaxSize: {x: 4004, y: 4021}
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 15}
   m_Panes:
   - {fileID: 15}
@@ -254,8 +254,8 @@ MonoBehaviour:
     y: 483
     width: 1096
     height: 324
-  m_MinSize: {x: 102, y: 121}
-  m_MaxSize: {x: 4002, y: 4021}
+  m_MinSize: {x: 100, y: 100}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 19}
   m_Panes:
   - {fileID: 18}
@@ -393,10 +393,10 @@ MonoBehaviour:
     height: 462
   m_PersistentViewDataDictionary: {fileID: 0}
   m_TreeViewState:
-    scrollPos: {x: 0, y: 48}
-    m_SelectedIDs: e6050000
-    m_LastClickedID: 0
-    m_ExpandedIDs: 9efbffff00000000c6280000ce280000
+    scrollPos: {x: 0, y: 0}
+    m_SelectedIDs: 04290000
+    m_LastClickedID: 10500
+    m_ExpandedIDs: 9efbffff00000000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -452,9 +452,9 @@ MonoBehaviour:
   m_isRotationLocked: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: -7.999509, y: 10.1326, z: -1.4586712}
+    m_Target: {x: -13.476435, y: 18.498152, z: -1.225329}
     speed: 2
-    m_Value: {x: -7.999509, y: 10.1326, z: -1.4586712}
+    m_Value: {x: -13.476435, y: 18.498152, z: -1.225329}
   m_RenderMode: 0
   m_ValidateTrueMetals: 0
   m_SceneViewState:
@@ -482,9 +482,9 @@ MonoBehaviour:
     speed: 2
     m_Value: {x: 0, y: 0, z: 0, w: 1}
   m_Size:
-    m_Target: 68.15701
+    m_Target: 44.988163
     speed: 2
-    m_Value: 68.15701
+    m_Value: 44.988163
   m_Ortho:
     m_Target: 1
     speed: 2
@@ -622,19 +622,19 @@ MonoBehaviour:
     m_ShowAllHits: 0
     m_SearchArea: 0
     m_Folders:
-    - Assets/Scripts/Utils
+    - Assets/Scripts/Character
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Scripts/Utils
+  - Assets/Scripts/Character
   m_LastFoldersGridSize: -1
   m_LastProjectPath: C:\Users\kevin\Documents\Github\This-Mackerel-Sky\This-Mackerel-Sky
   m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 18}
-    m_SelectedIDs: 64280000
-    m_LastClickedID: 10340
-    m_ExpandedIDs: 0000000088270000d0270000342800004c2800006428000066280000d8290000da29000000ca9a3bffffff7f
+    m_SelectedIDs: 52280000
+    m_LastClickedID: 10322
+    m_ExpandedIDs: 0000000088270000d0270000342800004c2800006428000066280000dc290000de29000000ca9a3bffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -662,7 +662,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 0000000088270000d0270000342800004c2800006428000066280000d8290000da290000
+    m_ExpandedIDs: 0000000088270000d0270000342800004c2800006428000066280000dc290000de290000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -687,8 +687,8 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: e6050000
-    m_LastClickedInstanceID: 1510
+    m_SelectedInstanceIDs: 04290000
+    m_LastClickedInstanceID: 10500
     m_HadKeyboardFocusLastEvent: 1
     m_ExpandedInstanceIDs: c6230000243c000000000000322a00004a32000036f1ffff
     m_RenameOverlay:
@@ -771,7 +771,7 @@ MonoBehaviour:
     width: 440
     height: 786
   m_PersistentViewDataDictionary: {fileID: 0}
-  m_ScrollPosition: {x: 0, y: 0}
+  m_ScrollPosition: {x: 0, y: 601.9551}
   m_InspectorMode: 0
   m_PreviewResizer:
     m_CachedPref: 160

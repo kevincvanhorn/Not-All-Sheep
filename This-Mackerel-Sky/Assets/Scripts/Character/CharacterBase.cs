@@ -86,12 +86,13 @@ public class CharacterBase : MonoBehaviour
     private float steepSlopeSpeed;
     private Vector2 steepSlopeHitNormal;
     private float wallFrictionDown;
-    private bool isSlidingDownWall = false;  // Wall - Friction
-    private Vector2 preWallSlideSpeed = new Vector2();
+
 
     private Vector3 debugWallHitLoc;
     private Vector2 wallHitNormal;
-    private float wallFallSpeed;
+    public float wallFallSpeed;
+    public float wallStickTime;
+    public bool isWallSticking;
 
     public bool hasLateralInput; // For camera smoothing.
 
@@ -118,7 +119,9 @@ public class CharacterBase : MonoBehaviour
         jumpVelocityMax = Mathf.Abs(gravity * timeToJumpApex);
         jumpVelocityMin = Mathf.Sqrt(2 * Mathf.Abs(gravity) * jumpHeightMin);
 
-        wallFrictionDown = -1 * gravity * .75f;
+        wallFrictionDown = 1;
+        wallStickTime = 0;
+        wallStickTime = 0;
     }
 
     void PreStateUpdate()
@@ -717,18 +720,32 @@ public class CharacterBase : MonoBehaviour
         yield return new WaitForEndOfFrame();// WaitforEndofFrame();
         Debug.Log("ONWALL - Enter " + velocity + " " + wallHitSpeed);
         velocity = wallHitSpeed;
-        //isSlidingDownWall = false;
-        //preWallSlideSpeed = Vector2.zero;
+        wallStickTime = Mathf.Abs(wallHitSpeed.x); // 1.16.18
+        float wallNormalAngle = Vector2.Angle(velocity * -1, wallHitNormal);
+
+        Debug.DrawLine(debugWallHitLoc, debugWallHitLoc + (Vector3)wallHitNormal * 5, Color.blue, 10f);
+        Debug.DrawLine(debugWallHitLoc, debugWallHitLoc + velocity * -1, Color.yellow, 10f);
+
+        /* Enable / Disable Wallsticking 1.16.17 */
+        //if ((collisionState.Left && Input.GetKey(KeyCode.LeftArrow)) || (collisionState.Right && Input.GetKey(KeyCode.RightArrow)))
+        //{
+        if (wallNormalAngle <= 40) // Impact Angle
+            {
+                isWallSticking = true;
+                //velocity = Vector2.zero;
+            }
+        //}
+        else
+        {
+            isWallSticking = false;
+        }
 
         if (!collisionState.Bot && !collisionState.Slope && !collisionState.TopSlope) // 1.13.18 - had vel > 0?
         {
-            //Debug.DrawLine(debugWallHitLoc, debugWallHitLoc + (Vector3)wallHitNormal * 5, Color.blue, 10f);
-            //Debug.DrawLine(debugWallHitLoc, debugWallHitLoc + velocity * -1, Color.yellow, 10f);
-            float wallNormalAngle = Vector2.Angle(velocity * -1, wallHitNormal);
+            
             wallFallSpeed = Mathf.Sin(wallNormalAngle * Mathf.Deg2Rad) * velocity.magnitude * Mathf.Sign(velocity.y);
-
             //Debug.LogError("Velocity   " + velocity.magnitude);
-            //Debug.LogError("Angle      " + wallNormalAngle);
+            Debug.LogError("WallHitAngle      " + wallNormalAngle);
             //Debug.LogError("Speed Calc " + wallFallSpeed);
         }
         else
@@ -768,10 +785,10 @@ public class CharacterBase : MonoBehaviour
         
         if (collisionState.Slope)
         {
-            /* Commented out 1.5.18 - Untested
+            //Commented out 1.5.18 - Untested
             velocity.y = 0;
             velocity.x = 0;
-            */
+            
         }
         else if (!collisionState.Right && !collisionState.Left)
         { 
@@ -779,14 +796,28 @@ public class CharacterBase : MonoBehaviour
         }
         else
         {
+            // Wall Stick Waiting
+            if (isWallSticking)
+            {
+                if (wallStickTime > 0 && !(collisionState.Left && Input.GetKey(KeyCode.RightArrow) || collisionState.Right && Input.GetKey(KeyCode.LeftArrow)))
+                {
+                    wallStickTime += gravity * Time.deltaTime;
+                }
+                else{
+                    //velocity = Vector2.zero;
+                }
+                
+            }
+
+            // Apply gravity to dummy variable.
             wallFallSpeed += gravity * Time.deltaTime; // Slide down Slope 1.16.18
 
             velocity.x = wallFallSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * collisionState.slopeDir; // steepSlopeSpeed
             velocity.y = wallFallSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
 
-            //velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
+            // velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
-            // Only Touching one side.
+            // If only touching one side.
             if (!(collisionState.Left && collisionState.Right))
             {
                 // When Up is released in this frame.
@@ -911,7 +942,7 @@ public class CharacterBase : MonoBehaviour
         //collisionState.printStatesShort();
         //print("ONWALL - End of Update. Vel " + velocity);
 
-        Debug.DrawLine(debugWallHitLoc, debugWallHitLoc + velocity * .25f, Color.yellow, 10f);
+        //Debug.DrawLine(debugWallHitLoc, debugWallHitLoc + velocity * .25f, Color.yellow, 10f);
     }
    
 
