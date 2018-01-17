@@ -92,6 +92,7 @@ public class CharacterBase : MonoBehaviour
     private Vector2 wallHitNormal;
     public float wallFallSpeed;
     public float wallStickTime;
+    private int wallCase;
     public bool isWallSticking;
 
     public bool hasLateralInput; // For camera smoothing.
@@ -729,16 +730,33 @@ public class CharacterBase : MonoBehaviour
         /* Enable / Disable Wallsticking 1.16.17 */
         //if ((collisionState.Left && Input.GetKey(KeyCode.LeftArrow)) || (collisionState.Right && Input.GetKey(KeyCode.RightArrow)))
         //{
-        if (wallNormalAngle <= 40) // Impact Angle
-            {
-                isWallSticking = true;
-                //velocity = Vector2.zero;
-            }
-        //}
-        else
+        if (!(collisionState.Left && Input.GetKey(KeyCode.RightArrow) || collisionState.Right && Input.GetKey(KeyCode.LeftArrow)))
         {
-            isWallSticking = false;
+            if (wallNormalAngle <= 45 && velocity.y < 0 && Input.GetKey(KeyCode.UpArrow)) // coming down hit wall: set vel 0 and keep falling
+            {
+                wallCase = 1;
+                isWallSticking = true;
+                velocity = Vector2.zero;
+            }
+            /*else if (wallNormalAngle <= 20)
+            {
+                wallCase = 2;
+                isWallSticking = true;
+                velocity = Vector2.zero;
+            }*/
+            else if (wallNormalAngle <= 45 && velocity.y > 0)
+            {
+                wallCase = 3;
+                isWallSticking = true;
+                Debug.LogError("Wall Case 3");
+            }
+            else
+            {
+                isWallSticking = false;
+            }
         }
+        else isWallSticking = false;
+        
 
         if (!collisionState.Bot && !collisionState.Slope && !collisionState.TopSlope) // 1.13.18 - had vel > 0?
         {
@@ -751,7 +769,7 @@ public class CharacterBase : MonoBehaviour
         else
         {
             wallFallSpeed = velocity.magnitude;
-            collisionState.printStatesError();
+            //collisionState.printStatesError();
             Debug.LogWarning("ERROR: Probably should not be here");
         }
     }
@@ -786,8 +804,8 @@ public class CharacterBase : MonoBehaviour
         if (collisionState.Slope)
         {
             //Commented out 1.5.18 - Untested
-            velocity.y = 0;
-            velocity.x = 0;
+            //velocity.y = 0;
+            //velocity.x = 0;
             
         }
         else if (!collisionState.Right && !collisionState.Left)
@@ -802,22 +820,51 @@ public class CharacterBase : MonoBehaviour
                 if (wallStickTime > 0 && !(collisionState.Left && Input.GetKey(KeyCode.RightArrow) || collisionState.Right && Input.GetKey(KeyCode.LeftArrow)))
                 {
                     wallStickTime += gravity * Time.deltaTime;
+
+                    if (wallCase == 1)
+                    {
+                        wallFallSpeed += gravity * Time.deltaTime * 0.5f; // Slide down Slope 1.16.18
+                        velocity.x = wallFallSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * collisionState.slopeDir; // steepSlopeSpeed
+                        velocity.y = wallFallSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+                    }
+                    if(wallCase == 3)
+                    {
+                        Debug.LogError("3!! " + wallFallSpeed);
+                        if(wallFallSpeed > 0)
+                        {
+                            wallFallSpeed += gravity * Time.deltaTime; // Slide down Slope 1.16.18
+                            velocity.x = wallFallSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * collisionState.slopeDir; // steepSlopeSpeed
+                            velocity.y = wallFallSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+                        }
+                        if(wallFallSpeed <= 0)
+                        {
+                            velocity = Vector2.zero;
+                            wallFallSpeed = 0;
+                        }
+                    }
                 }
-                else{
-                    //velocity = Vector2.zero;
+                else
+                {
+                    /*if(wallCase == 2) // Flat halt and then continue
+                    {
+                        velocity = Vector2.zero;
+                        wallFallSpeed = 0;
+                    } */
+                    isWallSticking = false;
                 }
-                
             }
 
-            // Apply gravity to dummy variable.
-            wallFallSpeed += gravity * Time.deltaTime; // Slide down Slope 1.16.18
+            else
+            {
+                // Apply gravity to dummy variable.
+                wallFallSpeed += gravity * Time.deltaTime; // Slide down Slope 1.16.18
 
-            velocity.x = wallFallSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * collisionState.slopeDir; // steepSlopeSpeed
-            velocity.y = wallFallSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
-
+                velocity.x = wallFallSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * collisionState.slopeDir; // steepSlopeSpeed
+                velocity.y = wallFallSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad);
+            }
             // velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
-
             // If only touching one side.
+
             if (!(collisionState.Left && collisionState.Right))
             {
                 // When Up is released in this frame.
@@ -944,7 +991,6 @@ public class CharacterBase : MonoBehaviour
 
         //Debug.DrawLine(debugWallHitLoc, debugWallHitLoc + velocity * .25f, Color.yellow, 10f);
     }
-   
 
     /*   void OnWall_Update()
        {
@@ -1756,7 +1802,7 @@ public class CharacterBase : MonoBehaviour
     void Simulate_Enter()
     {
         Debug.Log("SIMULATE - Enter from" + fsm.LastState);
-        collisionState.printStatesError();
+        //collisionState.printStatesError();
     }
 
     void Simulate_Update()
@@ -1944,7 +1990,9 @@ public class CharacterBase : MonoBehaviour
             }
             else if (enterCollisionTypes.Contains(CollisionType.Right))
             {
-                velocity.x = 0; // Added 1.13.18
+                wallHitSpeed = velocity;
+                velocity.x = 0; // Commented Out 1.5.18
+                velocity.y = 0; // added 1.16.18
                 enterCollisionTypes.Remove(CollisionType.Right);
                 if (!collisionState.Bot)
                 {
@@ -1953,6 +2001,7 @@ public class CharacterBase : MonoBehaviour
                 else
                 {
                     velocity.x = 0;
+                    velocity.y = 0;
                     Debug.LogWarning("SIMULATE: This state should be inaccessible - grounded & touchingWall");
                 }
             }
