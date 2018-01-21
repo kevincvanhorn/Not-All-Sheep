@@ -15,27 +15,38 @@ public class MomentumLevel : MonoBehaviour
     float drainDelayTime;
     float maxStateMomentum;
     bool lockedState = false; // cannot transition when locked.
+    float increaseRate;
 
-    public void Init(float maxMomentum, float drainDelayTime)
+    public void Init(float maxMomentum, float drainDelayTime, float increaseRate)
     {
         this.drainDelayTime = drainDelayTime;
+        this.increaseRate = increaseRate;
     }
 
-    IEnumerator WaitForDelay()
+    public void EnterState()
     {
-        yield return null;
+        StartCoroutine(WaitForDrainDelay());
+        StartCoroutine(IncreaseMomentum());
+        
+    }
+
+    // A delay occurs when an event occurs and draining should start, but a delay has to finish first: gives room for error.
+    IEnumerator WaitForDrainDelay()
+    {
+        yield return new WaitForSeconds(drainDelayTime);
     }
 
     IEnumerator IncreaseMomentum()
     {
         
-        if(!lockedState && MomentumGlobals.curMomentum == maxStateMomentum)
+        while(!lockedState && MomentumGlobals.curMomentum == maxStateMomentum)
         {
-            // Fire Transition Event
+            MomentumGlobals.curMomentum += increaseRate; // 2 should be increaseRate
+            yield return new WaitForSeconds(0.1f);
         }
-        yield return null;
     }
 
+    // ------------------ More complicated procedures:
     public void OnDrainEvent()
     {
 
@@ -63,16 +74,19 @@ public class CMomentum : MonoBehaviour {
     */
     public MomentumLevel[] momentumLevels;
     private bool breakMomentum = false; // Occurs on an event
-    public float curMomentum = 0;
-    public float maxMomentum;
-    public float drainDelayTime;
+    public float drainDelayTime = 0;
 
     // Use this for initialization
     void Start () {
-        momentumLevels = new MomentumLevel[3]; // [5]
-        momentumLevels[0].Init(0, 0);
-        momentumLevels[1].Init(maxMomentum, drainDelayTime);
-        momentumLevels[2].Init(maxMomentum, drainDelayTime);
+        momentumLevels = new MomentumLevel[4]; // [5]
+        //starts 20
+        MomentumGlobals.curMomentumLevel = 20;
+        momentumLevels[0].Init(0,2,2); // Only Waiting State.
+        momentumLevels[1].Init(20, drainDelayTime, 1);
+        momentumLevels[2].Init(40, drainDelayTime, 2);
+        momentumLevels[3].Init(60, drainDelayTime, 2);
+
+        momentumLevels[0].EnterState();
     }
 
     public void OnBreakMomentum()
@@ -82,7 +96,10 @@ public class CMomentum : MonoBehaviour {
 
     IEnumerator CalcActiveSpeed()
     {
+        while (!breakMomentum)
+        {
 
+        }
         yield return null;
     }
 }
