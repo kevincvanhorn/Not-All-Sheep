@@ -11,6 +11,7 @@ public class CActionsBase : MonoBehaviour {
     /*Reference movement vars from characterBase. */
     private CharacterBase character; // 1.4.18 - character Base should be a virtual class so that the three forms can each overwrite and add to it.
 
+    public CStatesBase prevState;
 
     private bool onInitialRun = true;
 
@@ -45,8 +46,10 @@ public class CActionsBase : MonoBehaviour {
         Debug.Log("CActionsBase: WAITING - Enter.");
         yield return new WaitForEndOfFrame(); // Wait so all calculations of this state are finished then switch over.
                                               // Dont switch states on Awake of this whoel class
-        if (!onInitialRun) { 
-            character.fsm.ChangeState(character.fsm.LastState, StateTransition.Safe);
+        if (!onInitialRun) {
+            prevState = character.fsm.LastState;
+            character.fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+            
         }
     }
 

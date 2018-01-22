@@ -58,22 +58,6 @@ public class CharacterBase : MonoBehaviour
     private CInputManager inputManager;
     private CActionsBase cActionsBase;
 
-    /* Define States */
-    public enum CStatesBase
-    {
-        FindState,
-        Action,
-        Idle,
-        Airborne,
-        OnWall,
-        Running,
-        Dashing,
-        ClimbingSlope,
-        TopSlope,
-        SteepSlope,
-        Simulate
-    }
-
     public CCollisionState collisionState;
 
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame. // Should be virtual
@@ -259,6 +243,11 @@ public class CharacterBase : MonoBehaviour
                     collisionState.slope = true;
                     collisionState.none = false;
                 }
+            }
+
+            if (enterCollisionTypes.Count > 1)
+            {
+                Debug.LogError("Multiple Collision");
             }
         }
 
@@ -531,7 +520,7 @@ public class CharacterBase : MonoBehaviour
         }
         else
         {
-            activeSpeed = moveSpeed;
+            //activeSpeed = moveSpeed;
         }
 
         Debug.Log("Accel-Velocity" + velocity.x);
@@ -1245,7 +1234,7 @@ public class CharacterBase : MonoBehaviour
 
         /* Sprint Calc ------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftShift)) { activeSpeed = sprintSpeed; }
-        else { activeSpeed = moveSpeed; }
+        //else { //activeSpeed = moveSpeed; }
 
         /* Lateral Calc -------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
@@ -2130,6 +2119,64 @@ public class CharacterBase : MonoBehaviour
         PreStateUpdate();
     }
 
+
+    void DoCollision(Collision2D collision)
+    {
+        if (enterCollisionTypes.Count > 0)
+        {
+            /* Bot Collision. */
+            if (enterCollisionTypes.Contains(CollisionType.Bot))
+            {
+                if(fsm.State == CStatesBase.Idle)//Idle, OnWall, Climbing slope
+                {
+                    velocity.y = 0;
+                    enterCollisionTypes.Remove(CollisionType.Bot); // Addressed this collision so delete.
+                    if (velocity.x == 0) { fsm.ChangeState(CStatesBase.Idle, StateTransition.Safe); }
+                    else { fsm.ChangeState(CStatesBase.Running, StateTransition.Safe); }
+                }
+            }
+
+            /* Wall Collision (Including Wall Slope). */
+            else if (enterCollisionTypes.Contains(CollisionType.Left))
+            {
+                wallHitSpeed = velocity;
+                //Debug.LogError("--Wallhitspeed" + wallHitSpeed);
+                velocity.x = 0; // Commented Out 1.5.18
+                velocity.y = 0; // added 1.16.18
+                enterCollisionTypes.Remove(CollisionType.Left);
+                if (!collisionState.Bot)
+                {
+                    fsm.ChangeState(CStatesBase.OnWall, StateTransition.Safe);
+                }
+                else
+                {
+                    velocity.x = 0;
+                    velocity.y = 0; // added 1.16.18
+                    if (velocity.x == 0) { fsm.ChangeState(CStatesBase.Idle, StateTransition.Safe); }
+                    else { fsm.ChangeState(CStatesBase.Running, StateTransition.Safe); }
+                }
+            }
+            else if (enterCollisionTypes.Contains(CollisionType.Right))
+            {
+                wallHitSpeed = velocity;
+                //Debug.LogError("--Wallhitspeed" + wallHitSpeed);
+                velocity.x = 0; // Commented Out 1.5.18
+                velocity.y = 0; // added 1.16.18
+                enterCollisionTypes.Remove(CollisionType.Right);
+                if (!collisionState.Bot)
+                {
+                    fsm.ChangeState(CStatesBase.OnWall, StateTransition.Safe);
+                }
+                else
+                {
+                    velocity.x = 0;
+                    velocity.y = 0; // added 1.16.18
+                    Debug.LogWarning("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
+                }
+            }
+
+
+        }
 }
 
 // Fianlly: Reset object to desired configuration
@@ -2146,3 +2193,19 @@ public enum CollisionType
     TopSlope,
     SteepSlope
 };
+
+/* Define States */
+public enum CStatesBase
+{
+    FindState,
+    Action,
+    Idle,
+    Airborne,
+    OnWall,
+    Running,
+    Dashing,
+    ClimbingSlope,
+    TopSlope,
+    SteepSlope,
+    Simulate
+}

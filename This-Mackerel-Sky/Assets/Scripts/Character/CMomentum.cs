@@ -4,14 +4,32 @@ using UnityEngine;
 
 /* The live vars shared between individual momentem levels and CMomentum class. 
  - can probably combine all 3 of these into 1. */
-public class MomentumGlobals
+public class MomentumGlobals : MonoBehaviour
 {
+    private static CharacterBase character = null;
+
+    public void Awake()
+    {
+        character = GetComponent<CharacterBase>();
+    }
+
     public static float curMomentum;
+    public static float CurMomentum {
+        get { return curMomentum; }
+        set {
+            curMomentum = value;
+            if (character)
+            {
+                character.activeSpeed = curMomentum;
+            }
+        }
+    }
     public static float curMomentumLevel;
 }
 
 public class MomentumState : MonoBehaviour
 {
+
     float drainDelayTime;
     float maxStateMomentum;
     //bool canTransition = false; // cannot transition when locked.
@@ -33,7 +51,7 @@ public class MomentumState : MonoBehaviour
 
     public void EnterState()
     {
-        Debug.LogError("ENTER STATE");
+        //Debug.LogError("ENTER STATE");
         isStateActive = true;
         StartCoroutine(WaitForDrainDelay());
         StartCoroutine(MomentumUpdate());
@@ -45,15 +63,15 @@ public class MomentumState : MonoBehaviour
         isWaiting = true;
         yield return new WaitForSeconds(drainDelayTime);
         isWaiting = false;
-        Debug.LogError("Done WaitFOrDrainDelay");
+        //Debug.LogError("Done WaitFOrDrainDelay");
     }
 
     IEnumerator MomentumUpdate()
     {
-        Debug.LogError("MomentumUpdate - Enter");
+        //Debug.LogError("MomentumUpdate - Enter");
         while (isStateActive)
         {
-            Debug.LogError("MomentumUpdate " + isStateActive + " waiting " + isWaiting + "max" + maxStateMomentum);
+            //Debug.LogError("MomentumUpdate " + isStateActive + " waiting " + isWaiting + "max" + maxStateMomentum);
             if (!isWaiting)
             {
                 if (MomentumGlobals.curMomentum < maxStateMomentum)
@@ -62,7 +80,8 @@ public class MomentumState : MonoBehaviour
                 }
                 else if (MomentumGlobals.curMomentum >= maxStateMomentum)
                 {
-                    /* Transition Event */ 
+                    if(maxStateMomentum !=0) SetMaxMomentum();
+                    /* Transition Event */
                     if (onTransition != null)
                     {
                         isStateActive = false;
@@ -71,7 +90,7 @@ public class MomentumState : MonoBehaviour
                     }
                 }
             }
-            yield return new WaitForEndOfFrame();
+            yield return new WaitForSeconds(0.1f);
         }
     }
 
@@ -129,7 +148,6 @@ public class CMomentum : MonoBehaviour {
 
     public MomentumState[] momentumStates = new MomentumState[3];
 
-
     void Start()
     {
         //starts 20
@@ -143,9 +161,9 @@ public class CMomentum : MonoBehaviour {
 
         MomentumGlobals.curMomentum = 20;
 
-        momentumStates[0].Init(0, 4, 2); // Only Waiting State. Should be 20 as base. // TODO:  next: should only increase when grounded
-        momentumStates[1].Init(40, drainDelayTime, 1);
-        momentumStates[2].Init(60, drainDelayTime, 2);
+        momentumStates[0].Init(0, 0, 2); // Only Waiting State. Should be 20 as base. // TODO:  next: should only increase when grounded
+        momentumStates[1].Init(40, drainDelayTime, 40);
+        momentumStates[2].Init(60, drainDelayTime, 40);
 
         /* Listen for state events: */
         for (int i = 0; i < momentumStates.Length; i++)
@@ -159,12 +177,13 @@ public class CMomentum : MonoBehaviour {
 
     private void Update()
     {
-        Debug.LogError(MomentumGlobals.curMomentum);
+        //Debug.LogError(MomentumGlobals.curMomentum);
+        
     }
 
     public void OnStateTransition()
     {
-        Debug.LogError("ON STATE TRANSITION");
+        ///Debug.LogError("ON STATE TRANSITION");
         if(curState+1 < momentumStates.Length)
         {
             // Set and activate next state.
