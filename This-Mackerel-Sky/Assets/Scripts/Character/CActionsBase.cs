@@ -45,10 +45,15 @@ public class CActionsBase : MonoBehaviour {
     {
         Debug.Log("CActionsBase: WAITING - Enter.");
         yield return new WaitForEndOfFrame(); // Wait so all calculations of this state are finished then switch over.
-                                              // Dont switch states on Awake of this whoel class
+                                              // Dont switch states on Awake of this whole class
         if (!onInitialRun) {
-            prevState = character.fsm.LastState;
-            character.fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+            /* Transition Character fsm only if action completed w/o collision interrupt and character is still in Action State.*/
+            if(character.fsm.State == CStatesBase.Action)
+            {
+                //prevState = character.fsm.LastState;
+                character.fsm.ChangeState(CStatesBase.FindState, StateTransition.Safe);
+            }
+            
             
         }
     }
@@ -83,43 +88,28 @@ public class CActionsBase : MonoBehaviour {
 
     }
 
+
     IEnumerator Dash_Enter()
     {
         Debug.LogError("CActionsBase: DASH - Enter.");
         yield return new WaitForEndOfFrame(); // State Update doesn't start until end of Frame (? Before or after Update Main?). 
+        Debug.LogError("CActionsBase: DASH - End of Frame.");
         Vector2 velPrev = character.velocity;
         character.velocity.y = 0;
         character.velocity.x = character.activeSpeed * 4f * character.directionFacing;
+        Debug.LogError("CActionsBase: DASH - Char Vel Set.");
+        
         yield return new WaitForSeconds(.1f);
-        if (Mathf.Sign(character.velocity.x) != Mathf.Sign(velPrev.x)) velPrev.x *= -1; // TODO: this can be done with fewer comparisions.
-        character.velocity.x = velPrev.x;
+        // Continnue only if a collision has not occured and transitioned the state out of Action
+        if (character.fsm.State == CStatesBase.Action)
+        {
+            Debug.LogError("CActionsBase: DASH - Done Waiting.");
+            if (Mathf.Sign(character.velocity.x) != Mathf.Sign(velPrev.x)) velPrev.x *= -1; // TODO: this can be done with fewer comparisions.
+            character.velocity.x = velPrev.x;
+            Debug.LogError("CActionsBase: DASH - Change State.");
+        }
         fsm.ChangeState(CStatesActionsBase.Waiting, StateTransition.Safe);
     }
-
-    public void Dash_Update()
-    {
-
-    }
-
-    public void Dash_OnCollisionEnter2D(Collision2D collision)
-    {
-        character.BaseCollisionEnter2D(collision);
-
-        /* Wall Collision (Including Wall Slopes). */ // Added 1.13.18
-        if (character.enterCollisionTypes.Contains(CollisionType.Right)) // TouchingWall.
-        {
-            character.wallHitSpeed = character.velocity;
-            character.enterCollisionTypes.Remove(CollisionType.Right);
-            character.velocity.x = 0;
-        }
-        else if (character.enterCollisionTypes.Contains(CollisionType.Left)) // TouchingWall.
-        {
-            character.wallHitSpeed = character.velocity;
-            character.enterCollisionTypes.Remove(CollisionType.Left);
-            character.velocity.x = 0;
-        }
-    }
-
 
     // Use this for initialization
     void Start () {
