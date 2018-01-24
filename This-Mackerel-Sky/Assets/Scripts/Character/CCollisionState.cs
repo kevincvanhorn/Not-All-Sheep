@@ -38,6 +38,9 @@ public class CCollisionState : MonoBehaviour
     public bool TopSlope { get { return topSlope; } }
     public bool SteepSlope { get { return steepSlope; } }
 
+    public bool Grounded { get { return bot || slope; }}
+    public HashSet<GameObject> objectsTouching = new HashSet<GameObject>();
+
     // Use this for initialization
     void Start()
     {
@@ -62,6 +65,13 @@ public class CCollisionState : MonoBehaviour
         slope = false;
         topSlope = false;
         steepSlope = false;
+
+        objectsTouching.Clear();
+    }
+
+    public bool isTouchingPlayer(GameObject gameObject)
+    {
+        return objectsTouching.Contains(gameObject);
     }
 
     public void CheckOverlaps()
@@ -70,7 +80,15 @@ public class CCollisionState : MonoBehaviour
         Physics2D.OverlapCollider(collider, contactFilter, collidersTouching);
         float slopeAngle;
 
-
+        for(int e = 0; e < collidersTouching.Length; e++)
+        {
+            if (collidersTouching[e])
+            {
+                objectsTouching.Add(collidersTouching[e].gameObject);
+            }
+            
+        }
+        
         foreach (Collider2D coll in collidersTouching)
         {
 
@@ -143,6 +161,7 @@ public class CCollisionState : MonoBehaviour
                             slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                         }
                     }
+
                 }
             }
         }

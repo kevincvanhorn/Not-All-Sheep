@@ -13,7 +13,7 @@ using MonsterLove.StateMachine; // State-Machine Package.
 [RequireComponent(typeof(Collider2D))]
 public class CharacterBase : MonoBehaviour
 {
-    Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
+    public Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
     public Collider2D collider;
 
     /* Collisions Vars */

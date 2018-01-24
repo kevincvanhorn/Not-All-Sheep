@@ -121,7 +121,6 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 5662098}
-  - component: {fileID: 5662097}
   - component: {fileID: 5662099}
   - component: {fileID: 5662100}
   m_Layer: 0
@@ -131,17 +130,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &5662097
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 5662096}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c74a0f7cea8063b48a429456567ec0c3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &5662098
 Transform:
   m_ObjectHideFlags: 0
@@ -961,6 +949,7 @@ MonoBehaviour:
   isActive: 1
   speed: 12.82
   moveDist: 18.88
+  player: {fileID: 1104687141}
 --- !u!1001 &405980023
 Prefab:
   m_ObjectHideFlags: 0
@@ -2606,6 +2595,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c66bed7fc9c1b9d43b9771708858c5d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rigidBody: {fileID: 0}
   collider: {fileID: 0}
   moveSpeed: 30
   moveSpeedMin: 5
