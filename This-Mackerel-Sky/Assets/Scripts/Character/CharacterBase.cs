@@ -434,7 +434,32 @@ public class CharacterBase : MonoBehaviour
         /* Lateral Calc -------------------------------------------------- */
         if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
         {
-            velocity.x = activeSpeed * directionFacing;
+
+
+            /* Acceleration. */
+            if(directionFacing == 1)
+            {
+                if(velocity.x < activeSpeed)
+                {
+                    velocity.x += lateralAccelGrounded * Time.deltaTime;
+                }
+                else
+                {
+                    velocity.x = activeSpeed;
+                }
+            }
+            else if(directionFacing == -1)
+            {
+                if (velocity.x > -1*activeSpeed)
+                {
+                    velocity.x += lateralAccelGrounded * -1 * Time.deltaTime;
+                }
+                else
+                {
+                    velocity.x = activeSpeed * -1;
+                }
+            }
+
         }
         /* X Acceleration ---------------------------------------------- */
         else if (velocity.x != 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
