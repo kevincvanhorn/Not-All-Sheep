@@ -437,7 +437,7 @@ public class CharacterBase : MonoBehaviour
 
 
             /* Acceleration. */
-            if(directionFacing == 1)
+            /*if(directionFacing == 1)
             {
                 if(velocity.x < activeSpeed)
                 {
@@ -458,6 +458,16 @@ public class CharacterBase : MonoBehaviour
                 {
                     velocity.x = activeSpeed * -1;
                 }
+            }*/
+
+
+            if (Mathf.Abs(velocity.x) < activeSpeed)
+            {
+                velocity.x += lateralAccelGrounded * Time.deltaTime * directionFacing;
+            }
+            else
+            {
+                velocity.x = activeSpeed * directionFacing;
             }
 
         }
@@ -1124,15 +1134,50 @@ public class CharacterBase : MonoBehaviour
             }
             else
             {
-                Debug.Log("SLOPE - Lateral Calc. ");
-                velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * directionFacing;
-                velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing;
+                Debug.LogError(Mathf.Cos(slopeAngle * Mathf.Deg2Rad) + " " + Mathf.Sign(slopeAngle * Mathf.Deg2Rad));
+                /* Acceleration. */
+                /*if (directionFacing == 1)
+                {
+                    if (velocity.x < activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad))
+                    {
+                        velocity.x += lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime * directionFacing;
+                        velocity.y += lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing*Time.deltaTime;
+                    }
+                    else
+                    {
+                        velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * directionFacing;
+                        velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing;
+                    }
+                }
+                else if (directionFacing == -1)
+                {
+                    if (velocity.x > activeSpeed * -1 * Mathf.Cos(slopeAngle * Mathf.Deg2Rad))
+                    {
+                        velocity.x += lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime*directionFacing;
+                        velocity.y += lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime *slopeDir *directionFacing;
+                    }
+                    else
+                    {
+                        velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * directionFacing;
+                        velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing;
+                    }
+                }*/
+                if(Mathf.Abs(velocity.x) < activeSpeed*Mathf.Cos(slopeAngle * Mathf.Deg2Rad))
+                {
+                    velocity.x += lateralAccelGrounded * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * Time.deltaTime * directionFacing;
+                    velocity.y += lateralAccelGrounded * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing * Time.deltaTime;
+                }
+                else
+                {
+                    velocity.x = activeSpeed * Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * directionFacing;
+                    velocity.y = activeSpeed * Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * slopeDir * directionFacing;
+                }
             }
 
         }
 
 
-        /* X Acceleration ---------------------------------------------- */
+        /* X Deceleration ---------------------------------------------- */
         else if (!Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         { // On-release of Lateral Movement controls - Deccelerate
             //velocity.x = 0;
