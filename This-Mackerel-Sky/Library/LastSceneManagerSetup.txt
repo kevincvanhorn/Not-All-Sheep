@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/18_01_25_Tests/Level_01_v03_TestBlocking.unity
+- path: Assets/Scenes/Test/18_01_27_CameraFollow.unity
   isLoaded: 1
   isActive: 1
