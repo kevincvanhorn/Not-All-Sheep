@@ -45,6 +45,8 @@ public class CharacterBase : MonoBehaviour
     float jumpVelocityMax;
     float jumpVelocityMin;
 
+    private float jumpVelRatio; // Vxmax = (Vxmax * Vymin) / Vymin
+
     /* Slope Variables */
     public float slopeDir;
     public float slopeAngle = 0;
@@ -104,6 +106,9 @@ public class CharacterBase : MonoBehaviour
         jumpVelocityMax = Mathf.Abs(gravity * timeToJumpApex);
         jumpVelocityMin = Mathf.Sqrt(2 * Mathf.Abs(gravity) * jumpHeightMin);
 
+        jumpVelRatio = jumpVelocityMin / jumpVelocityMax; // Vxmax = (Vxmax * Vymin) / Vymin
+        //velMinAirborne = (liftoffX) 
+
         wallFrictionDown = 1;
         wallStickTime = 0;
         wallStickTime = 0;
@@ -150,6 +155,17 @@ public class CharacterBase : MonoBehaviour
         Debug.Log("MAIN - Update " + velocity);
         rigidBody.velocity = velocity;
         //Debug.Log(velocity);
+
+
+        if (Input.GetKeyUp(KeyCode.RightArrow))
+        {
+            Debug.DrawLine(transform.position, transform.position+Vector3.up*.5f, Color.blue, 10f);
+            
+        }
+        if (Input.GetKeyUp(KeyCode.UpArrow))
+        {
+            Debug.DrawLine(transform.position, transform.position + Vector3.up * .5f, Color.yellow, 10f);
+        }
     }
 
     /** Called on Player collision with a new object. **/
@@ -357,7 +373,16 @@ public class CharacterBase : MonoBehaviour
         {  // Variable jump - When Up is released in this frame.
             if (velocity.y > jumpVelocityMin)
             {
+                //Debug.DrawLine(transform.position, transform.position + velocity, Color.blue, 15);
+                //Debug.DrawLine(transform.position, transform.position + new Vector3 (0, velocity.y, 0), Color.blue, 15);
+                //Debug.DrawLine(transform.position, transform.position + new Vector3(velocity.x, 0, 0), Color.blue, 15);
+                velocity.x = (jumpVelocityMin * velocity.x) / velocity.y;
                 velocity.y = jumpVelocityMin;
+
+                //velocity.x = jumpVelRatio * velocity.x; // 1.26.18
+                //Debug.DrawLine(transform.position, transform.position + velocity, Color.green, 15);
+                //Debug.DrawLine(transform.position, transform.position + new Vector3(0, velocity.y, 0), Color.green, 15);
+                ///Debug.DrawLine(transform.position, transform.position + new Vector3(velocity.x, 0, 0), Color.green, 15);
             }
         }
 
@@ -370,6 +395,7 @@ public class CharacterBase : MonoBehaviour
         { // in-air lateral move left
             velocity.x -= lateralAccelAirborne * Time.deltaTime;
         }
+
 
         if (collisionState.Top && velocity.y > 0)
         {
@@ -1739,6 +1765,17 @@ public class CharacterBase : MonoBehaviour
         { // in-air lateral move left
             velocity.x -= lateralAccelAirborne * Time.deltaTime;
         }
+
+        /* Vertical Calc ----------------------------------------- */
+        if (Input.GetKeyUp(KeyCode.UpArrow))
+        {  // Variable jump - When Up is released in this frame.
+            if (velocity.y > jumpVelocityMin)
+            {
+                velocity.x = (jumpVelocityMin * velocity.x) / velocity.y;
+                velocity.y = jumpVelocityMin;
+            }
+        }
+
 
         velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
 
