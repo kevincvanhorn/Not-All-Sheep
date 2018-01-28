@@ -9,7 +9,7 @@ using UnityEngine;
 public class CameraZoom : MonoBehaviour {
 
     public float defaultSize;
-    private float curSize;
+    public float curSize;
     private float targetSize;
 
     private Camera camera;
@@ -52,14 +52,13 @@ public class CameraZoom : MonoBehaviour {
         //smoothTime = Mathf.Abs(curSize - targetSize) / smoothSpeed ;
         StartCoroutine(ChangeSizeSmooth());
     }
-
     IEnumerator ChangeSizeSmooth()
     {
-        while (Mathf.Abs(curSize) <= Mathf.Abs(targetSize))
+        while (Mathf.Abs(targetSize - curSize) > 0.01f)
         {
-            Debug.LogError("WHOAOHHH "+ targetSize);
-            Mathf.SmoothDamp(curSize, targetSize, ref smoothVel, smoothTime);
-            camera.orthographicSize = targetSize;
+            Debug.LogError(curSize + " WHOAOHHH "+ targetSize); 
+            curSize = Mathf.SmoothDamp(curSize, targetSize, ref smoothVel, smoothTime);
+            camera.orthographicSize = curSize;
             yield return new WaitForEndOfFrame();
         }
 

@@ -6,20 +6,21 @@ using UnityEngine;
    - Calls Functions, does not modify the values directly. */
 public class CameraTrigger : MonoBehaviour {
 
-    public bool enterZoom;
-    public bool maintainZoom; // if false then set back when leave
-    public bool setDefault;
+    public CameraZoomType zoomType;
 
     public CameraZoom camera; // **Set in Editor
     private float prevSize;
     public float zoomSize = 20;
 
+    public enum CameraZoomType
+    {
+        ZoomTo_Default,
+        ZoomTo_WhileContained,
+        ZoomTo_Value
+    };
+
     private void Start()
     {
-
-        setDefault = false;
-        zoomSize = 20;
-
         if (!camera)
         {
             Debug.LogError("ERROR: No camera set/found.");
@@ -30,7 +31,15 @@ public class CameraTrigger : MonoBehaviour {
     {
         if (collision.gameObject.GetComponent<CharacterBase>())
         {
-            camera.RequestSizeChange(zoomSize);
+            if(zoomType == CameraZoomType.ZoomTo_Default)
+            {
+                camera.SetDefaultSize();
+            }
+            else if (zoomType == CameraZoomType.ZoomTo_Value || zoomType == CameraZoomType.ZoomTo_WhileContained)
+            {
+                prevSize = camera.curSize;
+                camera.RequestSizeChange(zoomSize);
+            }   
             //prevSize = camera.orthographicSize;
             //camera.orthographicSize = zoomSize;
         }
@@ -40,7 +49,11 @@ public class CameraTrigger : MonoBehaviour {
     {
         if (collision.gameObject.GetComponent<CharacterBase>())
         {
-            camera.SetDefaultSize();
+            if (zoomType == CameraZoomType.ZoomTo_WhileContained)
+            {
+                camera.RequestSizeChange(prevSize);
+            }
+            //camera.SetDefaultSize();
             //camera.orthographicSize = prevSize;
         }
     }
