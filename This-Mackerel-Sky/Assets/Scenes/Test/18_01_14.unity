@@ -358,6 +358,7 @@ GameObject:
   m_Component:
   - component: {fileID: 463089802}
   - component: {fileID: 463089803}
+  - component: {fileID: 463089804}
   m_Layer: 0
   m_Name: 1_fog
   m_TagString: Untagged
@@ -422,6 +423,23 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
+--- !u!95 &463089804
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 463089801}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ba069be4ce7d409488eb0f0a78018c1e, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
 --- !u!1 &582932870
 GameObject:
   m_ObjectHideFlags: 0
@@ -763,6 +781,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c66bed7fc9c1b9d43b9771708858c5d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rigidBody: {fileID: 0}
   collider: {fileID: 0}
   moveSpeed: 20
   moveSpeedMin: 5
@@ -785,6 +804,9 @@ MonoBehaviour:
   steepSlopeMinEnterSpeed: 20
   debugSlopeHitLoc: {x: 0, y: 0, z: 0}
   collisionState: {fileID: 0}
+  wallFallSpeed: 0
+  wallStickTime: 0
+  isWallSticking: 0
   hasLateralInput: 0
 --- !u!23 &1104687142
 MeshRenderer:
@@ -895,6 +917,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c88c3ef1408367b4b9ea234a786141a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  prevState: 0
 --- !u!1 &1134851060
 GameObject:
   m_ObjectHideFlags: 0
@@ -1665,6 +1688,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c88c3ef1408367b4b9ea234a786141a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  prevState: 0
 --- !u!114 &2113561257
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1719,6 +1743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c66bed7fc9c1b9d43b9771708858c5d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rigidBody: {fileID: 0}
   collider: {fileID: 0}
   moveSpeed: 20
   moveSpeedMin: 5
@@ -1741,6 +1766,9 @@ MonoBehaviour:
   steepSlopeMinEnterSpeed: 20
   debugSlopeHitLoc: {x: 0, y: 0, z: 0}
   collisionState: {fileID: 0}
+  wallFallSpeed: 0
+  wallStickTime: 0
+  isWallSticking: 0
   hasLateralInput: 0
 --- !u!61 &2113561260
 BoxCollider2D:
