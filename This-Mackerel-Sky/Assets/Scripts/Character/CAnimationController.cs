@@ -6,7 +6,8 @@ public class CAnimationController : MonoBehaviour {
 
     private SpriteRenderer spriteRenderer;
     private CharacterBase character;
-    int charState;
+    int charState= 2; // Idle default
+    int prevState;
     private Animator animator;
 
     // Use this for initialization
@@ -20,6 +21,7 @@ public class CAnimationController : MonoBehaviour {
 
     public void Update()
     {
+        prevState = charState;
         charState = (int)character.fsm.State;
 
         bool flipSprite = (spriteRenderer.flipX ? (character.directionFacing == 1) : (character.directionFacing == -1));
@@ -33,5 +35,7 @@ public class CAnimationController : MonoBehaviour {
         //animator.SetFloat("velocityX", (Mathf.Abs(character.velocity.x)));
         animator.SetFloat("velocityY", character.velocity.y);
         animator.SetBool("isGrounded", (character.collisionState.Bot || character.collisionState.Slope));
+        animator.SetInteger("charState", charState);
+        animator.SetInteger("prevState", prevState);
     }
 }
