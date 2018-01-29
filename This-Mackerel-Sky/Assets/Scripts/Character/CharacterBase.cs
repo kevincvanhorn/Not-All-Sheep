@@ -83,6 +83,8 @@ public class CharacterBase : MonoBehaviour
 
     public bool hasLateralInput; // For camera smoothing.
 
+    CAnimationController animController;
+
     public void Awake()
     {
         // Initialize State Machine Engine		
@@ -112,6 +114,9 @@ public class CharacterBase : MonoBehaviour
         wallFrictionDown = 1;
         wallStickTime = 0;
         wallStickTime = 0;
+
+
+        animController = (CAnimationController)FindObjectOfType(typeof(CAnimationController));       
     }
 
     void PreStateUpdate()
@@ -570,9 +575,11 @@ public class CharacterBase : MonoBehaviour
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
         else if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top && !collisionState.TopSlope)
         {
+            animController.AnimTrigger(); // SHould queue a jump here
             velocity.y = jumpVelocityMax;
             print("Running Transition 1");
             fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+            
         }
         else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         {

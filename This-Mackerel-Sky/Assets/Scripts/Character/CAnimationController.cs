@@ -37,5 +37,14 @@ public class CAnimationController : MonoBehaviour {
         animator.SetBool("isGrounded", (character.collisionState.Bot || character.collisionState.Slope));
         animator.SetInteger("charState", charState);
         animator.SetInteger("prevState", prevState);
+
+        
     }
+
+    public void AnimTrigger()
+    {
+        animator.SetTrigger("jumpTrigger");
+    }
+    
+
 }
