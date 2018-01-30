@@ -575,7 +575,7 @@ public class CharacterBase : MonoBehaviour
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
         else if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top && !collisionState.TopSlope)
         {
-            animController.AnimTrigger(); // SHould queue a jump here
+            //animController.AnimTrigger(); // SHould queue a jump here
             velocity.y = jumpVelocityMax;
             print("Running Transition 1");
             fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
