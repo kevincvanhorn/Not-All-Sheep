@@ -791,8 +791,8 @@ MonoBehaviour:
   wallHitSpeed: {x: 0, y: 0}
   directionFacing: 1
   directionMoving: 1
-  lateralAccelAirborne: 60
-  lateralAccelGrounded: 100
+  lateralAccelAirborne: 180
+  lateralAccelGrounded: 180
   jumpHeightMax: 5
   jumpHeightMin: 0.9
   timeToJumpApex: 0.4

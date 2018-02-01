@@ -73,6 +73,8 @@ public class CharacterBase : MonoBehaviour
     private Vector2 steepSlopeHitNormal;
     private float wallFrictionDown;
 
+    private bool jumpWaiting = false;
+
 
     private Vector3 debugWallHitLoc;
     private Vector2 wallHitNormal;
@@ -575,11 +577,29 @@ public class CharacterBase : MonoBehaviour
         // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
         else if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top && !collisionState.TopSlope)
         {
-            //animController.AnimTrigger(); // SHould queue a jump here
-            velocity.y = jumpVelocityMax;
-            print("Running Transition 1");
-            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+            /*if (animController)
+            {
+                if (!jumpWaiting)
+                {
+                    animController.AnimTrigger(); // SHould queue a jump here
+                    jumpWaiting = true;
+                }
+                else if (jumpWaiting && !animController.IsJumpFromGrounded())
+                {
+                    velocity.y = jumpVelocityMax;
+                    print("Running Transition 1");
+                    fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+                    jumpWaiting = false;
+                }
+            }
+            else
+            {*/
+                velocity.y = jumpVelocityMax;
+                print("Running Transition 1");
+                fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
+            //}
             
+                
         }
         else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
         {
