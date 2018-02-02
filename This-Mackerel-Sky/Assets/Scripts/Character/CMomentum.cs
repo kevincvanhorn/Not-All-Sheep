@@ -6,20 +6,22 @@ using UnityEngine;
  - can probably combine all 3 of these into 1. */
 public class MomentumGlobals : MonoBehaviour
 {
-    private static CharacterBase character = null;
+    private static CharacterBase character;
 
-    public void Awake()
+    public void Start()
     {
         character = GetComponent<CharacterBase>();
     }
 
-    public static float curMomentum;
+    private static float curMomentum;
     public static float CurMomentum {
         get { return curMomentum; }
         set {
             curMomentum = value;
+            Debug.LogError("AHHHHHHHHHHHHHHHHH: " + character.activeSpeed);
             if (character)
             {
+                
                 character.activeSpeed = curMomentum;
             }
         }
@@ -74,11 +76,11 @@ public class MomentumState : MonoBehaviour
             //Debug.LogError("MomentumUpdate " + isStateActive + " waiting " + isWaiting + "max" + maxStateMomentum);
             if (!isWaiting)
             {
-                if (MomentumGlobals.curMomentum < maxStateMomentum)
+                if (MomentumGlobals.CurMomentum < maxStateMomentum)
                 {
-                    MomentumGlobals.curMomentum += increaseRate * Time.deltaTime; // 2 should be increaseRate
+                    MomentumGlobals.CurMomentum += increaseRate * Time.deltaTime; // 2 should be increaseRate
                 }
-                else if (MomentumGlobals.curMomentum >= maxStateMomentum)
+                else if (MomentumGlobals.CurMomentum >= maxStateMomentum)
                 {
                     if(maxStateMomentum !=0) SetMaxMomentum();
                     /* Transition Event */
@@ -98,12 +100,12 @@ public class MomentumState : MonoBehaviour
     {
         while (!canTransition)
         {
-            while (MomentumGlobals.curMomentum < maxStateMomentum)
+            while (MomentumGlobals.CurMomentum < maxStateMomentum)
             {
-                MomentumGlobals.curMomentum += increaseRate; // 2 should be increaseRate
+                MomentumGlobals.CurMomentum += increaseRate; // 2 should be increaseRate
                 yield return new WaitForSeconds(0.1f);
             }
-            if (MomentumGlobals.curMomentum >= maxStateMomentum)
+            if (MomentumGlobals.CurMomentum >= maxStateMomentum)
             {
                 if (onTransition != null)
                 {
@@ -122,7 +124,7 @@ public class MomentumState : MonoBehaviour
 
     public void SetMaxMomentum()
     {
-        MomentumGlobals.curMomentum = maxStateMomentum;
+        MomentumGlobals.CurMomentum = maxStateMomentum;
     }
 
     public void ClearAllCoroutines()
@@ -151,7 +153,7 @@ public class CMomentum : MonoBehaviour {
     void Start()
     {
         //starts 20
-        MomentumGlobals.curMomentumLevel = 20;
+        MomentumGlobals.CurMomentum = 20;
 
         /* Create state components. */
         for (int e = 0; e < momentumStates.Length; e++)
@@ -159,7 +161,7 @@ public class CMomentum : MonoBehaviour {
             momentumStates[e] = gameObject.AddComponent<MomentumState>() as MomentumState; ;
         }
 
-        MomentumGlobals.curMomentum = 20;
+        MomentumGlobals.CurMomentum = 20;
 
         momentumStates[0].Init(0, 0, 2); // Only Waiting State. Should be 20 as base. // TODO:  next: should only increase when grounded
         momentumStates[1].Init(40, drainDelayTime, 40);
@@ -177,7 +179,7 @@ public class CMomentum : MonoBehaviour {
 
     private void Update()
     {
-        //Debug.LogError(MomentumGlobals.curMomentum);
+        Debug.LogError(MomentumGlobals.CurMomentum);
         
     }
 
