@@ -4,24 +4,19 @@ using UnityEngine;
 
 /* The live vars shared between individual momentem levels and CMomentum class. 
  - can probably combine all 3 of these into 1. */
-public class MomentumGlobals : MonoBehaviour
+public static class MomentumGlobals // TODO: May need to check if this persists between levels.
 {
-    private static CharacterBase character;
-
-    public void Start()
-    {
-        character = GetComponent<CharacterBase>();
-    }
+    public static CharacterBase character = GameObject.FindObjectOfType<CharacterBase>(); // Needs to be set in the Editor.
 
     private static float curMomentum;
     public static float CurMomentum {
         get { return curMomentum; }
         set {
             curMomentum = value;
-            Debug.LogError("AHHHHHHHHHHHHHHHHH: " + character.activeSpeed);
+            //Debug.LogWarning("AHHHHHHHHHH: " + character.activeSpeed);
             if (character)
             {
-                
+
                 character.activeSpeed = curMomentum;
             }
         }
