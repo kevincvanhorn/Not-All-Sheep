@@ -9,7 +9,8 @@ public class Checkpoint : MonoBehaviour {
     {
         if (collision.gameObject.GetComponent<CharacterBase>())
         {
-            Debug.LogWarning("WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOW");
+            string value = EventRelay.RelayEvent(EventRelay.EventMessageType.MomentumTrigger, this);
+            Debug.LogWarning("MomentumTrigger Event was seen by: " + value);
         }
     }
 }

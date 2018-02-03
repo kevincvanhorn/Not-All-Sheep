@@ -145,6 +145,7 @@ public class CMomentum : MonoBehaviour {
 
     public MomentumState[] momentumStates = new MomentumState[3];
 
+    /* Create an array of momentumStates and start at the bottom. */
     void Start()
     {
         //starts 20
@@ -172,12 +173,7 @@ public class CMomentum : MonoBehaviour {
         momentumStates[0].EnterState();
     }
 
-    private void Update()
-    {
-        Debug.LogError(MomentumGlobals.CurMomentum);
-        
-    }
-
+    /* Trasition Event called by each MomentumState*/
     public void OnStateTransition()
     {
         ///Debug.LogError("ON STATE TRANSITION");
@@ -189,18 +185,22 @@ public class CMomentum : MonoBehaviour {
         }
     }
 
+    public void RequestMomentumChange(float changeAmnt)
+    {
+
+    }
+
+
+    /* Event Handling. */
+
+    public void OnEventCheckpoint()
+    {
+        RequestMomentumChange(20);
+    }
+
     public void OnBreakMomentum()
     {
         breakMomentum = true;
-    }
-
-    IEnumerator CalcActiveSpeed()
-    {
-        while (!breakMomentum)
-        {
-
-        }
-        yield return null;
     }
 
     public void OnDestroy()

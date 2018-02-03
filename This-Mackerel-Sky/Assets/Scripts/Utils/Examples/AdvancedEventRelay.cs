@@ -17,7 +17,7 @@ public class AdvancedEventRelay : MonoBehaviour {
 		UnitDestroyed
 	}
 
-	public static string RelayEvent(EventMessageType messageType, MonoBehaviour sender) {
+	/*public static string RelayEvent(EventMessageType messageType, MonoBehaviour sender) {
 		return OnEventAction(messageType, sender);
-	}
+	}*/
 }
