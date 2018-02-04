@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class Checkpoint : MonoBehaviour {
 
+    public float maxActivateSpeed;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.GetComponent<CharacterBase>())
+        
+        if (MomentumGlobals.CurMomentum < maxActivateSpeed && collision.gameObject.GetComponent<CharacterBase>())
         {
             string value = EventRelay.RelayEvent(EventRelay.EventMessageType.MomentumTrigger, this);
             Debug.LogWarning("MomentumTrigger Event was seen by: " + value);

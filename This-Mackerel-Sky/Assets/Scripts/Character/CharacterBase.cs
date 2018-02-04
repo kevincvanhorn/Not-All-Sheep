@@ -302,6 +302,8 @@ public class CharacterBase : MonoBehaviour
     {
         // velocity.x = 0
         Debug.Log("IDLE - Enter");
+        string value = EventRelay.RelayEvent(EventRelay.EventMessageType.CStateEnter, this);
+        Debug.Log("Enter Event was seen by: " + value);
     }
 
     void Idle_Update()
@@ -363,6 +365,12 @@ public class CharacterBase : MonoBehaviour
         Debug.Log("Idle - OnCollisionEnter " + velocity);
         BaseCollisionEnter2D(collision);
         DoCollision(collision);
+    }
+
+    void Idle_Exit()
+    {
+        string value = EventRelay.RelayEvent(EventRelay.EventMessageType.CStateExit, this);
+        Debug.LogWarning("Exit Event was seen by: " + value);
     }
 
     void Airborne_Enter()

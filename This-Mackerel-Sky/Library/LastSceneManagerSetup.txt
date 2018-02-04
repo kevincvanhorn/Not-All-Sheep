@@ -1,5 +1,4 @@
 sceneSetups:
-- path: C:/Users/kevin/Downloads/Ex_Files_Unity_Prog_Adv/Ex_Files_Unity_Prog_Adv/Exercise
-    Files/UnityProject/Assets/Chapter 4_EventsSavesQuadtrees/AdvancedEventsScene.unity
+- path: Assets/Scenes/Test/18_01/18_01_27_CameraFollow.unity
   isLoaded: 1
   isActive: 1

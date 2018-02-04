@@ -10,7 +10,9 @@ public class EventRelay : MonoBehaviour
 
     public enum EventMessageType
     {
-        MomentumTrigger
+        MomentumTrigger,
+        CStateEnter,
+        CStateExit
     }
 
     public static string RelayEvent(EventMessageType messageType, MonoBehaviour sender)

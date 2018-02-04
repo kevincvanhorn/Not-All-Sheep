@@ -28,9 +28,12 @@ public class MomentumState : MonoBehaviour
 {
 
     float drainDelayTime;
-    float maxStateMomentum;
+    public float maxStateMomentum;
+    public float minStateMomentum;
     //bool canTransition = false; // cannot transition when locked.
     float increaseRate;
+    float decreaseRate;
+    float changeRate;
 
     private bool isStateActive = false;
     private bool isWaiting = true; // No new calculations will occur when the system is waiting.
@@ -39,11 +42,14 @@ public class MomentumState : MonoBehaviour
     public delegate void OnTransition();
     public event OnTransition onTransition;
 
-    public void Init(float maxMomentum, float drainDelayTime, float increaseRate)
+    public void Init(float minMomentum, float maxMomentum, float drainDelayTime, float increaseRate)
     {
         this.drainDelayTime = drainDelayTime;
         this.increaseRate = increaseRate;
+        changeRate = increaseRate;
+        decreaseRate = -changeRate;
         this.maxStateMomentum = maxMomentum;
+        this.minStateMomentum = minMomentum;
     }
 
     public void EnterState()
@@ -73,11 +79,11 @@ public class MomentumState : MonoBehaviour
             {
                 if (MomentumGlobals.CurMomentum < maxStateMomentum)
                 {
-                    MomentumGlobals.CurMomentum += increaseRate * Time.deltaTime; // 2 should be increaseRate
+                    MomentumGlobals.CurMomentum += changeRate * Time.deltaTime; // 2 should be increaseRate
                 }
-                else if (MomentumGlobals.CurMomentum >= maxStateMomentum)
+                else if (MomentumGlobals.CurMomentum >= maxStateMomentum || MomentumGlobals.CurMomentum <= minStateMomentum)
                 {
-                    if(maxStateMomentum !=0) SetMaxMomentum();
+                    if(changeRate > 0 && maxStateMomentum !=0) SetMaxMomentum();
                     /* Transition Event */
                     if (onTransition != null)
                     {
@@ -91,30 +97,15 @@ public class MomentumState : MonoBehaviour
         }
     }
 
-    /*IEnumerator IncreaseMomentum()
-    {
-        while (!canTransition)
-        {
-            while (MomentumGlobals.CurMomentum < maxStateMomentum)
-            {
-                MomentumGlobals.CurMomentum += increaseRate; // 2 should be increaseRate
-                yield return new WaitForSeconds(0.1f);
-            }
-            if (MomentumGlobals.CurMomentum >= maxStateMomentum)
-            {
-                if (onTransition != null)
-                {
-                    onTransition();// Transition Event
-                }
-            }
-        }
-        
-    }*/
-
     // ------------------ More complicated procedures:
     public void OnDrainEvent()
     {
+        changeRate = decreaseRate;
+    }
 
+    public void OnEndDrainEvent()
+    {
+        changeRate = increaseRate;
     }
 
     public void SetMaxMomentum()
@@ -138,10 +129,11 @@ public class CMomentum : MonoBehaviour {
     - staying at vel = 0
     */
 
-    private bool breakMomentum = false; // Occurs on an event
+    private bool shouldBreakMomentum = false; // Occurs on an event
     public float drainDelayTime = 0;
     public int curState = 0;
     //private int numStates = 4;
+    private float targetMomentum = 0;
 
     public MomentumState[] momentumStates = new MomentumState[3];
 
@@ -159,9 +151,9 @@ public class CMomentum : MonoBehaviour {
 
         MomentumGlobals.CurMomentum = 20;
 
-        momentumStates[0].Init(0, 0, 2); // Only Waiting State. Should be 20 as base. // TODO:  next: should only increase when grounded
-        momentumStates[1].Init(40, drainDelayTime, 40);
-        momentumStates[2].Init(60, drainDelayTime, 40);
+        momentumStates[0].Init(0,0, 0, 2); // Only Waiting State. Should be 20 as base. // TODO:  next: should only increase when grounded
+        momentumStates[1].Init(0,40, drainDelayTime, 1); // Max, delay, rate.
+        momentumStates[2].Init(40,60, drainDelayTime, 1);
 
         /* Listen for state events: */
         for (int i = 0; i < momentumStates.Length; i++)
@@ -187,11 +179,38 @@ public class CMomentum : MonoBehaviour {
 
     public void RequestMomentumChange(float changeAmnt)
     {
+        Debug.LogWarning("HELLO!");
+        targetMomentum = MomentumGlobals.CurMomentum + changeAmnt;
 
+        int mIndex = 0;
+        while(mIndex < momentumStates.Length-1 && targetMomentum >= momentumStates[mIndex].maxStateMomentum)
+        {
+            mIndex++;
+            // Ex: target = 30, [20, 40, 60] mIndex = 1
+            // Ex: target = 80, [20, 40, 60] mIndex = 3 
+        }
+        // In state[mIndex]
+        
+        // If reached end of array then cap
+        if(targetMomentum > momentumStates[mIndex].maxStateMomentum) { targetMomentum = momentumStates[mIndex].maxStateMomentum; }
+        MomentumGlobals.CurMomentum = targetMomentum;
+
+        /* Change State. */
+        if (curState != mIndex)
+        {
+            curState = mIndex;
+            momentumStates[curState].EnterState();
+        }
+        
     }
 
 
     /* Event Handling. */
+
+
+    /* Idle event is recieved via relay from EventLsitener on Player, applies to changerate of state. */
+    public void OnIdleEnter() { momentumStates[curState].OnDrainEvent(); }
+    public void OnIdleExit() { momentumStates[curState].OnEndDrainEvent(); }
 
     public void OnEventCheckpoint()
     {
@@ -200,7 +219,7 @@ public class CMomentum : MonoBehaviour {
 
     public void OnBreakMomentum()
     {
-        breakMomentum = true;
+        shouldBreakMomentum = true;
     }
 
     public void OnDestroy()
