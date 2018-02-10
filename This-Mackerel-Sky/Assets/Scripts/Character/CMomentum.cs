@@ -100,7 +100,7 @@ public class MomentumState : MonoBehaviour
     // ------------------ More complicated procedures:
     public void OnDrainEvent()
     {
-        changeRate = decreaseRate;
+        //TODO: Debug -//changeRate = decreaseRate;
     }
 
     public void OnEndDrainEvent()

@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/Test/18_01/18_01_27_CameraFollow.unity
+- path: Assets/Scenes/Test/18_02/Enemy_AI_01.unity
   isLoaded: 1
   isActive: 1
