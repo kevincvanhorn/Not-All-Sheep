@@ -209,8 +209,8 @@ public class CMomentum : MonoBehaviour {
 
 
     /* Idle event is recieved via relay from EventLsitener on Player, applies to changerate of state. */
-    public void OnIdleEnter() { momentumStates[curState].OnDrainEvent(); }
-    public void OnIdleExit() { momentumStates[curState].OnEndDrainEvent(); }
+    // public void OnIdleEnter() { momentumStates[curState].OnDrainEvent(); }
+    // public void OnIdleExit() { momentumStates[curState].OnEndDrainEvent(); }
 
     public void OnEventCheckpoint()
     {

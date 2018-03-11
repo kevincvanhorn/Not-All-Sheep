@@ -270,7 +270,7 @@ public class CharacterBase : MonoBehaviour
 
             if (enterCollisionTypes.Count > 1)
             {
-                Debug.LogError("Multiple Collision");
+                //Debug.LogError("Multiple Collision");
             }
         }
 

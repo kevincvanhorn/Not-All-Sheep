@@ -66,7 +66,7 @@ public class EventListener : MonoBehaviour
             CStatesBase state = player.fsm.State;
             if(state == CStatesBase.Idle)
             {
-                momentum.OnIdleEnter();
+                //momentum.OnIdleEnter();
             }
         }
         else if (messageType == EventRelay.EventMessageType.CStateExit)
@@ -74,7 +74,7 @@ public class EventListener : MonoBehaviour
             CStatesBase state = player.fsm.State;
             if (state == CStatesBase.Idle)
             {
-                momentum.OnIdleExit();
+                //momentum.OnIdleExit();
             }
         }
     }
