@@ -11,6 +11,7 @@ public class E1_01FollowBot : EnemyBase
 {
     public Transform target;
     public Path path;
+    public float pathOffsetY = 2;
 
     public float speed = 2;
     public float nextWaypointDist = 3;
@@ -34,6 +35,7 @@ public class E1_01FollowBot : EnemyBase
     /* Movement Perlin Noise */
     public float perlinHeightScale = 1.0f;
     public float perlinXScale = 1.0f;
+    private float prevPerlinHeight = 0f; // position without perlin noise;
 
     private void Start()
     {
@@ -66,7 +68,8 @@ public class E1_01FollowBot : EnemyBase
             }
             else
             {
-                seeker.StartPath(transform.position, target.position, OnPathComplete);
+                Vector3 posY = new Vector3(target.position.x, target.position.y + pathOffsetY, target.position.z);
+                seeker.StartPath(transform.position, posY, OnPathComplete);
             }
             yield return new WaitForSeconds(repathRate);
         }
@@ -123,12 +126,17 @@ public class E1_01FollowBot : EnemyBase
         playerPrev = playerTrans.position;
     }
 
-    private void Update()
+    private void LateUpdate()
     {
         float height = perlinHeightScale * Mathf.PerlinNoise(Time.time * perlinXScale, 0.0F);
-        Vector3 pos = transform.position;
-        pos.y = height;
-        transform.position = pos;
+        float deltaHeight = height - prevPerlinHeight;
+
+        transform.Translate(new Vector3(0,deltaHeight,0));
+
+        //Vector3 pos = transform.position;
+        //pos.y = height;
+        //pos.x = height / 2;
+        prevPerlinHeight = height;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
