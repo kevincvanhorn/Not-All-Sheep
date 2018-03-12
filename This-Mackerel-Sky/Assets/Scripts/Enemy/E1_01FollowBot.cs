@@ -9,13 +9,19 @@ using Pathfinding;
 public enum E1_01States {
     Idle,
     Fleeing,
-    Interest
+    Interest,
+    Follow
 };
 
 [RequireComponent(typeof(Seeker))]
 public class E1_01FollowBot : EnemyBase
 {
-    public E1_01States state = E1_01States.Idle;
+    public E1_01States state;
+
+    private float idleDist = 50f; // Distance from enemy to player s.t. the enemy is brought out of / into the idle state.
+    private float distCheckTime = 0.5f;
+
+    /* Targets */
     public List<Transform> targets = new List<Transform>();
     private int curTarget = 0;
 
@@ -56,7 +62,8 @@ public class E1_01FollowBot : EnemyBase
         playerTrans = GameObject.Find("Player").transform;
         playerPrev = playerTrans.position;
 
-        StartCoroutine(UpdatePath());
+        state = E1_01States.Idle;
+        StartCoroutine(UpdateDistToPlayer()); // Start in the idle state, checking if close to player. Switches if so.
     }
 
     public void OnPathComplete(Path p)
@@ -88,13 +95,39 @@ public class E1_01FollowBot : EnemyBase
 
     public void FixedUpdate()
     {
-        if(state == E1_01States.Idle)
+        if(state == E1_01States.Follow)
+        {
+            UpdateFollow();
+        }
+        else if(state == E1_01States.Idle)
         {
             UpdateIdle();
+        }
+        else if(state == E1_01States.Interest)
+        {
+            UpdateInterest();
         }
     }
 
     private void UpdateIdle()
+    {
+
+    }
+
+    IEnumerator UpdateDistToPlayer()
+    {
+        while (gameObject.activeSelf)
+        {
+            float dist = Vector3.Distance(transform.position, playerTrans.position);
+            if (dist < idleDist)
+            {
+                SwitchState(E1_01States.Interest);
+            }
+            yield return new WaitForSeconds(distCheckTime);
+        }
+    }
+
+    private void UpdateFollow()
     {
         //rigidbody.velocity = velocity;
         if (!inTrigger)
@@ -146,7 +179,57 @@ public class E1_01FollowBot : EnemyBase
         playerPrev = playerTrans.position;
     }
 
+    private void UpdateInterest()
+    {
+        //rigidbody.velocity = velocity;
+        if (!inTrigger)
+        {
+            if (target == null)
+            {
+                //TODO: search for target.
+                return;
+            }
+            else if (path == null)
+                return;
 
+            else if (curWaypoint > path.vectorPath.Count)
+            {
+                hasReachedEnd = true;
+                return; // Already reached the end of path - do nothing. //hasReachedEnd = true;
+            }
+
+            /* Reach the end of path. */
+            else if (curWaypoint == path.vectorPath.Count)
+            {
+                Debug.Log("Path: Reached end of path. ");
+                curWaypoint++;
+                //rigidbody.velocity = Vector3.zero;
+                return;
+            }
+
+            Vector3 dir = (path.vectorPath[curWaypoint] - transform.position).normalized;
+            Vector3 velocity = dir * speed * Time.fixedDeltaTime;
+            rigidbody.AddForce(velocity, fMode); // In direction of next waypoint
+
+
+            float dist = Vector3.Distance(transform.position, path.vectorPath[curWaypoint]);
+            if (dist < nextWaypointDist)
+            {
+                curWaypoint++;
+                return;
+            } //Things we lost in the fire. //do the dance, the way you move is a mystery
+
+        }
+        else if (inTrigger)
+        {
+            rigidbody.velocity = Vector2.zero;
+            playerDelta = playerTrans.position - playerPrev;
+            playerDelta = new Vector3(playerDelta.x, 0, playerDelta.z);
+            transform.Translate(playerDelta);
+        }
+
+        playerPrev = playerTrans.position;
+    }
 
     private void LateUpdate()
     {
@@ -182,5 +265,44 @@ public class E1_01FollowBot : EnemyBase
         {
             inTrigger = false;
         }
+    }
+
+    /* State Switching Behaviour */
+    private void SwitchState(E1_01States newState)
+    {
+        /* Call current state End methods. */
+        EndState();
+        
+        /* Call new state Start methods: */
+        if (newState == E1_01States.Idle)
+        {
+            StartCoroutine(UpdateDistToPlayer());
+        }
+        if(newState == E1_01States.Interest || newState == E1_01States.Follow)
+        {
+            StartCoroutine(UpdatePath());
+        }
+
+        // Switch State.
+        state = newState;
+    }
+
+    /* Calls End methods for the appropriate states. */
+    private void EndState()
+    {
+        /* State End methods: */
+        if (state == E1_01States.Idle)
+        {
+            StopCoroutine(UpdateDistToPlayer());
+        }
+        else if (state == E1_01States.Interest || state == E1_01States.Follow)
+        {
+            StopCoroutine(UpdatePath());
+        }
+    }
+
+    private void OnDisable()
+    {
+        StopAllCoroutines();
     }
 }
