@@ -6,9 +6,17 @@ using MonsterLove.StateMachine; // State-Machine Package.
 
 using Pathfinding;
 
+public enum E1_01States {
+    Idle,
+    Fleeing,
+    Interest
+};
+
 [RequireComponent(typeof(Seeker))]
 public class E1_01FollowBot : EnemyBase
 {
+    public E1_01States state = E1_01States.Idle;
+
     public Transform target;
     public Path path;
     public float pathOffsetY = 2;
@@ -36,6 +44,7 @@ public class E1_01FollowBot : EnemyBase
     public float perlinHeightScale = 1.0f;
     public float perlinXScale = 1.0f;
     private float prevPerlinHeight = 0f; // position without perlin noise;
+    private float prevPerlinLateral = 0f;
 
     private void Start()
     {
@@ -68,7 +77,7 @@ public class E1_01FollowBot : EnemyBase
             }
             else
             {
-                Vector3 posY = new Vector3(target.position.x, target.position.y + pathOffsetY, target.position.z);
+                Vector3 posY = new Vector3(target.position.x, target.position.y + pathOffsetY, target.position.z); //x+13
                 seeker.StartPath(transform.position, posY, OnPathComplete);
             }
             yield return new WaitForSeconds(repathRate);
@@ -76,6 +85,14 @@ public class E1_01FollowBot : EnemyBase
     }
 
     public void FixedUpdate()
+    {
+        if(state == E1_01States.Idle)
+        {
+            UpdateIdle();
+        }
+    }
+
+    private void UpdateIdle()
     {
         //rigidbody.velocity = velocity;
         if (!inTrigger)
@@ -118,6 +135,7 @@ public class E1_01FollowBot : EnemyBase
         }
         else if (inTrigger)
         {
+            rigidbody.velocity = Vector2.zero;
             playerDelta = playerTrans.position - playerPrev;
             playerDelta = new Vector3(playerDelta.x, 0, playerDelta.z);
             transform.Translate(playerDelta);
@@ -126,17 +144,22 @@ public class E1_01FollowBot : EnemyBase
         playerPrev = playerTrans.position;
     }
 
+
+
     private void LateUpdate()
     {
         float height = perlinHeightScale * Mathf.PerlinNoise(Time.time * perlinXScale, 0.0F);
+        float lateral = (0.5f*perlinHeightScale) * Mathf.PerlinNoise((Time.time+1) * perlinXScale, 0.0F);
         float deltaHeight = height - prevPerlinHeight;
+        float deltaWidth = lateral - prevPerlinLateral;
 
-        transform.Translate(new Vector3(0,deltaHeight,0));
+        transform.Translate(new Vector3(deltaWidth,deltaHeight,0));
 
         //Vector3 pos = transform.position;
         //pos.y = height;
         //pos.x = height / 2;
         prevPerlinHeight = height;
+        prevPerlinLateral = lateral;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -144,7 +167,9 @@ public class E1_01FollowBot : EnemyBase
         if (collision.GetComponent<PlayerBounds>() != null)
         {
             inTrigger = true;
+            //Vector3 dir = (transform.position-path.vectorPath[curWaypoint]).normalized *rigidbody.velocity.magnitude*-1;
             rigidbody.velocity = Vector3.zero;
+            //rigidbody.AddForce(dir, fMode);
             Debug.LogError("TRIGGEER");
         }
     }
