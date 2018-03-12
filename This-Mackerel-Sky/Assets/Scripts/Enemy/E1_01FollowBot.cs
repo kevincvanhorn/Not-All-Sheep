@@ -16,6 +16,8 @@ public enum E1_01States {
 public class E1_01FollowBot : EnemyBase
 {
     public E1_01States state = E1_01States.Idle;
+    public List<Transform> targets = new List<Transform>();
+    private int curTarget = 0;
 
     public Transform target;
     public Path path;
