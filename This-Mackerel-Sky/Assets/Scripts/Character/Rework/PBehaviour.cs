@@ -4,21 +4,20 @@ using UnityEngine;
 
 public class PBehaviour : MonoBehaviour {
 
-    PInputManager pInputManager;
-    List<PInput> inputFilter; // Inputs that this state accepts - any others should be discarded.
+    public PInputManager pInputManager;
+    public List<PInput> inputFilter; // Inputs that this state accepts - any others should be discarded.
 
-    PState curState;
+    public PState curState;
 
     // Use this for initialization
-    void Start()
+    public virtual void Start()
     {
         pInputManager = GetComponent<PInputManager>();
     }
 
-    public void OnFixedUpdate()
+    public virtual void OnFixedUpdate()
     {
         //pInputManager.FilterInput(inputFilter); // Filter input so that the input array in PInputManager 
-        curState.OnStateUpdate();
-        
+        curState.OnStateUpdate();   
     }
 }

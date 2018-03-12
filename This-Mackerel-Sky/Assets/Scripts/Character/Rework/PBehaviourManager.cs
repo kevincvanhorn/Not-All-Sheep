@@ -12,8 +12,7 @@ public class PBehaviourManager : MonoBehaviour {
 
     public void Start()
     {
-        //BaseMovement = GetComponent<BaseMovement>();
-
+        BaseMovement = GetComponent<PBaseMovement>();
         curBehaviour = BaseMovement;
     }
 
@@ -25,6 +24,5 @@ public class PBehaviourManager : MonoBehaviour {
     private void FixedUpdate()
     {
         curBehaviour.OnFixedUpdate();
-
     }
 }

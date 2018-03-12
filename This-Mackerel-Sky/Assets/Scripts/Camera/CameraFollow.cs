@@ -36,7 +36,7 @@ public class CameraFollow : MonoBehaviour {
             player = playerObj.GetComponent<CharacterBase>();
         }
 
-        focusArea = new FocusArea(player.collider.bounds, focusAreaSize);
+        //focusArea = new FocusArea(player.collider.bounds, focusAreaSize);
 
     }
 
