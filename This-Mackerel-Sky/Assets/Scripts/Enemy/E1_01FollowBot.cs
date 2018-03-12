@@ -18,24 +18,28 @@ public class E1_01FollowBot : EnemyBase
 {
     public E1_01States state;
 
-    private float idleDist = 50f; // Distance from enemy to player s.t. the enemy is brought out of / into the idle state.
+    /* Idle */
+    public float idleDist = 30f; // Distance from enemy to player s.t. the enemy is brought out of / into the idle state.
     private float distCheckTime = 0.5f;
+    private float distFromPlayer = 0f;
+
 
     /* Targets */
-    public List<Transform> targets = new List<Transform>();
+    public List<E1_01Waypoint> targets = new List<E1_01Waypoint>();
     private int curTarget = 0;
 
     public Transform target;
     public Path path;
     public float pathOffsetY = 2;
 
-    public float speed = 2;
+    public float speed = 2000;
+    public float fleeSpeed = 6000;
     public float nextWaypointDist = 3;
     public float repathRate = 0.5f;
 
     private Seeker seeker;
     private Rigidbody2D rigidbody;
-    public ForceMode2D fMode; // way to change between force and impulse 
+    private ForceMode2D fMode; // way to change between force and impulse 
 
     private int curWaypoint = 0;
     private float lastRepath = float.NegativeInfinity;
@@ -107,22 +111,25 @@ public class E1_01FollowBot : EnemyBase
         {
             UpdateInterest();
         }
+        else if (state == E1_01States.Fleeing)
+        {
+            UpdateFleeing();
+        }
     }
 
     private void UpdateIdle()
     {
-
+        if (distFromPlayer < idleDist)
+        {
+            SwitchState(E1_01States.Fleeing);
+        }
     }
 
     IEnumerator UpdateDistToPlayer()
     {
         while (gameObject.activeSelf)
         {
-            float dist = Vector3.Distance(transform.position, playerTrans.position);
-            if (dist < idleDist)
-            {
-                SwitchState(E1_01States.Interest);
-            }
+            distFromPlayer = Vector3.Distance(transform.position, playerTrans.position);
             yield return new WaitForSeconds(distCheckTime);
         }
     }
@@ -231,6 +238,68 @@ public class E1_01FollowBot : EnemyBase
         playerPrev = playerTrans.position;
     }
 
+    private void UpdateFleeing()
+    {
+        bool shouldWaitForPlayer = false;
+        if (targets[curTarget].waitForPlayer && distFromPlayer > idleDist)
+        {
+            shouldWaitForPlayer = true;
+        }
+
+
+        if (!inTrigger && !shouldWaitForPlayer)
+        {
+            if (target == null)
+            {
+                //TODO: search for target.
+                return;
+            }
+            else if (path == null)
+                return;
+
+            else if (curWaypoint > path.vectorPath.Count)
+            {
+                hasReachedEnd = true;
+                return; // Already reached the end of path - do nothing. //hasReachedEnd = true;
+            }
+
+            /* Reach the end of path. */
+            else if (curWaypoint == path.vectorPath.Count)
+            {
+                Debug.Log("Path: Reached end of path. ");
+                curWaypoint++;
+                //rigidbody.velocity = Vector3.zero;
+                curTarget++;
+
+                if (curTarget < targets.Count)
+                    target = targets[curTarget].transform;
+                return;
+            }
+
+            Vector3 dir = (path.vectorPath[curWaypoint] - transform.position).normalized;
+            Vector3 velocity = dir * speed * Time.fixedDeltaTime;
+            rigidbody.AddForce(velocity, fMode); // In direction of next waypoint
+
+
+            float dist = Vector3.Distance(transform.position, path.vectorPath[curWaypoint]);
+            if (dist < nextWaypointDist)
+            {
+                curWaypoint++;
+                return;
+            } //Things we lost in the fire. //do the dance, the way you move is a mystery
+
+        }
+        else if (inTrigger)
+        {
+            rigidbody.velocity = Vector2.zero;
+            playerDelta = playerTrans.position - playerPrev;
+            playerDelta = new Vector3(playerDelta.x, 0, playerDelta.z);
+            transform.Translate(playerDelta);
+        }
+
+        playerPrev = playerTrans.position;
+    }
+
     private void LateUpdate()
     {
         float height = perlinHeightScale * Mathf.PerlinNoise(Time.time * perlinXScale, 0.0F);
@@ -274,12 +343,17 @@ public class E1_01FollowBot : EnemyBase
         EndState();
         
         /* Call new state Start methods: */
-        if (newState == E1_01States.Idle)
-        {
-            StartCoroutine(UpdateDistToPlayer());
-        }
         if(newState == E1_01States.Interest || newState == E1_01States.Follow)
         {
+            StartCoroutine(UpdatePath());
+        }
+        else if(newState == E1_01States.Fleeing)
+        {
+            speed = fleeSpeed;
+
+            if (curTarget < targets.Count)
+                target = targets[curTarget].transform;
+
             StartCoroutine(UpdatePath());
         }
 
@@ -291,11 +365,7 @@ public class E1_01FollowBot : EnemyBase
     private void EndState()
     {
         /* State End methods: */
-        if (state == E1_01States.Idle)
-        {
-            StopCoroutine(UpdateDistToPlayer());
-        }
-        else if (state == E1_01States.Interest || state == E1_01States.Follow)
+        if (state == E1_01States.Interest || state == E1_01States.Follow || state == E1_01States.Fleeing)
         {
             StopCoroutine(UpdatePath());
         }
