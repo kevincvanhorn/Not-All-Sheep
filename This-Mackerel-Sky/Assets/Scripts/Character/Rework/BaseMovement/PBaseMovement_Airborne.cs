@@ -9,9 +9,9 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
         Debug.Log("AIRBORNE - Enter");
     }
 
-    public override void OnStateUpdate()
+    public override void OnFixedUpdate()
     {
-        base.OnStateUpdate();
+        base.OnFixedUpdate();
         velocity.y += behaviour.gravity * Time.deltaTime; // Apply Gravity until grounded
     }
 

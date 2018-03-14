@@ -6,10 +6,10 @@ using UnityEngine;
 /* Methods and variables here apply to every state for Base Movement.   */
 public class PBaseMovement_State : PState {
 
-    public PBaseMovement behaviour; // The parent behaviour of the state - contains all of the shared variables for states in a behaviour.
+    public PBaseMovement behaviour;                     // The parent behaviour of the state - contains all of the shared variables for states in a behaviour.
 
     /* Variables that this state will modify: */
-    public Vector2 velocity; // Modified and shared by every PBaseMovement state individually
+    public Vector2 velocity;                            // Modified and shared by every PBaseMovement state individually
 
     /* When any Base Movement state is entered. */
     public override void OnStateEnter()
@@ -18,9 +18,9 @@ public class PBaseMovement_State : PState {
     }
 
     /* When any Base Movement state is Updated. */
-    public override void OnStateUpdate()
+    public override void OnFixedUpdate()
     {
-        base.OnStateUpdate();
+        base.OnFixedUpdate();
     }
 
     /* When any Base Movement state is Exited. */

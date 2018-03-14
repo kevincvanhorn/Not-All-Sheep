@@ -18,6 +18,6 @@ public class PBehaviour : MonoBehaviour {
     public virtual void OnFixedUpdate()
     {
         //pInputManager.FilterInput(inputFilter); // Filter input so that the input array in PInputManager 
-        curState.OnStateUpdate();   
+        curState.OnFixedUpdate();   
     }
 }

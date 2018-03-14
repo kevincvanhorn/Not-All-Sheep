@@ -13,7 +13,7 @@ public class PState : MonoBehaviour {
         Debug.Log(this.GetType()+" - Enter");
     }
 
-    public virtual void OnStateUpdate()
+    public virtual void OnFixedUpdate()
     {
         Debug.Log(this.GetType() + " - OnStateUpdate");
     }
