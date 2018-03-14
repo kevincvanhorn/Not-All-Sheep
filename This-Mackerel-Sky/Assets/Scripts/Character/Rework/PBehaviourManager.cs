@@ -12,7 +12,7 @@ public class PBehaviourManager : MonoBehaviour {
 
     public void Start()
     {
-        BaseMovement = GetComponent<PBaseMovement>();
+        BaseMovement = gameObject.AddComponent(typeof(PBaseMovement)) as PBaseMovement;
         curBehaviour = BaseMovement;
     }
 

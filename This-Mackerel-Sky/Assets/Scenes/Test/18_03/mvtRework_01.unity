@@ -287,8 +287,6 @@ GameObject:
   - component: {fileID: 1104687139}
   - component: {fileID: 1104687142}
   - component: {fileID: 1104687146}
-  - component: {fileID: 1104687145}
-  - component: {fileID: 1104687141}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -342,17 +340,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 1
   m_Constraints: 4
---- !u!114 &1104687141
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecc25a255b4838349830f6bdb4a796b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!23 &1104687142
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -409,20 +396,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1104687145
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bb0a98de3adec3645b659ba97af10073, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pInputManager: {fileID: 0}
-  inputFilter: 
-  curState: {fileID: 0}
 --- !u!114 &1104687146
 MonoBehaviour:
   m_ObjectHideFlags: 0
