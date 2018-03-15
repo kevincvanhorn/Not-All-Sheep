@@ -26,7 +26,10 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
     public override void DoCollisionBehaviour()
     {
         base.DoCollisionBehaviour();
-        
+        if (behaviour.collisionState.Bot_Enter)
+        {
+            velocity.y = 0;
+        }
     }
 
     /* Class-specific Methods: */

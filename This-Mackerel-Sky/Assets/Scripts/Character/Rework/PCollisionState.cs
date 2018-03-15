@@ -34,6 +34,17 @@ public class PCollisionState : MonoBehaviour
     public bool SteepSlope { get { return curCollisionTypes.Contains(CollisionType.SteepSlope); } }
     public bool Grounded { get { return curCollisionTypes.Contains(CollisionType.Bot) || curCollisionTypes.Contains(CollisionType.Slope); } }
 
+    /* Accessor Enter State Variables: */
+    public bool None_Enter { get { return enterCollisionTypes.Count == 0; } }
+    public bool Top_Enter { get { return enterCollisionTypes.Contains(CollisionType.Top); } }
+    public bool Bot_Enter { get { return enterCollisionTypes.Contains(CollisionType.Bot); } }
+    public bool Left_Enter { get { return enterCollisionTypes.Contains(CollisionType.Left); } }
+    public bool Right_Enter { get { return enterCollisionTypes.Contains(CollisionType.Right); } }
+    public bool Slope_Enter { get { return enterCollisionTypes.Contains(CollisionType.Slope); } }
+    public bool TopSlope_Enter { get { return enterCollisionTypes.Contains(CollisionType.TopSlope); } }
+    public bool SteepSlope_Enter { get { return enterCollisionTypes.Contains(CollisionType.SteepSlope); } }
+    public bool Grounded_Enter { get { return enterCollisionTypes.Contains(CollisionType.Bot) || enterCollisionTypes.Contains(CollisionType.Slope); } }
+
     /* Debugging  Variables: */
 
     void Start()
@@ -148,18 +159,18 @@ public class PCollisionState : MonoBehaviour
         enterCollisionTypes.Clear();
     }
 
-    /* Assigns appropriate values to the collisions entering just this fixed frame Hash Set*/
+    /* Assigns appropriate values to the collisions entering just this fixed frame Hash Set
+     * Precondition: enterCollisionTypes is empty, curCollisionTypes is up to date, prev is last frame.
+     */
     private void SetEnterCollisions()
     {
-        //TODO[OPTMIZE]: Replace foreach loop with for loop.
-        foreach(CollisionType cur in curCollisionTypes)
-        {
-            if (!prevCollisionTypes.Contains(cur))
-            {
-                enterCollisionTypes.Add(cur);
-            }
-        }
-        prevCollisionTypes = curCollisionTypes;
+        /* Set collisions unique to this frame. */
+        enterCollisionTypes.UnionWith(curCollisionTypes);
+        enterCollisionTypes.ExceptWith(prevCollisionTypes);
+
+        /* Set previous collisions. */
+        prevCollisionTypes.Clear();
+        prevCollisionTypes.UnionWith(curCollisionTypes);
     }
 
     /* -- Debugging Methods: */
