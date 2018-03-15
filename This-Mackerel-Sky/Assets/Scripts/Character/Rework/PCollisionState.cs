@@ -13,26 +13,28 @@ public class PCollisionState : MonoBehaviour
     public int slopeDir = 1;
     public int steepSlopeDir;
 
+    /* OnCollisionEnter Emulation: */
+    public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Set of collisions that entered this fixed frame.
+    public HashSet<CollisionType> prevCollisionTypes = new HashSet<CollisionType>();  // Set of collisions present in the previous fixed frame.
+    public HashSet<CollisionType> curCollisionTypes = new HashSet<CollisionType>();
+    int collisionTypeCount = CollisionType.GetNames(typeof(CollisionType)).Length;
+
+    /* Collision Variables: */
     private ContactFilter2D contactFilter = new ContactFilter2D();
     private new Collider2D collider; // The collider of the player.
 
-    /* Local State Variables: */
-    private bool none, top, bot, left, right, slope, topSlope, steepSlope;
-
     /* Accessor State Variables: */
-    public bool None { get { return none; } }
-    public bool Top { get { return top; } }
-    public bool Bot { get { return bot; } }
-    public bool Left { get { return left; } }
-    public bool Right { get { return right; } }
-    public bool Slope { get { return slope; } }
-    public bool TopSlope { get { return topSlope; } }
-    public bool SteepSlope { get { return steepSlope; } }
-    public bool Grounded { get { return bot || slope; } }
+    public bool None { get { return curCollisionTypes.Count == 0; } }
+    public bool Top { get { return curCollisionTypes.Contains(CollisionType.Top); } }
+    public bool Bot { get { return curCollisionTypes.Contains(CollisionType.Bot); } }
+    public bool Left { get { return curCollisionTypes.Contains(CollisionType.Left); } }
+    public bool Right { get { return curCollisionTypes.Contains(CollisionType.Right); } }
+    public bool Slope { get { return curCollisionTypes.Contains(CollisionType.Slope); } }
+    public bool TopSlope { get { return curCollisionTypes.Contains(CollisionType.TopSlope); } }
+    public bool SteepSlope { get { return curCollisionTypes.Contains(CollisionType.SteepSlope); } }
+    public bool Grounded { get { return curCollisionTypes.Contains(CollisionType.Bot) || curCollisionTypes.Contains(CollisionType.Slope); } }
 
     /* Debugging  Variables: */
-    public float debugSlopeAngle = 0;
-
 
     void Start()
     {
@@ -45,6 +47,7 @@ public class PCollisionState : MonoBehaviour
     {
         ClearOverlaps();
         CheckOverlaps();
+        SetEnterCollisions();
     }
 
     /* Checks if a given GameObject is touching the player. */
@@ -73,8 +76,6 @@ public class PCollisionState : MonoBehaviour
 
             if (coll != null)
             {
-                //Debug.LogError(coll);
-
                 ContactPoint2D[] contactsIn = new ContactPoint2D[8]; // 2 when side collides (each corner) || 1 when on slope
                 coll.GetContacts(contactsIn);
 
@@ -84,28 +85,23 @@ public class PCollisionState : MonoBehaviour
                     /* If contact exists (entries are zero in larger alocated ContactPoint2D[])*/
                     if (contactsIn[i].normal != Vector2.zero)
                     {
-                        //Debug.DrawLine(contactsIn[i].point, contactsIn[i].point + contactsIn[i].normal, Color.yellow, 20);
-                        //Debug.DrawLine(contactsIn[i].point, contactsIn[i].point + contactsIn[i].normal * -1, Color.green, 20);
-                        //Debug.DrawLine(contactsIn[i].point, contactsIn[i].point + Vector2.down, Color.green, 20);
                         slopeAngle = Vector2.Angle(Vector2.down, contactsIn[i].normal);
-                        //debugSlopeAngle = slopeAngle;
-                        //debugSlopeAngle = Vector2.Angle(Vector2.up, contactsIn[i].normal * -1);
 
                         /* Flat Ground */
                         if (slopeAngle == CStats.botAngle)
                         { // == 0 // contactsIn[i].normal.y == -1
-                            bot = true;
+                            curCollisionTypes.Add(CollisionType.Bot);
                         }
                         /* Wall Collision */
                         else if (slopeAngle <= CStats.wallAngleMax && slopeAngle >= CStats.wallAngleMin)
                         {
                             if (contactsIn[i].normal.x < 0)
                             {
-                                left = true;
+                                curCollisionTypes.Add(CollisionType.Left);
                             }
                             else if (contactsIn[i].normal.x > 0)
                             {
-                                right = true;
+                                curCollisionTypes.Add(CollisionType.Right);
                             }
                             else
                             {
@@ -117,75 +113,85 @@ public class PCollisionState : MonoBehaviour
                         /* Top Collision*/
                         else if (slopeAngle >= CStats.topAngleMin && slopeAngle <= CStats.topAngleMax)
                         {
-                            top = true;
+                            curCollisionTypes.Add(CollisionType.Top);
                         }
                         /* Top Slope Collision. */
                         else if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
                         {
-                            topSlope = true;
+                            curCollisionTypes.Add(CollisionType.TopSlope);
                             slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                         }
                         /* Steep Slope Collision. */
                         else if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
                         {
-                            steepSlope = true;
+                            curCollisionTypes.Add(CollisionType.SteepSlope);
                             curSteepSlopeAngle = slopeAngle;
                             steepSlopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                         }
                         /* Slope Collision */
                         else
                         { // This is now bot.
-                            slope = true;
+                            curCollisionTypes.Add(CollisionType.Slope);
                             curSlopeAngle = slopeAngle;
                             slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                         }
                     }
-
                 }
             }
-        }
-
-
-
-        if (bot || top || left || right || slope || topSlope || steepSlope)
-        {
-            none = false;
         }
     }
 
     private void ClearOverlaps()
     {
-        none = true;
-        top = false;
-        bot = false;
-        left = false;
-        right = false;
-        slope = false;
-        topSlope = false;
-        steepSlope = false;
-
+        curCollisionTypes.Clear();
         objectsTouching.Clear();
+        enterCollisionTypes.Clear();
+    }
+
+    /* Assigns appropriate values to the collisions entering just this fixed frame Hash Set*/
+    private void SetEnterCollisions()
+    {
+        //TODO[OPTMIZE]: Replace foreach loop with for loop.
+        foreach(CollisionType cur in curCollisionTypes)
+        {
+            if (!prevCollisionTypes.Contains(cur))
+            {
+                enterCollisionTypes.Add(cur);
+            }
+        }
+        prevCollisionTypes = curCollisionTypes;
     }
 
     /* -- Debugging Methods: */
 
     public void printStates()
     {
-        print("TOP : " + top);
-        print("BOT : " + bot);
-        print("LEFT : " + left);
-        print("RIGHT : " + right);
-        print("SLOPE : " + slope);
-        print("NONE : " + none);
+        print("TOP : " + Top);
+        print("BOT : " + Bot);
+        print("LEFT : " + Left);
+        print("RIGHT : " + Right);
+        print("SLOPE : " + Slope);
+        print("NONE : " + None);
     }
 
     public void printStatesError()
     {
-        Debug.LogError("--------- T" + top + " B" + bot + " L" + left + " R" + right + " S" + slope + " N" + none + " TS" + topSlope);
+        Debug.LogError("--------- T" + Top + " B" + Bot + " L" + Left + " R" + Right + " S" + Slope + " N" + None + " TS" + TopSlope);
     }
 
     public void printStatesShort()
     {
-        print("--------- T" + top + " B" + bot + " L" + left + " R" + right + " S" + slope + " N" + none);
+        print("--------- T" + Top + " B" + Bot + " L" + Left + " R" + Right + " S" + Slope + " N" + None);
     }
 }
+
+public enum CollisionType
+{
+    Top,
+    Bot,
+    Left,
+    Right,
+    Slope,
+    TopSlope,
+    SteepSlope
+};

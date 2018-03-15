@@ -40,7 +40,7 @@ public class CharacterBase : MonoBehaviour
 
     //public CCollisionState collisionState;
 
-    public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame. // Should be virtual
+    //public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame. // Should be virtual
     //HashSet<CollisionType> collisionTypes; // For use in that frame.
 
     public StateMachine<CStatesBase> fsm;
@@ -118,7 +118,7 @@ public class CharacterBase : MonoBehaviour
     }
 
     /** Called on Player collision with a new object. **/
-    public void BaseCollisionEnter2D(Collision2D collision)
+    public void BaseCollisionEnter2D(Collision2D collision) // ####
     { // ~ Could convert Collision2D to Collider2D
         PreStateUpdate();
         //###enterCollisionTypes.Clear();

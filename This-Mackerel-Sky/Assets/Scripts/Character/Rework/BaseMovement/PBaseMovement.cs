@@ -78,15 +78,3 @@ public class PBaseMovement : PBehaviour {
         SAirborne.behaviour = this;
     }
 }
-
-public enum CollisionType
-{
-    None,
-    Top,
-    Bot,
-    Left,
-    Right,
-    Slope,
-    TopSlope,
-    SteepSlope
-};
