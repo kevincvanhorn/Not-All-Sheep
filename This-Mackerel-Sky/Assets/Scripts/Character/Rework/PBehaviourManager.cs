@@ -15,13 +15,20 @@ public class PBehaviourManager : MonoBehaviour {
     private PBehaviour behaviour_BaseMovement;
     private PBehaviour behaviour_ScytheBase;
 
+    /* Collisionss: */
+    private PCollisionState collisionState;
+
     public void Start()
     {
         /* Create Behaviours. */
         behaviour_BaseMovement = gameObject.AddComponent(typeof(PBaseMovement)) as PBaseMovement;
+        SetBehaviourSpecificVars();
 
         /* Set current Behaviour. */
         curBehaviour = behaviour_BaseMovement;
+
+        /* Movement Components - Ensures that everything above is run before component creation. */
+        collisionState = gameObject.AddComponent(typeof(PCollisionState)) as PCollisionState;
     }
 
     /* FixedUpdate for all Behaviours and States is only called in this Manager. */
@@ -34,5 +41,10 @@ public class PBehaviourManager : MonoBehaviour {
     public void SwitchBehaviour(PBehaviour nextBehaviour)
     {
 
+    }
+
+    /* -- Methods For Readability. */
+    private void SetBehaviourSpecificVars()
+    {
     }
 }

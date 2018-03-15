@@ -11,12 +11,24 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
 
     public override void OnFixedUpdate()
     {
-        base.OnFixedUpdate();
-        velocity.y += behaviour.gravity * Time.deltaTime; // Apply Gravity until grounded
+        base.OnFixedUpdate();                             // via PBaseMovement_State.
+        // Note: CollisionBehaviour()
+        velocity.y += behaviour.gravity * Time.deltaTime; // Apply Gravity until grounded        
     }
 
     public override void OnStateExit()
     {
         base.OnStateExit();
     }
+
+    /* Called every FixedUpdate for actions based on current collision overlaps. 
+    * Precondition: persistent collision overlaps have been checked for this fixed frame. */
+    public override void CollisionBehaviour()
+    {
+        base.CollisionBehaviour();
+        
+    }
+
+    /* Class-specific Methods: */
+
 }

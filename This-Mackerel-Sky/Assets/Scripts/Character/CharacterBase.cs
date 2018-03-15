@@ -2232,7 +2232,7 @@ public class CharacterBase : MonoBehaviour
     // For Overwrite: fsm.ChangeState(States.MyNextState, StateTransition.Safe);
 
 }
-    public enum CollisionType
+    /*public enum CollisionType
     {
         None,
         Top,
@@ -2242,7 +2242,7 @@ public class CharacterBase : MonoBehaviour
         Slope,
         TopSlope,
         SteepSlope
-    };
+    };*/
 
     /* Define States */
     public enum CStatesBase

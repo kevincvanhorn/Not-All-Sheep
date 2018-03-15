@@ -6,6 +6,7 @@ public class PBehaviour : MonoBehaviour {
 
     public PInputManager pInputManager;
     public List<PInput> inputFilter; // Inputs that this state accepts - any others should be discarded.
+    public PCollisionState collisionState;
 
     public PState curState;
 
@@ -13,11 +14,12 @@ public class PBehaviour : MonoBehaviour {
     public virtual void Start()
     {
         pInputManager = GetComponent<PInputManager>();
+        collisionState = GetComponent<PCollisionState>();
     }
 
     public virtual void OnFixedUpdate()
     {
-        //pInputManager.FilterInput(inputFilter); // Filter input so that the input array in PInputManager 
+        //TODO: pInputManager.FilterInput(inputFilter); // Filter input so that the input array in PInputManager 
         curState.OnFixedUpdate();   
     }
 }

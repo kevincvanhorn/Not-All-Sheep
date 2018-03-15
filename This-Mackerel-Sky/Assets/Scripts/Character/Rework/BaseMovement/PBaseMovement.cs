@@ -5,10 +5,11 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
 public class PBaseMovement : PBehaviour {
-    
+
     /* Inherited Variables: */
     // Inherited: PInputManager pInputManager
     // Inherited: PState curState
+    // Inherited: PCollisionState collisionState
 
     /* Declare Components: */
     public Rigidbody2D rigidBody;
@@ -26,10 +27,13 @@ public class PBaseMovement : PBehaviour {
     /* Declare States: */
     PBaseMovement_Airborne SAirborne; // -- TODO: 3.14.18 Tried polymorphism with PStates, but presented issues.
 
+    /* Collision Variables: */
+    public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Used to simulate onCollisionEnter each FixedUpdate.
+
     private void Awake()
     {
         /* Get Components. */
-        rigidBody = GetComponent<Rigidbody2D>(); // Note: Could be in thi.Start Method
+        rigidBody = GetComponent<Rigidbody2D>(); // Note: Could be in this.Start Method
         collider = GetComponent<Collider2D>();   // For CameraFollow's Start Method.
     }
 
@@ -56,17 +60,33 @@ public class PBaseMovement : PBehaviour {
     {
         /* Pre-State Update. */
         directionMoving = (((PBaseMovement_State)curState).velocity.x >= 0) ? (sbyte)1 : (sbyte)-1; // @sbyte an explicit cast. 
+        // TODO: update DirectionFacing
+
+        /* Collision Update. */
+        collisionState.OnFixedUpdate();
 
         /* State Update. */
-        base.OnFixedUpdate(); // Runs OnFixedUpdate for the current State.
-        rigidBody.velocity = ((PBaseMovement_State)curState).velocity; // Get the velocity from the current PBaseMovement_State
+        base.OnFixedUpdate();     // Via PBehaviour: Runs OnFixedUpdate for the current State.
+        rigidBody.velocity = ((PBaseMovement_State)curState).velocity; // Gets the velocity from the current PBaseMovement_State.
     }
 
     /* ---- Methods for Readability (Called once, solely to slim down overriden methods above.) */
 
-    /* Set the behaviour var in each state to reference this Behaviour. */
+    /* Set the behaviour var in each state for referencing this Behaviour. */
     private void SetStateParentBehaviours()
     {
         SAirborne.behaviour = this;
     }
 }
+
+public enum CollisionType
+{
+    None,
+    Top,
+    Bot,
+    Left,
+    Right,
+    Slope,
+    TopSlope,
+    SteepSlope
+};

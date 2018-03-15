@@ -38,7 +38,7 @@ public class CharacterBase : MonoBehaviour
     private CInputManager inputManager;
     private CActionsBase cActionsBase;
 
-    public CCollisionState collisionState;
+    //public CCollisionState collisionState;
 
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // For use in that frame. // Should be virtual
     //HashSet<CollisionType> collisionTypes; // For use in that frame.
@@ -121,11 +121,11 @@ public class CharacterBase : MonoBehaviour
     public void BaseCollisionEnter2D(Collision2D collision)
     { // ~ Could convert Collision2D to Collider2D
         PreStateUpdate();
-        enterCollisionTypes.Clear();
-        collisionState.CheckOverlaps();
+        //###enterCollisionTypes.Clear();
+        //###collisionState.CheckOverlaps();
 
-        ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
-        contactsIn = collision.contacts; //  NETBOOK - Uncomment this.
+        //ContactPoint2D[] contactsIn = new ContactPoint2D[4]; // 2 when side collides (each corner) || 1 when on slope
+        //contactsIn = collision.contacts; //  NETBOOK - Uncomment this.
         //collision.GetContacts(contactsIn); //  NETBOOK - Comment this.
 
         /* Call Collider Enter Functions */
@@ -2019,17 +2019,6 @@ public class CharacterBase : MonoBehaviour
     // For Overwrite: fsm.ChangeState(States.MyNextState, StateTransition.Safe);
 
 }
-    public enum CollisionType
-    {
-        None,
-        Top,
-        Bot,
-        Left,
-        Right,
-        Slope,
-        TopSlope,
-        SteepSlope
-    };
 
     /* Define States */
     public enum CStatesBase
