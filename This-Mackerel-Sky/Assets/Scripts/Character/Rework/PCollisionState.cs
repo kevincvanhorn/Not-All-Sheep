@@ -59,6 +59,9 @@ public class PCollisionState : MonoBehaviour
         ClearOverlaps();
         CheckOverlaps();
         SetEnterCollisions();
+        
+        //Debugging:
+        //printStatesShort();
     }
 
     /* Checks if a given GameObject is touching the player. */

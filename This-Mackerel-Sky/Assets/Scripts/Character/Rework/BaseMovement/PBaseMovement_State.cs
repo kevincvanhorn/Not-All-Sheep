@@ -10,6 +10,7 @@ public class PBaseMovement_State : PState {
      * OnCollisionEnter2D
      */
 
+    [HideInInspector]
     public PBaseMovement behaviour;// The parent behaviour of the state - contains all of the shared variables for states in a behaviour.
 
     /* Variables that each PBaseMovement State has a copy of: */

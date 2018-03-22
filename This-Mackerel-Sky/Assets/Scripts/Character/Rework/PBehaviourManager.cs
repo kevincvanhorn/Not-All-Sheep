@@ -5,7 +5,8 @@ using UnityEngine;
 /* Responsible for executing and managing all behaviour configurations of the Player. 
  * The intent is to remove any uncertainty of execution order by directly managing all the Update and queued events for the Player only in this class.
  */
-
+ [RequireComponent(typeof(PBaseMovement))]
+ [RequireComponent(typeof(PCollisionState))]
 public class PBehaviourManager : MonoBehaviour {
 
     private PBehaviour curBehaviour;
@@ -21,14 +22,14 @@ public class PBehaviourManager : MonoBehaviour {
     public void Start()
     {
         /* Create Behaviours. */
-        behaviour_BaseMovement = gameObject.AddComponent(typeof(PBaseMovement)) as PBaseMovement;
+        behaviour_BaseMovement = gameObject.GetComponent<PBaseMovement>();
         SetBehaviourSpecificVars();
 
         /* Set current Behaviour. */
         curBehaviour = behaviour_BaseMovement;
 
         /* Movement Components - Ensures that everything above is run before component creation. */
-        collisionState = gameObject.AddComponent(typeof(PCollisionState)) as PCollisionState;
+        collisionState = gameObject.GetComponent<PCollisionState>();
     }
 
     /* FixedUpdate for all Behaviours and States is only called in this Manager. */

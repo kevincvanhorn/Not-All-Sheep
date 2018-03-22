@@ -23,7 +23,7 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
         if (behaviour.collisionState.Bot_Enter)
         {
             velocity.y = 0;
-            behaviour.OnTransition(behaviour.SIdle);
+            behaviour.Transition(behaviour.SIdle);
         }
     }
 

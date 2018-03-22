@@ -4,6 +4,8 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(PBaseMovement_Airborne))]
+[RequireComponent(typeof(PBaseMovement_Idle))]
 public class PBaseMovement : PBehaviour {
 
     /* Inherited Variables: */
@@ -50,8 +52,10 @@ public class PBaseMovement : PBehaviour {
         jumpVelocityMin = Mathf.Sqrt(2 * Mathf.Abs(gravity) * PStats.jumpHeightMin);
 
         /* Create States. */
-        SAirborne = gameObject.AddComponent(typeof(PBaseMovement_Airborne)) as PBaseMovement_Airborne;
-        SIdle = gameObject.AddComponent(typeof(PBaseMovement_Idle)) as PBaseMovement_Idle;
+        SAirborne = gameObject.GetComponent<PBaseMovement_Airborne>();
+        SIdle = gameObject.GetComponent<PBaseMovement_Idle>();
+
+
         SetStateParentBehaviours();
 
         /* Set State. */
@@ -75,9 +79,9 @@ public class PBaseMovement : PBehaviour {
         rigidBody.velocity = ((PBaseMovement_State)curState).velocity; // Gets the velocity from the current PBaseMovement_State.
     }
 
-    public override void OnTransition(PState nextState)
+    public override void Transition(PState nextState)
     {
-        base.OnTransition(nextState); // Calls exit and enter methods for prev and next state respectively.
+        base.Transition(nextState); // Calls exit and enter methods for prev and next state respectively.
     }
 
     /* ---- Methods for Readability (Called once, solely to slim down overriden methods above.) */

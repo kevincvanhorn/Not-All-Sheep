@@ -23,9 +23,10 @@ public class PBehaviour : MonoBehaviour {
         curState.OnFixedUpdate();   
     }
 
-    public virtual void OnTransition(PState nextState)
+    public virtual void Transition(PState nextState)
     {
         curState.OnStateExit();
         nextState.OnStateEnter();
+        curState = nextState;
     }
 }

@@ -131,8 +131,6 @@ public class CharacterBase : MonoBehaviour
     /* Should be a buffer state active when no input is pressed. */
     void Idle_Enter()
     {
-        // velocity.x = 0
-        Debug.Log("IDLE - Enter");
         string value = EventRelay.RelayEvent(EventRelay.EventMessageType.CStateEnter, this);
         Debug.Log("Enter Event was seen by: " + value);
     }
