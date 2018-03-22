@@ -29,7 +29,7 @@ public class PBaseMovement_State : PState {
 
     }
 
-    /* When any Base Movement state is Exited. */
+    /* When any Base Movement state is Exited. Should not change velocity. */
     public override void OnStateExit()
     {
         base.OnStateExit();

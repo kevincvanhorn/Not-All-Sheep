@@ -6,7 +6,6 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
     public override void OnStateEnter()
     {
         base.OnStateEnter();
-        Debug.Log("AIRBORNE - Enter");
     }
 
     public override void OnFixedUpdate()
@@ -14,11 +13,6 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
         base.OnFixedUpdate();                             // via PBaseMovement_State.
         // Note: DoCollisionBehaviour()
         velocity.y += behaviour.gravity * Time.deltaTime; // Apply Gravity until grounded        
-    }
-
-    public override void OnStateExit()
-    {
-        base.OnStateExit();
     }
 
     /* Called every FixedUpdate for actions based on current collision overlaps. 
@@ -29,7 +23,14 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
         if (behaviour.collisionState.Bot_Enter)
         {
             velocity.y = 0;
+            behaviour.OnTransition(behaviour.SIdle);
         }
+    }
+
+    /* Called prior to state transition, should not modify velocity. */
+    public override void OnStateExit()
+    {
+        base.OnStateExit();
     }
 
     /* Class-specific Methods: */

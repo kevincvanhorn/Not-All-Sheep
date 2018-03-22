@@ -23,6 +23,7 @@ public class PState : MonoBehaviour {
 
     }
 
+    /* Called prior to state transition, should not modify velocity. */
     public virtual void OnStateExit()
     {
 

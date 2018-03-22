@@ -25,7 +25,8 @@ public class PBaseMovement : PBehaviour {
     float jumpVelocityMin;
 
     /* Declare States: */
-    PBaseMovement_Airborne SAirborne; // -- TODO: 3.14.18 Tried polymorphism with PStates, but presented issues.
+    public PBaseMovement_Airborne SAirborne; // -- TODO: 3.14.18 Tried polymorphism with PStates, but presented issues.
+    public PBaseMovement_Idle SIdle;
 
     /* Collision Variables: */
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Used to simulate onCollisionEnter each FixedUpdate.
@@ -50,6 +51,7 @@ public class PBaseMovement : PBehaviour {
 
         /* Create States. */
         SAirborne = gameObject.AddComponent(typeof(PBaseMovement_Airborne)) as PBaseMovement_Airborne;
+        SIdle = gameObject.AddComponent(typeof(PBaseMovement_Idle)) as PBaseMovement_Idle;
         SetStateParentBehaviours();
 
         /* Set State. */
@@ -67,7 +69,15 @@ public class PBaseMovement : PBehaviour {
 
         /* State Update. */
         base.OnFixedUpdate();     // Via PBehaviour: Runs OnFixedUpdate for the current State.
+        // Note: Transition would occur here.
+            // curState.Exit()
+            // nextState.Enter()
         rigidBody.velocity = ((PBaseMovement_State)curState).velocity; // Gets the velocity from the current PBaseMovement_State.
+    }
+
+    public override void OnTransition(PState nextState)
+    {
+        base.OnTransition(nextState); // Calls exit and enter methods for prev and next state respectively.
     }
 
     /* ---- Methods for Readability (Called once, solely to slim down overriden methods above.) */
@@ -76,5 +86,6 @@ public class PBaseMovement : PBehaviour {
     private void SetStateParentBehaviours()
     {
         SAirborne.behaviour = this;
+        SIdle.behaviour = this; 
     }
 }

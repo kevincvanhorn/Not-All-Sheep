@@ -22,4 +22,10 @@ public class PBehaviour : MonoBehaviour {
         //TODO: pInputManager.FilterInput(inputFilter); // Filter input so that the input array in PInputManager 
         curState.OnFixedUpdate();   
     }
+
+    public virtual void OnTransition(PState nextState)
+    {
+        curState.OnStateExit();
+        nextState.OnStateEnter();
+    }
 }
