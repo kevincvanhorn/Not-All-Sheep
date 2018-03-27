@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(PInputManager))]
+[RequireComponent(typeof(PCollisionState))]
 public class PBehaviour : MonoBehaviour {
 
     public PInputManager pInputManager;

@@ -73,10 +73,13 @@ public class PBaseMovement : PBehaviour {
 
         /* State Update. */
         base.OnFixedUpdate();     // Via PBehaviour: Runs OnFixedUpdate for the current State.
+
         // Note: Transition would occur here.
-            // curState.Exit()
-            // nextState.Enter()
+        // curState.Exit()
+        // nextState.Enter()
+
         rigidBody.velocity = ((PBaseMovement_State)curState).velocity; // Gets the velocity from the current PBaseMovement_State.
+        pInputManager.OnFixedUpdate(); // Resets all keyDown events in input controller.
     }
 
     public override void Transition(PState nextState)

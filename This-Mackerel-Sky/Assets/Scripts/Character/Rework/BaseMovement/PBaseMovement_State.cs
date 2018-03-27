@@ -27,7 +27,7 @@ public class PBaseMovement_State : PState {
     {
         base.OnFixedUpdate();
         DoCollisionBehaviour();
-
+        OnInputBehaviour();
     }
 
     /* When any Base Movement state is Exited. Should not change velocity. */
@@ -39,6 +39,12 @@ public class PBaseMovement_State : PState {
     /* Called every FixedUpdate for actions based on current collision overlaps. 
     * Precondition: Persistent and Enter collision overlaps have been checked for this fixed frame. */
     public virtual void DoCollisionBehaviour()
+    {
+
+    }
+
+    /* Responds to any Input events - called after collision handling. */
+    public virtual void OnInputBehaviour()
     {
 
     }

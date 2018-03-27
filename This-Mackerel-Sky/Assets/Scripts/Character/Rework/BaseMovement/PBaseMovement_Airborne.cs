@@ -27,11 +27,20 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
         }
     }
 
+    /* Responds to any Input events - called after collision handling. */
+    public override void OnInputBehaviour()
+    {
+        base.OnInputBehaviour();
+
+    }
+
     /* Called prior to state transition, should not modify velocity. */
     public override void OnStateExit()
     {
         base.OnStateExit();
     }
+
+
 
     /* Class-specific Methods: */
 

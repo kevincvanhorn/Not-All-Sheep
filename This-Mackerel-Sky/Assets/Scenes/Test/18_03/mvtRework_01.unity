@@ -300,6 +300,7 @@ GameObject:
   - component: {fileID: 1104687145}
   - component: {fileID: 1104687148}
   - component: {fileID: 1104687147}
+  - component: {fileID: 1104687150}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -500,6 +501,17 @@ MonoBehaviour:
   gravity: 0
   SAirborne: {fileID: 0}
   SIdle: {fileID: 0}
+--- !u!114 &1104687150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1104687138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8f0e7218ed1e4d40b0ae396f8e2c083, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1228340211
 GameObject:
   m_ObjectHideFlags: 0

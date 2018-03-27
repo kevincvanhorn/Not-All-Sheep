@@ -16,7 +16,7 @@ public class PBehaviourManager : MonoBehaviour {
     private PBehaviour behaviour_BaseMovement;
     private PBehaviour behaviour_ScytheBase;
 
-    /* Collisionss: */
+    /* Collisions: */
     private PCollisionState collisionState;
 
     public void Start()
