@@ -17,7 +17,6 @@ public class CharacterBase : MonoBehaviour
     public Vector3 velocity;
 
     public Vector2 wallHitSpeed;
-    public float directionMoving = 1;
 
     /* Jump Variables */
     public float lateralAccelAirborne = 60;
@@ -26,7 +25,6 @@ public class CharacterBase : MonoBehaviour
     private float jumpVelRatio; // Vxmax = (Vxmax * Vymin) / Vymin
 
     /* Slope Variables */
-    public float slopeDir;
     public float slopeAngle = 0;
     public float maxAngle = 80;
     public Vector2 topSlopeSpeedCur;
@@ -35,7 +33,6 @@ public class CharacterBase : MonoBehaviour
 
     public Vector3 debugSlopeHitLoc;
 
-    private CInputManager inputManager;
     private CActionsBase cActionsBase;
 
     //public CCollisionState collisionState;
@@ -65,7 +62,7 @@ public class CharacterBase : MonoBehaviour
     CAnimationController animController;
 
     public void Start()
-    {
+    {   
         /* Set collision defaults. */
         activeSpeed = moveSpeed;
         wallHitSpeed.x = activeSpeed;
@@ -83,51 +80,6 @@ public class CharacterBase : MonoBehaviour
         animController = (CAnimationController)FindObjectOfType(typeof(CAnimationController));       
     }
 
-    void PreStateUpdate()
-    {
-        /* Update directionFacing ------------------------------------------ */
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            directionFacing = 1;
-        }
-        // When Left is first input.
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            directionFacing = -1;
-        }
-        else if (Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
-        {
-            directionFacing = -1;
-        }
-        else if (Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
-        {
-            directionFacing = 1;
-        }
-
-        if (!Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow))
-        {
-            hasLateralInput = false;
-        }
-        else
-        {
-            hasLateralInput = true;
-        }
-
-        slopeDir = collisionState.slopeDir;
-
-    }
-
-    /* Collision Methods: Custom ---------------------------------------------*/
-    // EXECUTION ORDER:
-    // Enter - Called immediately when changeState is called (before Main Update).
-    // Exit
-    // Update - Called after Main Update
-    // Collision Enter/Exit
-    // Input Events
-    // Update
-    // LateUpdate
-    // Finally
-
     /* Should be a buffer state active when no input is pressed. */
     void Idle_Enter()
     {
@@ -137,8 +89,6 @@ public class CharacterBase : MonoBehaviour
 
     void Idle_Update()
     {
-        Debug.Log("IDLE - Update");
-        PreStateUpdate();
 
         //collisionState.printStatesError();
 

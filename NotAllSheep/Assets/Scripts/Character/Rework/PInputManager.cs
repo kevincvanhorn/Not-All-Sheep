@@ -22,8 +22,23 @@ public enum PInput
  */
 public class PInputManager : MonoBehaviour
 {
-    public HashSet<PInput> keyDownInputs;
-    public HashSet<PInput> keyHeldInputs;
+    private HashSet<PInput> keyDownInputs;
+    private HashSet<PInput> keyHeldInputs;
+
+    /* Accessor variables. */
+    public bool KeyDown_Up { get { return keyDownInputs.Contains(PInput.Up); } }
+    public bool KeyDown_Down { get { return keyDownInputs.Contains(PInput.Down); } }
+    public bool KeyDown_Left { get { return keyDownInputs.Contains(PInput.Left); } }
+    public bool KeyDown_Right { get { return keyDownInputs.Contains(PInput.Right); } }
+    public bool KeyDown_Sprint { get { return keyDownInputs.Contains(PInput.Sprint); } }
+    public bool KeyDown_Dash { get { return keyDownInputs.Contains(PInput.Dash); } }
+
+    public bool KeyHeld_Up { get { return keyHeldInputs.Contains(PInput.Up); } }
+    public bool KeyHeld_Down { get { return keyHeldInputs.Contains(PInput.Down); } }
+    public bool KeyHeld_Left { get { return keyHeldInputs.Contains(PInput.Left); } }
+    public bool KeyHeld_Right { get { return keyHeldInputs.Contains(PInput.Right); } }
+    public bool KeyHeld_Sprint { get { return keyHeldInputs.Contains(PInput.Sprint); } }
+    public bool KeyHeld_Dash { get { return keyHeldInputs.Contains(PInput.Dash); } }
 
     public void Awake()
     {

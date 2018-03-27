@@ -21,7 +21,6 @@ public class PBehaviour : MonoBehaviour {
 
     public virtual void OnFixedUpdate()
     {
-        //TODO: pInputManager.FilterInput(inputFilter); // Filter input so that the input array in PInputManager 
         curState.OnFixedUpdate();   
     }
 

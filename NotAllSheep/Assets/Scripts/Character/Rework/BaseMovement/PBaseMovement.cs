@@ -19,9 +19,9 @@ public class PBaseMovement : PBehaviour {
 
     /* Base Movement Variables: */
     public float gravity;
-    sbyte directionFacing = 1; // @sybte of size -128 to 127
-    sbyte directionMoving = 1;   
-    
+    public sbyte directionFacing = 1; // @sybte of size -128 to 127
+    public sbyte directionMoving = 1; // @sybte of size -128 to 127  
+
     /* Airborne Variables: */
     float jumpVelocityMax;
     float jumpVelocityMin;
@@ -32,6 +32,9 @@ public class PBaseMovement : PBehaviour {
 
     /* Collision Variables: */
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Used to simulate onCollisionEnter each FixedUpdate.
+
+    /* Camera Variables: */
+    public bool hasLateralInput;
 
     private void Awake()
     {
@@ -64,19 +67,17 @@ public class PBaseMovement : PBehaviour {
 
     public override void OnFixedUpdate()
     {
-        /* Pre-State Update. */
-        directionMoving = (((PBaseMovement_State)curState).velocity.x >= 0) ? (sbyte)1 : (sbyte)-1; // @sbyte an explicit cast. 
-        // TODO: update DirectionFacing
+        /* Receive input from any pInutManager Updates. */
+
+        /* Pre-State Update. */ 
+        UpdateLateralInputVars(); // Sets directionMoving, directionFacing, hasLateralInput.
 
         /* Collision Update. */
         collisionState.OnFixedUpdate();
 
         /* State Update. */
         base.OnFixedUpdate();     // Via PBehaviour: Runs OnFixedUpdate for the current State.
-
-        // Note: Transition would occur here.
-        // curState.Exit()
-        // nextState.Enter()
+                                  // If Transition: curState.Exit() -> nextState.Enter().
 
         rigidBody.velocity = ((PBaseMovement_State)curState).velocity; // Gets the velocity from the current PBaseMovement_State.
         pInputManager.OnFixedUpdate(); // Resets all keyDown events in input controller.
@@ -89,10 +90,45 @@ public class PBaseMovement : PBehaviour {
 
     /* ---- Methods for Readability (Called once, solely to slim down overriden methods above.) */
 
-    /* Set the behaviour var in each state for referencing this Behaviour. */
-    private void SetStateParentBehaviours()
+        /* Set the behaviour var in each state for referencing this Behaviour. Ideally this would be via constructor. */
+        private void SetStateParentBehaviours()
     {
         SAirborne.behaviour = this;
         SIdle.behaviour = this; 
+    }
+
+    /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/
+    private void UpdateLateralInputVars()
+    {
+        /* Update Direction Moving. */
+        directionMoving = (((PBaseMovement_State)curState).velocity.x >= 0) ? (sbyte)1 : (sbyte)-1; // @sbyte an explicit cast.
+
+        /* Update Direction Facing. */
+        if (pInputManager.KeyDown_Right)
+        {
+            directionFacing = 1;
+        }
+        else if (pInputManager.KeyDown_Left)
+        {
+            directionFacing = -1;
+        }
+        else if (pInputManager.KeyHeld_Left && !pInputManager.KeyHeld_Right)
+        {
+            directionFacing = -1;
+        }
+        else if (pInputManager.KeyHeld_Right && !pInputManager.KeyHeld_Left)
+        {
+            directionFacing = 1;
+        }
+
+        /* Check if there is Lateral input: For Camera Manager. */
+        if (!pInputManager.KeyHeld_Right && !pInputManager.KeyHeld_Left)
+        {
+            hasLateralInput = false;
+        }
+        else
+        {
+            hasLateralInput = true;
+        }
     }
 }

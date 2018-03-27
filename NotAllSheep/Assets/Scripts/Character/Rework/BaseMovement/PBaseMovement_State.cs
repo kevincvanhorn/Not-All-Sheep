@@ -16,6 +16,10 @@ public class PBaseMovement_State : PState {
     /* Variables that each PBaseMovement State has a copy of: */
     public Vector2 velocity = Vector2.zero;
 
+    public void Start()
+    {
+    }
+
     /* When any Base Movement state is entered. */
     public override void OnStateEnter()
     {
@@ -30,12 +34,6 @@ public class PBaseMovement_State : PState {
         OnInputBehaviour();
     }
 
-    /* When any Base Movement state is Exited. Should not change velocity. */
-    public override void OnStateExit()
-    {
-        base.OnStateExit();
-    }
-
     /* Called every FixedUpdate for actions based on current collision overlaps. 
     * Precondition: Persistent and Enter collision overlaps have been checked for this fixed frame. */
     public virtual void DoCollisionBehaviour()
@@ -47,5 +45,11 @@ public class PBaseMovement_State : PState {
     public virtual void OnInputBehaviour()
     {
 
+    }
+
+    /* When any Base Movement state is Exited. Should not change velocity. */
+    public override void OnStateExit()
+    {
+        base.OnStateExit();
     }
 }
