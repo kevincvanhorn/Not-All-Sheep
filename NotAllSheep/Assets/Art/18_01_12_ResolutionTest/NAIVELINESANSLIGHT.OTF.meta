@@ -1,0 +1,25 @@
+fileFormatVersion: 2
+guid: bccdf1b5dab6efe4d8d19b4f3bd727b0
+timeCreated: 1516878975
+licenseType: Free
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Naive Line Sans
+  fontNames:
+  - Naive Line Sans
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 9c17a2b2b75eede4080068fdad1fa94e, type: 3}
+  - {fileID: 12800000, guid: 631fc7072aba3b841a982550690efdbb, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
