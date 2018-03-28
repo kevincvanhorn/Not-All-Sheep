@@ -55,10 +55,12 @@ public class PInputManager : MonoBehaviour
 
     private void Update()
     {
+        keyHeldInputs.Clear(); // Clear held inputs every Update.
+
         /* Populate Input Queues: */
         QueueKeyDownInputs();
         QueueKeyHeldInputs();
-        keyHeldInputs.Clear(); // Clear held inputs every Update.
+        
     }
 
     /* Populates the keyDownInputs to be reset each fixedUpdate (in current behaviour).

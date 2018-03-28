@@ -12,11 +12,16 @@ public class PBehaviour : MonoBehaviour {
 
     public PState curState;
 
-    // Use this for initialization
-    public virtual void Start()
+    public virtual void Awake()
     {
         pInputManager = GetComponent<PInputManager>();
         collisionState = GetComponent<PCollisionState>();
+    }
+
+    // Use this for initialization
+    public virtual void Start()
+    {
+        
     }
 
     public virtual void OnFixedUpdate()

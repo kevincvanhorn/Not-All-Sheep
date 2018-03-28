@@ -10,12 +10,12 @@ public class PState : MonoBehaviour {
 
     public virtual void OnStateEnter()
     {
-        Debug.Log(this.GetType()+" - Enter");
+        // Debug.Log(this.GetType()+" - Enter"); //@tag: DEBUG
     }
 
     public virtual void OnFixedUpdate()
     {
-        Debug.Log(this.GetType() + " - OnStateUpdate");
+        // Debug.Log(this.GetType() + " - OnStateUpdate"); //@tag: DEBUG
     }
 
     public virtual void OnInterrupt()

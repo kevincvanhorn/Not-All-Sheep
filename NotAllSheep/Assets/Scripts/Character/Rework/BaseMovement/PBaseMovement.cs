@@ -20,15 +20,25 @@ public class PBaseMovement : PBehaviour {
     /* Base Movement Variables: */
     public float gravity;
     public sbyte directionFacing = 1; // @sybte of size -128 to 127
-    public sbyte directionMoving = 1; // @sybte of size -128 to 127  
+    public sbyte directionMoving = 1; // @sybte of size -128 to 127 
 
     /* Airborne Variables: */
-    float jumpVelocityMax;
-    float jumpVelocityMin;
+    [HideInInspector]
+    public float jumpVelocityMax;
+    [HideInInspector]
+    public float jumpVelocityMin;
+    public Vector2 velocity = Vector2.zero;
+
+    /* Wall Variables: */
+    public Vector2 wallHitSpeed;
+
+    /* Top Slope Vars: */
+    public Vector2 topSlopeSpeedCur;
 
     /* Declare States: */
     public PBaseMovement_Airborne SAirborne; // -- TODO: 3.14.18 Tried polymorphism with PStates, but presented issues.
     public PBaseMovement_Idle SIdle;
+    public PBaseMovement_State SRunning, SOnWall, SSteepSlope, STopSlope, SClimbingSlope, SDashing, SAction;
 
     /* Collision Variables: */
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Used to simulate onCollisionEnter each FixedUpdate.
@@ -36,8 +46,9 @@ public class PBaseMovement : PBehaviour {
     /* Camera Variables: */
     public bool hasLateralInput;
 
-    private void Awake()
+    public override void Awake()
     {
+        base.Awake();
         /* Get Components. */
         rigidBody = GetComponent<Rigidbody2D>(); // Note: Could be in this.Start Method
         collider = GetComponent<Collider2D>();   // For CameraFollow's Start Method.
@@ -57,7 +68,6 @@ public class PBaseMovement : PBehaviour {
         /* Create States. */
         SAirborne = gameObject.GetComponent<PBaseMovement_Airborne>();
         SIdle = gameObject.GetComponent<PBaseMovement_Idle>();
-
 
         SetStateParentBehaviours();
 
@@ -79,7 +89,7 @@ public class PBaseMovement : PBehaviour {
         base.OnFixedUpdate();     // Via PBehaviour: Runs OnFixedUpdate for the current State.
                                   // If Transition: curState.Exit() -> nextState.Enter().
 
-        rigidBody.velocity = ((PBaseMovement_State)curState).velocity; // Gets the velocity from the current PBaseMovement_State.
+        rigidBody.velocity = velocity;//((PBaseMovement_State)curState).velocity; // Gets the velocity from the current PBaseMovement_State.
         pInputManager.OnFixedUpdate(); // Resets all keyDown events in input controller.
     }
 
@@ -90,18 +100,27 @@ public class PBaseMovement : PBehaviour {
 
     /* ---- Methods for Readability (Called once, solely to slim down overriden methods above.) */
 
-        /* Set the behaviour var in each state for referencing this Behaviour. Ideally this would be via constructor. */
-        private void SetStateParentBehaviours()
+    /* Set the behaviour var in each state for referencing this Behaviour. Ideally this would be via constructor. */
+    private void SetStateParentBehaviours()
     {
-        SAirborne.behaviour = this;
-        SIdle.behaviour = this; 
+        //SAirborne.behaviour = this;
+        //SAirborne.input = pInputManager;
+        //SAirborne.collisionState = collisionState;
+        //SAirborne.collisionManager = new PBaseMovement_Collision(SAirborne, collisionState);
+        SAirborne.OnStart(this);
+
+        //SIdle.behaviour = this;
+        //SIdle.input = pInputManager;
+        //SIdle.collisionState = collisionState;
+        //SIdle.collisionManager = new PBaseMovement_Collision(SIdle, collisionState);
+        SIdle.OnStart(this);
     }
 
     /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/
     private void UpdateLateralInputVars()
     {
         /* Update Direction Moving. */
-        directionMoving = (((PBaseMovement_State)curState).velocity.x >= 0) ? (sbyte)1 : (sbyte)-1; // @sbyte an explicit cast.
+        directionMoving = (velocity.x >= 0) ? (sbyte)1 : (sbyte)-1; // @sbyte an explicit cast. //((PBaseMovement_State)curState).
 
         /* Update Direction Facing. */
         if (pInputManager.KeyDown_Right)
