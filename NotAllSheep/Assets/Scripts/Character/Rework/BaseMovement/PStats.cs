@@ -10,6 +10,8 @@ public class PStats : MonoBehaviour {
     public const float jumpHeightMin = .9f;
     public const float timeToJumpApex = .4f;
 
+    public const float steepSlopeMinEnterSpeed = 20;
+
     /* Collision Manager. */
     public const float botAngle = 0;       // [] ==
     public const float slopeAngleMin = 0;  // ()
@@ -18,4 +20,6 @@ public class PStats : MonoBehaviour {
     public const float wallAngleMax = 95;  // [Wall](TopSlope)
     public const float topAngleMin = 175;  // (TopSlope)[Top]     
     public const float topAngleMax = 180;  // [Top]
+
+
 }

@@ -21,6 +21,10 @@ public class PBaseMovement : PBehaviour {
     public float gravity;
     public sbyte directionFacing = 1; // @sybte of size -128 to 127
     public sbyte directionMoving = 1; // @sybte of size -128 to 127 
+    public float moveSpeed = 10;
+    public float activeSpeed;         // Horizontal Speed.
+    public float lateralAccelAirborne = 60;
+    public float lateralAccelGrounded = 100;
 
     /* Airborne Variables: */
     [HideInInspector]
@@ -38,7 +42,8 @@ public class PBaseMovement : PBehaviour {
     /* Declare States: */
     public PBaseMovement_Airborne SAirborne; // -- TODO: 3.14.18 Tried polymorphism with PStates, but presented issues.
     public PBaseMovement_Idle SIdle;
-    public PBaseMovement_State SRunning, SOnWall, SSteepSlope, STopSlope, SClimbingSlope, SDashing, SAction;
+    public PBaseMovement_Running SRunning;
+    public PBaseMovement_State SOnWall, SSteepSlope, STopSlope, SClimbingSlope, SDashing, SAction;
 
     /* Collision Variables: */
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Used to simulate onCollisionEnter each FixedUpdate.
@@ -64,10 +69,12 @@ public class PBaseMovement : PBehaviour {
         gravity = -(2 * PStats.jumpHeightMax) / Mathf.Pow(PStats.timeToJumpApex, 2);
         jumpVelocityMax = Mathf.Abs(gravity * PStats.timeToJumpApex);
         jumpVelocityMin = Mathf.Sqrt(2 * Mathf.Abs(gravity) * PStats.jumpHeightMin);
+        activeSpeed = moveSpeed;
 
         /* Create States. */
         SAirborne = gameObject.GetComponent<PBaseMovement_Airborne>();
         SIdle = gameObject.GetComponent<PBaseMovement_Idle>();
+        SRunning = gameObject.GetComponent<PBaseMovement_Running>();
 
         SetStateParentBehaviours();
 
@@ -114,6 +121,8 @@ public class PBaseMovement : PBehaviour {
         //SIdle.collisionState = collisionState;
         //SIdle.collisionManager = new PBaseMovement_Collision(SIdle, collisionState);
         SIdle.OnStart(this);
+
+        SRunning.OnStart(this);
     }
 
     /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/

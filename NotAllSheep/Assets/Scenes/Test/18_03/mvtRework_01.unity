@@ -301,6 +301,7 @@ GameObject:
   - component: {fileID: 1104687148}
   - component: {fileID: 1104687147}
   - component: {fileID: 1104687150}
+  - component: {fileID: 1104687151}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -443,7 +444,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   behaviour: {fileID: 0}
-  velocity: {x: 0, y: 0}
+  input: {fileID: 0}
+  collisionState: {fileID: 0}
 --- !u!114 &1104687146
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -467,7 +469,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   behaviour: {fileID: 0}
-  velocity: {x: 0, y: 0}
+  input: {fileID: 0}
+  collisionState: {fileID: 0}
 --- !u!114 &1104687148
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -480,7 +483,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   behaviour: {fileID: 0}
-  velocity: {x: 0, y: 0}
+  input: {fileID: 0}
+  collisionState: {fileID: 0}
 --- !u!114 &1104687149
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -499,8 +503,27 @@ MonoBehaviour:
   rigidBody: {fileID: 0}
   collider: {fileID: 0}
   gravity: 0
+  directionFacing: 1
+  directionMoving: 1
+  moveSpeed: 10
+  activeSpeed: 0
+  lateralAccelAirborne: 60
+  lateralAccelGrounded: 100
+  jumpVelocityMax: 0
+  jumpVelocityMin: 0
+  velocity: {x: 0, y: 0}
+  wallHitSpeed: {x: 0, y: 0}
+  topSlopeSpeedCur: {x: 0, y: 0}
   SAirborne: {fileID: 0}
   SIdle: {fileID: 0}
+  SRunning: {fileID: 0}
+  SOnWall: {fileID: 0}
+  SSteepSlope: {fileID: 0}
+  STopSlope: {fileID: 0}
+  SClimbingSlope: {fileID: 0}
+  SDashing: {fileID: 0}
+  SAction: {fileID: 0}
+  hasLateralInput: 0
 --- !u!114 &1104687150
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -512,6 +535,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f0e7218ed1e4d40b0ae396f8e2c083, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1104687151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1104687138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dfb08dbf5c62f241976efcb61cb2b4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  behaviour: {fileID: 0}
+  input: {fileID: 0}
+  collisionState: {fileID: 0}
 --- !u!1 &1228340211
 GameObject:
   m_ObjectHideFlags: 0

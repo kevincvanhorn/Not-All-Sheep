@@ -11,7 +11,8 @@ public enum PInput
     Left,
     Right,
     Sprint,
-    Dash
+    Dash,
+    Action
 }
 
 /*  Need to store keyDown events until consumed in next fixed update (uuuf) ie. held down until addressed in fixedUpdate.
@@ -39,6 +40,8 @@ public class PInputManager : MonoBehaviour
     public bool KeyHeld_Right { get { return keyHeldInputs.Contains(PInput.Right); } }
     public bool KeyHeld_Sprint { get { return keyHeldInputs.Contains(PInput.Sprint); } }
     public bool KeyHeld_Dash { get { return keyHeldInputs.Contains(PInput.Dash); } }
+
+    public bool KeyHeld_Action { get { return keyHeldInputs.Contains(PInput.Action); } }
 
     public void Awake()
     {
@@ -82,7 +85,7 @@ public class PInputManager : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            keyDownInputs.Add(PInput.Down);
+            keyDownInputs.Add(PInput.Right);
         }
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
@@ -113,7 +116,7 @@ public class PInputManager : MonoBehaviour
         }
         if (Input.GetKey(KeyCode.RightArrow))
         {
-            keyHeldInputs.Add(PInput.Down);
+            keyHeldInputs.Add(PInput.Right);
         }
         if (Input.GetKey(KeyCode.LeftShift))
         {
@@ -122,6 +125,7 @@ public class PInputManager : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftControl))
         {
             keyHeldInputs.Add(PInput.Dash);
+            keyHeldInputs.Add(PInput.Action);
         }
     }
 

@@ -6,27 +6,16 @@ public class CharacterBase : MonoBehaviour
     /* Collisions Vars */
     private float slideFactor = 1;
 
-    /* Colliders */
-    HashSet<Vector2> contacts = new HashSet<Vector2>();
-
     /* Movement Variables */
-    public float moveSpeed = 10;    // Horizontal speed.
     public float moveSpeedMin = 5;
     public float sprintSpeed = 20;
-    public float activeSpeed;
     public Vector3 velocity;
-
-    /* Jump Variables */
-    public float lateralAccelAirborne = 60;
-    public float lateralAccelGrounded = 100;
 
     private float jumpVelRatio; // Vxmax = (Vxmax * Vymin) / Vymin
 
     /* Slope Variables */
-    public float slopeAngle = 0;
     public float maxAngle = 80;
     private Vector2 climbSlopeHitSpeed;
-    public float steepSlopeMinEnterSpeed = 20;
 
     public Vector3 debugSlopeHitLoc;
 
@@ -61,12 +50,7 @@ public class CharacterBase : MonoBehaviour
     public void Start()
     {   
         /* Set collision defaults. */
-        activeSpeed = moveSpeed;
         wallHitSpeed.x = activeSpeed;
-
-        inputManager = GetComponent<CInputManager>();
-        collisionState = GetComponent<CCollisionState>();
-        cActionsBase = GetComponent<CActionsBase>();
 
         jumpVelRatio = jumpVelocityMin / jumpVelocityMax; // Vxmax = (Vxmax * Vymin) / Vymin
 
@@ -84,57 +68,6 @@ public class CharacterBase : MonoBehaviour
         Debug.Log("Enter Event was seen by: " + value);
     }
 
-    void Idle_Update()
-    {
-
-        //collisionState.printStatesError();
-
-        /* Vertical JUMP Calc ------------------------------------------ */
-
-        /*if (!collisionState.Bot || !collisionState.Slope) {
-            fsm.ChangeState(States.Simulate, StateTransition.Safe);
-        }*/
-
-        /* Lateral Calc -------------------------------------------------- */
-        else if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
-        {
-            if (collisionState.Slope)
-            {
-                if (slopeAngle > CStats.slopeAngleMin && slopeAngle <= CStats.slopeAngleMax)
-                {
-                    fsm.ChangeState(CStatesBase.ClimbingSlope, StateTransition.Safe);
-                }
-                else
-                {
-                    Debug.LogError("TopCollision - Invalid Angle");
-                }
-            }
-            else if (collisionState.Bot)
-            {
-                fsm.ChangeState(CStatesBase.Running, StateTransition.Safe);
-            }
-            else if (collisionState.SteepSlope)
-            {
-                fsm.ChangeState(CStatesBase.SteepSlope, StateTransition.Safe);
-            }
-            else
-            {
-                Debug.LogError("ERROR: Invalid Idle Transition.");
-                collisionState.printStatesError();
-            }
-        }
-
-        if (inputManager.ActionKeyPressed())
-        {
-            fsm.ChangeState(CStatesBase.Action);
-        }
-    }
-
-    void Idle_OnCollisionEnter2D(Collision2D collision)
-    {
-        DoCollision(collision);
-    }
-
     void Idle_Exit()
     {
         string value = EventRelay.RelayEvent(EventRelay.EventMessageType.CStateExit, this);
@@ -150,16 +83,8 @@ public class CharacterBase : MonoBehaviour
         {  // Variable jump - When Up is released in this frame.
             if (velocity.y > jumpVelocityMin)
             {
-                //Debug.DrawLine(transform.position, transform.position + velocity, Color.blue, 15);
-                //Debug.DrawLine(transform.position, transform.position + new Vector3 (0, velocity.y, 0), Color.blue, 15);
-                //Debug.DrawLine(transform.position, transform.position + new Vector3(velocity.x, 0, 0), Color.blue, 15);
                 velocity.x = (jumpVelocityMin * velocity.x) / velocity.y;
                 velocity.y = jumpVelocityMin;
-
-                //velocity.x = jumpVelRatio * velocity.x; // 1.26.18
-                //Debug.DrawLine(transform.position, transform.position + velocity, Color.green, 15);
-                //Debug.DrawLine(transform.position, transform.position + new Vector3(0, velocity.y, 0), Color.green, 15);
-                ///Debug.DrawLine(transform.position, transform.position + new Vector3(velocity.x, 0, 0), Color.green, 15);
             }
         }
 
@@ -208,11 +133,6 @@ public class CharacterBase : MonoBehaviour
         DoCollision(collision);
     }
 
-    void Running_Enter()
-    {
-        Debug.Log("RUNNING - Enter");
-    }
-
     void Running_Update()
     {
         Debug.Log("RUNNING - Update");
@@ -233,165 +153,9 @@ public class CharacterBase : MonoBehaviour
         }
 
         /* Lateral Calc -------------------------------------------------- */
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
-        {
 
-
-            /* Acceleration. */
-            if(directionFacing == 1)
-            {
-                if(velocity.x < activeSpeed)
-                {
-                    velocity.x += lateralAccelGrounded * Time.deltaTime * directionFacing;
-                }
-                else
-                {
-                    velocity.x = activeSpeed * directionFacing;
-                }
-            }
-            else if(directionFacing == -1)
-            {
-                if (velocity.x > -1*activeSpeed)
-                {
-                    velocity.x += lateralAccelGrounded * Time.deltaTime * directionFacing;
-                }
-                else
-                {
-                    velocity.x = activeSpeed * directionFacing;
-                }
-            }
-            Debug.Log("Accel-Velocity" + velocity.x);
-
-            // This applies from still and accels to activespeed - does not apply when switching directions at active speed.
-            /*if (Mathf.Abs(velocity.x) < activeSpeed)
-            {
-                velocity.x += lateralAccelGrounded * Time.deltaTime * directionFacing;
-            }
-            
-            else
-            {
-                velocity.x = activeSpeed * directionFacing;
-            }*/
-
-        }
-        /* X Deceleration ---------------------------------------------- */
-        else if (velocity.x != 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
-        { // On-release of Lateral Movement controls - Deccelerate
-            //velocity.x = 0; //1.3.18
-            Debug.Log(directionMoving + " Pre --" + velocity.x);
-            if (directionMoving == 1)
-            { // Decceleration Right
-                if (velocity.x >= 0)
-                {
-                    velocity.x -= lateralAccelGrounded * Time.deltaTime;
-                }
-                if (velocity.x < 0) { velocity.x = 0; }
-            }
-            else if (directionMoving == -1)
-            { // Decceleration Left
-                if (velocity.x < 0)
-                {
-                    velocity.x += lateralAccelGrounded * Time.deltaTime;
-                }
-                if (velocity.x >= 0) { velocity.x = 0; }
-            }
-            Debug.Log(directionMoving + " Post --" + velocity.x);
-        }
-
-        /* Run/deccelerate into wall - Applied here once instead of conditionals above. */
-        if (velocity.x > 0 && collisionState.Right)
-        {
-            velocity.x = 0;
-        }
-        else if (velocity.x < 0 && collisionState.Left)
-        {
-            velocity.x = 0;
-        }
-
-        /* Steep Slope Min Velocity. */
-        if (collisionState.SteepSlope)
-        {
-            if (velocity.x > -steepSlopeMinEnterSpeed && velocity.x < 0 && slopeDir == -1)
-            {
-                if (Input.GetKey(KeyCode.LeftArrow))
-                {
-                    velocity.x = 0;
-                }
-
-            }
-            else if (velocity.x < steepSlopeMinEnterSpeed && velocity.x > 0 && slopeDir == 1)
-            {
-                if (Input.GetKey(KeyCode.RightArrow))
-                {
-                    velocity.x = 0;
-                }
-
-            }
-        }
-
-        /* Priority Cases*/
-        if (inputManager.ActionKeyPressed())
-        { // Trigger Action.
-            print("Running Transition 3");
-            fsm.ChangeState(CStatesBase.Action);
-        }
-
-        else if (collisionState.None)
-        { // Case - slide off edge
-            Debug.LogError("NONE");
-            collisionState.printStatesError();
-            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
-        }
-
-        /* Vertical JUMP Calc ------------------------------------------ */
-        // Jump if pressed or held && not touchingTop (ex: sandwiched between two platforms).
-        else if (Input.GetKey(KeyCode.UpArrow) && !collisionState.Top && !collisionState.TopSlope)
-        {
-            /*if (animController)
-            {
-                if (!jumpWaiting)
-                {
-                    animController.AnimTrigger(); // SHould queue a jump here
-                    jumpWaiting = true;
-                }
-                else if (jumpWaiting && !animController.IsJumpFromGrounded())
-                {
-                    velocity.y = jumpVelocityMax;
-                    print("Running Transition 1");
-                    fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
-                    jumpWaiting = false;
-                }
-            }
-            else
-            {*/
-                velocity.y = jumpVelocityMax;
-                print("Running Transition 1");
-                fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
-            //}
-            
-                
-        }
-        else if (velocity.x == 0 && !Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
-        {
-            Debug.Log("Running Transition 2");
-            fsm.ChangeState(CStatesBase.Idle, StateTransition.Safe);
-        }
-        /*(else if (Mathf.Abs(velocity.x) >= steepSlopeMinEnterSpeed && collisionState.SteepSlope)
-        {
-            fsm.ChangeState(States.SteepSlope, StateTransition.Safe);
-        }*/
-        else if (collisionState.SteepSlope && Mathf.Abs(velocity.x) >= steepSlopeMinEnterSpeed)
-        {
-            if (velocity.x < 0 && slopeDir == -1)
-            {
-                fsm.ChangeState(CStatesBase.SteepSlope, StateTransition.Safe);
-            }
-            else if (velocity.x > 0 && slopeDir == 1)
-            {
-                fsm.ChangeState(CStatesBase.SteepSlope, StateTransition.Safe);
-            }
-        }
-        //Debug.Log("Post-Velocity" + velocity.x);
+        
+        /* X Deceleration ---------------------------------------------- */ 
     }
 
     void Running_OnCollisionEnter2D(Collision2D collision)
