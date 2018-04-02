@@ -6,11 +6,6 @@ public class CharacterBase : MonoBehaviour
     /* Collisions Vars */
     private float slideFactor = 1;
 
-    /* Movement Variables */
-    public float moveSpeedMin = 5;
-    public float sprintSpeed = 20;
-    public Vector3 velocity;
-
     private float jumpVelRatio; // Vxmax = (Vxmax * Vymin) / Vymin
 
     /* Slope Variables */
@@ -60,109 +55,19 @@ public class CharacterBase : MonoBehaviour
 
         animController = (CAnimationController)FindObjectOfType(typeof(CAnimationController));       
     }
-
-    /* Should be a buffer state active when no input is pressed. */
     void Idle_Enter()
     {
         string value = EventRelay.RelayEvent(EventRelay.EventMessageType.CStateEnter, this);
         Debug.Log("Enter Event was seen by: " + value);
     }
-
     void Idle_Exit()
     {
         string value = EventRelay.RelayEvent(EventRelay.EventMessageType.CStateExit, this);
         Debug.LogWarning("Exit Event was seen by: " + value);
     }
 
-    void Airborne_Update()
-    {
-        PreStateUpdate();
-
-        /* Vertical Calc ----------------------------------------- */
-        if (Input.GetKeyUp(KeyCode.UpArrow))
-        {  // Variable jump - When Up is released in this frame.
-            if (velocity.y > jumpVelocityMin)
-            {
-                velocity.x = (jumpVelocityMin * velocity.x) / velocity.y;
-                velocity.y = jumpVelocityMin;
-            }
-        }
-
-        /* Lateral Calc -------------------------------------------*/
-        if (Input.GetKey(KeyCode.RightArrow) && velocity.x < activeSpeed)
-        { // in-air lateral move right
-            velocity.x += lateralAccelAirborne * Time.deltaTime;
-        }
-        else if (Input.GetKey(KeyCode.LeftArrow) && velocity.x > -activeSpeed)
-        { // in-air lateral move left
-            velocity.x -= lateralAccelAirborne * Time.deltaTime;
-        }
-
-
-        if (collisionState.Top && velocity.y > 0)
-        {
-            velocity.y = 0;
-        }
-
-        //#### velocity.y += gravity * Time.deltaTime; // Apply Gravity until grounded
-
-        // Jumping While Against Wall.
-        if (collisionState.Right || collisionState.Left)
-        {
-            /*print("CollisionState -------------");
-            collisionState.printStates();
-            print("----------------------------");*/
-            if (velocity.x != 0) wallHitSpeed = velocity;
-            //Debug.LogError("wallhitspeed " + wallHitSpeed);
-            velocity.x = 0;
-            fsm.ChangeState(CStatesBase.OnWall);
-        }
-
-        // Trigger Action.
-        if (inputManager.ActionKeyPressed())
-        {
-            fsm.ChangeState(CStatesBase.Action);
-        }
-    }
-
-    void Airborne_OnCollisionEnter2D(Collision2D collision)
-    {
-        Debug.Log("AIRBORNE - OnCollisionEnter " + velocity);
-
-        BaseCollisionEnter2D(collision);
-        DoCollision(collision);
-    }
-
-    void Running_Update()
-    {
-        Debug.Log("RUNNING - Update");
-        PreStateUpdate();
-
-        //Debug.Log("Pre-Velocity" + velocity.x);
-
-        // check contacts and set velocity.x = 0 should be touching the ground still
-
-        /* Sprint Calc ------------------------------------------------- */
-        if (Input.GetKey(KeyCode.LeftShift))
-        {
-            activeSpeed = sprintSpeed;
-        }
-        else
-        {
-            //activeSpeed = moveSpeed;
-        }
-
-        /* Lateral Calc -------------------------------------------------- */
-
-        
-        /* X Deceleration ---------------------------------------------- */ 
-    }
-
     void Running_OnCollisionEnter2D(Collision2D collision)
     {
-        BaseCollisionEnter2D(collision);
-        Debug.Log("RUNNING - OnCollisionEnter");
-
         if (enterCollisionTypes.Count > 0)
         {
             /* Steep Slope Collision. */
@@ -277,12 +182,7 @@ public class CharacterBase : MonoBehaviour
 
     void OnWall_Update()
     {
-        Debug.Log("ONWALL - Update");
-        PreStateUpdate();
-
         slopeAngle = collisionState.curWallAngle; // CollisionState update is before this.
-
-        //Debug.Log(velocity);
 
         if (collisionState.Slope)
         {

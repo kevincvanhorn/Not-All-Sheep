@@ -20,6 +20,12 @@ public class PBaseMovement_Running : PBaseMovement_State {
     {
         base.OnInputBehaviour();
 
+        /* Sprint Calc ------------------------------------------------- */
+        if (input.KeyHeld_Sprint)
+        {
+            behaviour.activeSpeed = behaviour.sprintSpeed;
+        }
+
         /* Lateral Calc -------------------------------------------------- */
         if (input.KeyHeld_Left || input.KeyHeld_Right)
         {

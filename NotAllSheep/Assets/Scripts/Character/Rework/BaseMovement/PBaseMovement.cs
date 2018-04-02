@@ -25,6 +25,8 @@ public class PBaseMovement : PBehaviour {
     public float activeSpeed;         // Horizontal Speed.
     public float lateralAccelAirborne = 60;
     public float lateralAccelGrounded = 100;
+    //public float moveSpeedMin = 5;
+    public float sprintSpeed = 20;
 
     /* Airborne Variables: */
     [HideInInspector]

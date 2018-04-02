@@ -25,6 +25,7 @@ public class PInputManager : MonoBehaviour
 {
     private HashSet<PInput> keyDownInputs;
     private HashSet<PInput> keyHeldInputs;
+    private HashSet<PInput> keyUpInputs;
 
     /* Accessor variables. */
     public bool KeyDown_Up { get { return keyDownInputs.Contains(PInput.Up); } }
@@ -33,6 +34,8 @@ public class PInputManager : MonoBehaviour
     public bool KeyDown_Right { get { return keyDownInputs.Contains(PInput.Right); } }
     public bool KeyDown_Sprint { get { return keyDownInputs.Contains(PInput.Sprint); } }
     public bool KeyDown_Dash { get { return keyDownInputs.Contains(PInput.Dash); } }
+
+    public bool KeyUp_Up { get { return keyUpInputs.Contains(PInput.Up); } }
 
     public bool KeyHeld_Up { get { return keyHeldInputs.Contains(PInput.Up); } }
     public bool KeyHeld_Down { get { return keyHeldInputs.Contains(PInput.Down); } }
@@ -46,6 +49,7 @@ public class PInputManager : MonoBehaviour
     public void Awake()
     {
         keyDownInputs = new HashSet<PInput>();
+        keyUpInputs = new HashSet<PInput>();
         keyHeldInputs = new HashSet<PInput>();
     }
 
@@ -54,6 +58,7 @@ public class PInputManager : MonoBehaviour
     {
         /* Consume input in keyDownInputs. */
         keyDownInputs.Clear();
+        keyUpInputs.Clear();
     }
 
     private void Update()
@@ -62,8 +67,8 @@ public class PInputManager : MonoBehaviour
 
         /* Populate Input Queues: */
         QueueKeyDownInputs();
+        QueueKeyUpInputs();
         QueueKeyHeldInputs();
-        
     }
 
     /* Populates the keyDownInputs to be reset each fixedUpdate (in current behaviour).
@@ -94,6 +99,17 @@ public class PInputManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftControl))
         {
             keyDownInputs.Add(PInput.Dash);
+        }
+    }
+
+    /* Populates the keyDownInputs to be reset each fixedUpdate (in current behaviour).
+* TODO: Make buttons with "string" mapping instead of GetKeyDown(). */
+    private void QueueKeyUpInputs()
+    {
+        // Populate inputQueue
+        if (Input.GetKeyUp(KeyCode.UpArrow))
+        {
+            keyUpInputs.Add(PInput.Up);
         }
     }
 
