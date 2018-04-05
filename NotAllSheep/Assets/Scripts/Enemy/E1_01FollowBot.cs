@@ -246,7 +246,6 @@ public class E1_01FollowBot : EnemyBase
             shouldWaitForPlayer = true;
         }
 
-
         if (!inTrigger && !shouldWaitForPlayer)
         {
             if (target == null)
@@ -274,6 +273,12 @@ public class E1_01FollowBot : EnemyBase
                 if (curTarget < targets.Count)
                     target = targets[curTarget].transform;
                 return;
+            }
+
+            /* Get Waypoint Speed if exists: (not == -1)*/
+            if (targets[curTarget].speedToWaypoint != -1)
+            {
+                speed = targets[curTarget].speedToWaypoint;
             }
 
             Vector3 dir = (path.vectorPath[curWaypoint] - transform.position).normalized;
