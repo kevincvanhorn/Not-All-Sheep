@@ -12,6 +12,8 @@ public class PBehaviour : MonoBehaviour {
 
     public PState curState;
 
+    public bool isTransitioning = false;
+
     public virtual void Awake()
     {
         pInputManager = GetComponent<PInputManager>();
@@ -26,13 +28,19 @@ public class PBehaviour : MonoBehaviour {
 
     public virtual void OnFixedUpdate()
     {
+        isTransitioning = false;
         curState.OnFixedUpdate();   
     }
 
     public virtual void Transition(PState nextState)
     {
-        curState.OnStateExit();
-        nextState.OnStateEnter();
-        curState = nextState;
+        /* Only Allow one transition per Fixed Update.*/
+        if (!isTransitioning)
+        {
+            isTransitioning = true;
+            curState.OnStateExit();
+            nextState.OnStateEnter();
+            curState = nextState;
+        }
     }
 }

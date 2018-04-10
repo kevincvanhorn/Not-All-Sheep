@@ -302,6 +302,7 @@ GameObject:
   - component: {fileID: 1104687147}
   - component: {fileID: 1104687150}
   - component: {fileID: 1104687151}
+  - component: {fileID: 1104687152}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -374,6 +375,8 @@ MonoBehaviour:
   curSteepSlopeAngle: 0
   slopeDir: 1
   steepSlopeDir: 0
+  wallHitNormal: {x: 0, y: 0}
+  debugWallHitLoc: {x: 0, y: 0, z: 0}
 --- !u!23 &1104687142
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -500,19 +503,25 @@ MonoBehaviour:
   inputFilter: 
   collisionState: {fileID: 0}
   curState: {fileID: 0}
+  isTransitioning: 0
   rigidBody: {fileID: 0}
   collider: {fileID: 0}
   gravity: 0
   directionFacing: 1
   directionMoving: 1
-  moveSpeed: 10
+  moveSpeed: 20
   activeSpeed: 0
   lateralAccelAirborne: 60
   lateralAccelGrounded: 100
+  sprintSpeed: 30
   jumpVelocityMax: 0
   jumpVelocityMin: 0
   velocity: {x: 0, y: 0}
   wallHitSpeed: {x: 0, y: 0}
+  wallFallSpeed: 0
+  wallStickTime: 0
+  wallCase: 0
+  isWallSticking: 0
   topSlopeSpeedCur: {x: 0, y: 0}
   SAirborne: {fileID: 0}
   SIdle: {fileID: 0}
@@ -544,6 +553,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7dfb08dbf5c62f241976efcb61cb2b4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  behaviour: {fileID: 0}
+  input: {fileID: 0}
+  collisionState: {fileID: 0}
+--- !u!114 &1104687152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1104687138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdc7cf9740025c046ba3c045a67c058e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   behaviour: {fileID: 0}

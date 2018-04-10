@@ -1,8 +1,57 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PBaseMovement_Running : PBaseMovement_State {
+
+    private class LocalCollisionManager : PBaseMovement_CollisionManager
+    {
+        public LocalCollisionManager(PBaseMovement_State owner, PCollisionState collisionState) : base(owner, collisionState)
+        {
+        }
+
+        public override void SteepSlopeCollision()
+        {
+            /* Steep Slope Collision. */
+            if (collisionState.SteepSlope_Enter)
+            {
+                if (collisionState.curSlopeAngle > PStats.slopeAngleMax && collisionState.curSlopeAngle < PStats.topAngleMin)
+                {
+                    if (Mathf.Abs(behaviour.velocity.x) >= 20)
+                    {
+                        behaviour.Transition(behaviour.SSteepSlope);
+                    }
+                    else
+                    {
+                        behaviour.velocity.x = 0;
+                    }
+                }
+                else { Debug.LogError("SteepSlope Collision - Invalid Angle"); }
+            }
+        }
+
+        public override void TopCollision()
+        {
+            /* Top Slope Collision. */
+            if (collisionState.TopSlope_Enter)
+            {
+                if (collisionState.curSlopeAngle > PStats.wallAngleMax && collisionState.curSlopeAngle < PStats.topAngleMin)
+                {
+                    behaviour.velocity.y = 0; // Top Slope Collisions
+                    behaviour.topSlopeSpeedCur = behaviour.velocity;
+                    behaviour.Transition(behaviour.STopSlope);
+                }
+                else { Debug.LogError("TopCollision - Invalid Angle"); }
+            }
+        }
+    }
+
+    public override void OnStart(PBaseMovement behaviourIn)
+    {
+        base.OnStart(behaviourIn);
+        collisionManager = new LocalCollisionManager(this, collisionState);
+    }
 
     public override void OnStateEnter()
     {

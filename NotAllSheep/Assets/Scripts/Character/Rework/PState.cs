@@ -10,12 +10,12 @@ public class PState : MonoBehaviour {
 
     public virtual void OnStateEnter()
     {
-        // Debug.Log(this.GetType()+" - Enter"); //@tag: DEBUG
+        Debug.Log(this.GetType()+" - Enter"); //@tag: DEBUG
     }
 
     public virtual void OnFixedUpdate()
     {
-        // Debug.Log(this.GetType() + " - OnStateUpdate"); //@tag: DEBUG
+        Debug.Log(this.GetType() + " - OnStateUpdate"); //@tag: DEBUG
     }
 
     public virtual void OnInterrupt()
@@ -26,6 +26,6 @@ public class PState : MonoBehaviour {
     /* Called prior to state transition, should not modify velocity. */
     public virtual void OnStateExit()
     {
-
+        Debug.Log(this.GetType() + " - OnStateExit"); //@tag: DEBUG
     }
 }

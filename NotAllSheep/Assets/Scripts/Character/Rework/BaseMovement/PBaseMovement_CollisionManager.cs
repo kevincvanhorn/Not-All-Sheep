@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 /* A modular, collision behaviour manager that handles transitions and velocity updates. */
@@ -7,7 +8,7 @@ public class PBaseMovement_CollisionManager
 {
     public PBaseMovement_State owner;
     public PCollisionState collisionState;
-    private PBaseMovement behaviour;
+    public PBaseMovement behaviour;
 
     public PBaseMovement_CollisionManager(PBaseMovement_State owner, PCollisionState collisionState)
     {
@@ -68,8 +69,6 @@ public class PBaseMovement_CollisionManager
             }
             else
             {
-                behaviour.velocity.x = 0;
-                behaviour.velocity.y = 0;
                 if (behaviour.velocity.x == 0) { behaviour.Transition(behaviour.SIdle); }
                 else { behaviour.Transition(behaviour.SRunning); }
             }
@@ -86,7 +85,8 @@ public class PBaseMovement_CollisionManager
             }
             else
             {
-                Debug.LogWarning("AIRBORNE: This state should be inaccessible - grounded & touchingWall");
+                if (behaviour.velocity.x == 0) { behaviour.Transition(behaviour.SIdle); }
+                else { behaviour.Transition(behaviour.SRunning); }
             }
         }
     }

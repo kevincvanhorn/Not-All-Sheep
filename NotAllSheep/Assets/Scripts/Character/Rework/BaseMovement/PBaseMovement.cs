@@ -36,7 +36,13 @@ public class PBaseMovement : PBehaviour {
     public Vector2 velocity = Vector2.zero;
 
     /* Wall Variables: */
-    public Vector2 wallHitSpeed;
+    public Vector2 wallHitSpeed = Vector2.zero;
+    //public Vector3 debugWallHitLoc;
+    //public Vector2 wallHitNormal;
+    public float wallFallSpeed;
+    public float wallStickTime = 0;
+    public int wallCase;
+    public bool isWallSticking;
 
     /* Top Slope Vars: */
     public Vector2 topSlopeSpeedCur;
@@ -73,10 +79,14 @@ public class PBaseMovement : PBehaviour {
         jumpVelocityMin = Mathf.Sqrt(2 * Mathf.Abs(gravity) * PStats.jumpHeightMin);
         activeSpeed = moveSpeed;
 
+        wallHitSpeed.x = activeSpeed;
+        //wallFrictionDown = 1;
+
         /* Create States. */
         SAirborne = gameObject.GetComponent<PBaseMovement_Airborne>();
         SIdle = gameObject.GetComponent<PBaseMovement_Idle>();
         SRunning = gameObject.GetComponent<PBaseMovement_Running>();
+        SOnWall = gameObject.GetComponent<PBaseMovement_OnWall>();
 
         SetStateParentBehaviours();
 
@@ -125,6 +135,7 @@ public class PBaseMovement : PBehaviour {
         SIdle.OnStart(this);
 
         SRunning.OnStart(this);
+        SOnWall.OnStart(this);
     }
 
     /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/

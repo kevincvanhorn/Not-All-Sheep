@@ -28,7 +28,6 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
             {
                 behaviour.velocity.x = (behaviour.jumpVelocityMin * behaviour.velocity.x) / behaviour.velocity.y;
                 behaviour.velocity.y = behaviour.jumpVelocityMin;
-                Debug.LogWarning("asdfasdfss");
             }
         }
 

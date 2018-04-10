@@ -32,7 +32,7 @@ public class PBaseMovement_State : PState {
     {
         base.OnStateEnter();
         //collisionManager.owner = this;
-}
+    }
 
     /* When any Base Movement state is Updated. */
     public override void OnFixedUpdate()
@@ -48,6 +48,7 @@ public class PBaseMovement_State : PState {
     public virtual void DoCollisionBehaviour()
     {
         collisionManager.DoCollisionBehaviour();
+        Debug.Log(this.GetType() + " - DoCOllisionBehaviour"); //@tag: DEBUG
     }
 
 

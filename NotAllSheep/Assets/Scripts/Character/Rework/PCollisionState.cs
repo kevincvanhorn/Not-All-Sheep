@@ -12,6 +12,8 @@ public class PCollisionState : MonoBehaviour
     public float curSteepSlopeAngle = 0;
     public int slopeDir = 1;
     public int steepSlopeDir;
+    public Vector2 wallHitNormal;
+    public Vector3 debugWallHitLoc;
 
     /* OnCollisionEnter Emulation: */
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Set of collisions that entered this fixed frame.
@@ -121,6 +123,9 @@ public class PCollisionState : MonoBehaviour
                             {
                                 Debug.LogError("ERROR: Invalid Angle.");
                             }
+                            wallHitNormal = contactsIn[i].normal;
+                            wallHitNormal *= -1;
+                            debugWallHitLoc = contactsIn[i].point;
                             slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
                             curWallAngle = slopeAngle;
                         }
@@ -191,6 +196,11 @@ public class PCollisionState : MonoBehaviour
     public void printStatesError()
     {
         Debug.LogError("--------- T" + Top + " B" + Bot + " L" + Left + " R" + Right + " S" + Slope + " N" + None + " TS" + TopSlope);
+    }
+
+    public void printStatesWarning()
+    {
+        Debug.LogWarning("--------- T" + Top + " B" + Bot + " L" + Left + " R" + Right + " S" + Slope + " N" + None + " TS" + TopSlope);
     }
 
     public void printStatesShort()
