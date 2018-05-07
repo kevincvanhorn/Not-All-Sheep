@@ -44,8 +44,19 @@ public class PBaseMovement : PBehaviour {
     public int wallCase;
     public bool isWallSticking;
 
+    /* Slope Variables */
+    public float maxAngle = 80;
+    public Vector2 climbSlopeHitSpeed;
+    public float steepSlopeMinEnterSpeed = 20;
+
     /* Top Slope Vars: */
     public Vector2 topSlopeSpeedCur;
+
+    /* Private State-Specific Vars */
+    // Steep Slopes
+    //public float steepSlopeSpeed;
+    //public Vector2 steepSlopeHitNormal;
+    //public float wallFrictionDown;
 
     /* Declare States: */
     public PBaseMovement_Airborne SAirborne; // -- TODO: 3.14.18 Tried polymorphism with PStates, but presented issues.
@@ -87,6 +98,7 @@ public class PBaseMovement : PBehaviour {
         SIdle = gameObject.GetComponent<PBaseMovement_Idle>();
         SRunning = gameObject.GetComponent<PBaseMovement_Running>();
         SOnWall = gameObject.GetComponent<PBaseMovement_OnWall>();
+        SClimbingSlope = gameObject.GetComponent<PBaseMovement_ClimbingSlope>();
 
         SetStateParentBehaviours();
 
@@ -122,20 +134,11 @@ public class PBaseMovement : PBehaviour {
     /* Set the behaviour var in each state for referencing this Behaviour. Ideally this would be via constructor. */
     private void SetStateParentBehaviours()
     {
-        //SAirborne.behaviour = this;
-        //SAirborne.input = pInputManager;
-        //SAirborne.collisionState = collisionState;
-        //SAirborne.collisionManager = new PBaseMovement_Collision(SAirborne, collisionState);
         SAirborne.OnStart(this);
-
-        //SIdle.behaviour = this;
-        //SIdle.input = pInputManager;
-        //SIdle.collisionState = collisionState;
-        //SIdle.collisionManager = new PBaseMovement_Collision(SIdle, collisionState);
         SIdle.OnStart(this);
-
         SRunning.OnStart(this);
         SOnWall.OnStart(this);
+        SClimbingSlope.OnStart(this);
     }
 
     /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/

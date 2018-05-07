@@ -34,7 +34,7 @@ public class PBaseMovement_CollisionManager
     {
         /* Bot Collision. */
         if (collisionState.Bot_Enter)
-        {
+        {   
             behaviour.velocity.y = 0;
             if (behaviour.velocity.x == 0) { behaviour.Transition(behaviour.SIdle); }
             else { behaviour.Transition(behaviour.SRunning); }
