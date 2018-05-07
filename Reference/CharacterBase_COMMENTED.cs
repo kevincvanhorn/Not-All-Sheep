@@ -3,11 +3,9 @@
 public class CharacterBase : MonoBehaviour
 {
     /* Collisions Vars */
-    private float slideFactor = 1;
+ 
 
     private float jumpVelRatio; // Vxmax = (Vxmax * Vymin) / Vymin
-
-    public Vector3 debugSlopeHitLoc;
 
     private CActionsBase cActionsBase;
 
@@ -51,71 +49,6 @@ public class CharacterBase : MonoBehaviour
     {
         string value = EventRelay.RelayEvent(EventRelay.EventMessageType.CStateExit, this);
         Debug.LogWarning("Exit Event was seen by: " + value);
-    }
-
-    void TopSlope_Enter()
-    {
-        velocity = topSlopeSpeedCur;
-        Debug.Log("TOPSLOPE - Enter");
-    }
-
-    void TopSlope_Update()
-    {
-        PreStateUpdate();
-        Debug.Log("TOPSLOPE - Update");
-
-        float platformSlippiness = 20;
-        slideFactor = 1 / (Mathf.Abs(velocity.x)) * 100 + platformSlippiness;
-        if (slideFactor < 1)
-        {
-            slideFactor = 1;
-        }
-
-        velocity = topSlopeSpeedCur;
-
-        Vector2 slopeVector = (Vector2)(Quaternion.Euler(0, 0, 180 - slopeAngle) * Vector2.right); //PFEF
-        float hitAngle = Vector2.Angle(velocity, slopeVector);
-        //velocity.x = slopeHitSpeed.x * Mathf.Cos((180 - slopeAngle) * Mathf.Deg2Rad); // - velocity?
-        velocity.y = Mathf.Abs(topSlopeSpeedCur.x) * Mathf.Sin((180 - slopeAngle) * Mathf.Deg2Rad);
-
-        Debug.Log("SlideFactor " + slideFactor);
-        Debug.Log("Slope Angle: " + (180 - slopeAngle));
-        //Debug.LogError("Slope Vector: " + slopeVector);
-        Debug.Log("Hit Angle : " + hitAngle);
-        //Debug.DrawLine(new Vector3(0,0,0), slopeVector, Color.yellow, 20);
-        //Debug.DrawLine(new Vector3(0, 0, 0), velocity, Color.red, 20);
-        Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + (Vector3)slopeVector, Color.green, 20);
-        Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.red, 20);
-
-        if (velocity.x == 0)
-        {
-            topSlopeSpeedCur.y = 0;
-        }
-        else
-        {
-            topSlopeSpeedCur.y += gravity * slideFactor * Time.deltaTime; // Apply Gravity until grounded
-        }
-
-        if (topSlopeSpeedCur.y <= 0)
-        {
-            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
-        }
-
-        Debug.Log("slopeHitSpeed" + topSlopeSpeedCur);
-        Debug.Log("velocity" + velocity);
-
-        if (!collisionState.Slope)
-        {
-            fsm.ChangeState(CStatesBase.Simulate, StateTransition.Safe);
-        }
-    }
-
-    void TopSlope_OnCollisionEnter2D(Collision2D collision)
-    {
-        Debug.LogError("TOPSLOPE - OnCollisionEnter2D - TODO Address this.");
-        BaseCollisionEnter2D(collision);
-
-        DoCollision(collision);
     }
 
     void SteepSlope_Enter()

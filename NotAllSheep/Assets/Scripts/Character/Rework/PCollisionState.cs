@@ -14,6 +14,7 @@ public class PCollisionState : MonoBehaviour
     public int steepSlopeDir;
     public Vector2 wallHitNormal;
     public Vector3 debugWallHitLoc;
+    public Vector3 debugSlopeHitLoc;
 
     /* OnCollisionEnter Emulation: */
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Set of collisions that entered this fixed frame.
@@ -109,7 +110,7 @@ public class PCollisionState : MonoBehaviour
                             curCollisionTypes.Add(CollisionType.Bot);
                         }
                         /* Wall Collision */
-                        else if (slopeAngle <= CStats.wallAngleMax && slopeAngle >= CStats.wallAngleMin)
+                        else if (slopeAngle <= PStats.wallAngleMax && slopeAngle >= PStats.wallAngleMin)
                         {
                             if (contactsIn[i].normal.x < 0)
                             {
@@ -130,22 +131,25 @@ public class PCollisionState : MonoBehaviour
                             curWallAngle = slopeAngle;
                         }
                         /* Top Collision*/
-                        else if (slopeAngle >= CStats.topAngleMin && slopeAngle <= CStats.topAngleMax)
+                        else if (slopeAngle >= PStats.topAngleMin && slopeAngle <= PStats.topAngleMax)
                         {
                             curCollisionTypes.Add(CollisionType.Top);
                         }
                         /* Top Slope Collision. */
-                        else if (slopeAngle > CStats.wallAngleMax && slopeAngle < CStats.topAngleMin)
+                        else if (slopeAngle > PStats.wallAngleMax && slopeAngle < PStats.topAngleMin)
                         {
                             curCollisionTypes.Add(CollisionType.TopSlope);
                             slopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
+                            debugSlopeHitLoc = contactsIn[i].point;
+                            curSlopeAngle = slopeAngle;
                         }
                         /* Steep Slope Collision. */
-                        else if (slopeAngle > CStats.slopeAngleMax && slopeAngle < CStats.topAngleMin)
+                        else if (slopeAngle > PStats.slopeAngleMax && slopeAngle < PStats.topAngleMin)
                         {
                             curCollisionTypes.Add(CollisionType.SteepSlope);
                             curSteepSlopeAngle = slopeAngle;
                             steepSlopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
+                            curSlopeAngle = slopeAngle;
                         }
                         /* Slope Collision */
                         else

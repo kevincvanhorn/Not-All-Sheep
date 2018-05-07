@@ -51,6 +51,7 @@ public class PBaseMovement : PBehaviour {
 
     /* Top Slope Vars: */
     public Vector2 topSlopeSpeedCur;
+    public float topSlideFactor = 1;
 
     /* Private State-Specific Vars */
     // Steep Slopes
@@ -99,6 +100,7 @@ public class PBaseMovement : PBehaviour {
         SRunning = gameObject.GetComponent<PBaseMovement_Running>();
         SOnWall = gameObject.GetComponent<PBaseMovement_OnWall>();
         SClimbingSlope = gameObject.GetComponent<PBaseMovement_ClimbingSlope>();
+        STopSlope = gameObject.GetComponent<PBaseMovement_TopSlope>();
 
         SetStateParentBehaviours();
 
@@ -139,6 +141,7 @@ public class PBaseMovement : PBehaviour {
         SRunning.OnStart(this);
         SOnWall.OnStart(this);
         SClimbingSlope.OnStart(this);
+        STopSlope.OnStart(this);
     }
 
     /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/
