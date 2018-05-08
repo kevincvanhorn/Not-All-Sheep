@@ -36,7 +36,7 @@ public class PBaseMovement_Running : PBaseMovement_State {
             /* Top Slope Collision. */
             if (collisionState.TopSlope_Enter)
             {
-                if (collisionState.curSlopeAngle > PStats.wallAngleMax && collisionState.curSlopeAngle < PStats.topAngleMin)
+                if (!collisionState.Bot && !collisionState.Slope && collisionState.curSlopeAngle > PStats.wallAngleMax && collisionState.curSlopeAngle < PStats.topAngleMin)
                 {
                     behaviour.velocity.y = 0; // Top Slope Collisions
                     behaviour.topSlopeSpeedCur = behaviour.velocity;
@@ -44,6 +44,11 @@ public class PBaseMovement_Running : PBaseMovement_State {
                 }
                 else { Debug.LogError("TopCollision - Invalid Angle"); }
             }
+        }
+
+        public override void TopSlopeCollision()
+        {
+            base.TopSlopeCollision();
         }
     }
 

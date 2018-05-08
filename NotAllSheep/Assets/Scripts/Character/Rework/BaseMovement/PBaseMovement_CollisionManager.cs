@@ -34,7 +34,8 @@ public class PBaseMovement_CollisionManager
     {
         /* Bot Collision. */
         if (collisionState.Bot_Enter)
-        {   
+        {
+            Debug.LogError("BOTCOLLISION");
             behaviour.velocity.y = 0;
             if (behaviour.velocity.x == 0) { behaviour.Transition(behaviour.SIdle); }
             else { behaviour.Transition(behaviour.SRunning); }
@@ -46,6 +47,7 @@ public class PBaseMovement_CollisionManager
         /* Slope Collision. */
         if (collisionState.Slope_Enter)
         {
+            Debug.LogError("SLOPE COLLISION");
             if (collisionState.curSlopeAngle > PStats.slopeAngleMin && collisionState.curSlopeAngle <= PStats.slopeAngleMax)
             {
                 behaviour.Transition(behaviour.SClimbingSlope);
@@ -96,6 +98,7 @@ public class PBaseMovement_CollisionManager
         /* Steep Slope Collision. */
         if (collisionState.SteepSlope_Enter)
         {
+            Debug.LogError("STTTEEEEEpSLOPE COLLISION");
             if (collisionState.curSlopeAngle > PStats.slopeAngleMax && collisionState.curSlopeAngle < PStats.topAngleMin)
             {
                 behaviour.Transition(behaviour.SSteepSlope);
@@ -109,13 +112,14 @@ public class PBaseMovement_CollisionManager
         /* Top Slope Collision. */
         if (collisionState.TopSlope_Enter)
         {
-            behaviour.velocity.y = 0;
-            if (collisionState.curSlopeAngle > PStats.wallAngleMax && collisionState.curSlopeAngle < PStats.topAngleMin)
+            Debug.LogError("TOOOOP SLOPE COLLISION");
+            //behaviour.velocity.y = 0;
+            if (!collisionState.Bot && !collisionState.Slope && collisionState.curSlopeAngle > PStats.wallAngleMax && collisionState.curSlopeAngle < PStats.topAngleMin)
             {
                 behaviour.topSlopeSpeedCur = behaviour.velocity;
                 behaviour.Transition(behaviour.STopSlope);
             }
-            else { Debug.LogError("TopCollision - Invalid Angle"); }
+            else { Debug.LogError("Top Slope Collision - Invalid Angle"); }
             //Debug.DrawLine(debugSlopeHitLoc, debugSlopeHitLoc + velocity, Color.yellow, 20); // DEBUG.
         }
     }

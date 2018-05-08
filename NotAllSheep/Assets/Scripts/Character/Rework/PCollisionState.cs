@@ -59,6 +59,7 @@ public class PCollisionState : MonoBehaviour
     /* Checks and clears collision overlaps. */
     public void OnFixedUpdate()
     {
+        Debug.Log(TopSlope);
         ClearOverlaps();
         CheckOverlaps();
         SetEnterCollisions();
