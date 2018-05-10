@@ -306,13 +306,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 668625897}
-  m_LocalRotation: {x: -0, y: -0, z: 0.16390495, w: 0.9864762}
-  m_LocalPosition: {x: -15.199997, y: 168.47, z: 0.12803715}
+  m_LocalRotation: {x: -0, y: -0, z: 0.48322764, w: 0.8754947}
+  m_LocalPosition: {x: -9, y: 166.4, z: 0.12803715}
   m_LocalScale: {x: 100.57733, y: 2.09651, z: 1}
   m_Children: []
   m_Father: {fileID: 1579149053}
   m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 18.867}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 57.793003}
 --- !u!61 &668625899
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -402,6 +402,7 @@ GameObject:
   - component: {fileID: 1104687152}
   - component: {fileID: 1104687153}
   - component: {fileID: 1104687154}
+  - component: {fileID: 1104687155}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -477,6 +478,7 @@ MonoBehaviour:
   wallHitNormal: {x: 0, y: 0}
   debugWallHitLoc: {x: 0, y: 0, z: 0}
   debugSlopeHitLoc: {x: 0, y: 0, z: 0}
+  steepSlopeHitNormal: {x: 0, y: 0}
 --- !u!23 &1104687142
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -609,7 +611,7 @@ MonoBehaviour:
   gravity: 0
   directionFacing: 1
   directionMoving: 1
-  moveSpeed: 20
+  moveSpeed: 30
   activeSpeed: 0
   lateralAccelAirborne: 60
   lateralAccelGrounded: 200
@@ -627,6 +629,7 @@ MonoBehaviour:
   steepSlopeMinEnterSpeed: 20
   topSlopeSpeedCur: {x: 0, y: 0}
   topSlideFactor: 1
+  steepSlopeSpeed: 0
   SAirborne: {fileID: 0}
   SIdle: {fileID: 0}
   SRunning: {fileID: 0}
@@ -699,6 +702,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc44c247751e5ff4c8581fa959a71798, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  behaviour: {fileID: 0}
+  input: {fileID: 0}
+  collisionState: {fileID: 0}
+--- !u!114 &1104687155
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1104687138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 010434f749939394aa82a99c09ea1e8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   behaviour: {fileID: 0}

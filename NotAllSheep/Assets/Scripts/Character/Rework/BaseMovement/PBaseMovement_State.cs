@@ -38,9 +38,14 @@ public class PBaseMovement_State : PState {
     public override void OnFixedUpdate()
     {
         base.OnFixedUpdate();
-        DoCollisionBehaviour();
         OnInputBehaviour();
+        DoCollisionBehaviour();
+    }
 
+    /* For changing order of OnFixedUpdate - ie. skip local OnFixedUpdate. */
+    public void OnFixedUpdate_GrandparentCall()
+    {
+        base.OnFixedUpdate();
     }
 
     /* Called every FixedUpdate for actions based on current collision overlaps. 

@@ -16,6 +16,8 @@ public class PCollisionState : MonoBehaviour
     public Vector3 debugWallHitLoc;
     public Vector3 debugSlopeHitLoc;
 
+    public Vector2 steepSlopeHitNormal;
+
     /* OnCollisionEnter Emulation: */
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Set of collisions that entered this fixed frame.
     public HashSet<CollisionType> prevCollisionTypes = new HashSet<CollisionType>();  // Set of collisions present in the previous fixed frame.
@@ -150,6 +152,8 @@ public class PCollisionState : MonoBehaviour
                             curCollisionTypes.Add(CollisionType.SteepSlope);
                             curSteepSlopeAngle = slopeAngle;
                             steepSlopeDir = (contactsIn[i].normal.x > 0) ? 1 : -1;
+
+                            steepSlopeHitNormal = contactsIn[i].normal;
                             curSlopeAngle = slopeAngle;
                         }
                         /* Slope Collision */

@@ -55,7 +55,7 @@ public class PBaseMovement : PBehaviour {
 
     /* Private State-Specific Vars */
     // Steep Slopes
-    //public float steepSlopeSpeed;
+    public float steepSlopeSpeed;
     //public Vector2 steepSlopeHitNormal;
     //public float wallFrictionDown;
 
@@ -101,6 +101,7 @@ public class PBaseMovement : PBehaviour {
         SOnWall = gameObject.GetComponent<PBaseMovement_OnWall>();
         SClimbingSlope = gameObject.GetComponent<PBaseMovement_ClimbingSlope>();
         STopSlope = gameObject.GetComponent<PBaseMovement_TopSlope>();
+        SSteepSlope = gameObject.GetComponent<PBaseMovement_SteepSlope>();
 
         SetStateParentBehaviours();
 
@@ -142,6 +143,7 @@ public class PBaseMovement : PBehaviour {
         SOnWall.OnStart(this);
         SClimbingSlope.OnStart(this);
         STopSlope.OnStart(this);
+        SSteepSlope.OnStart(this);
     }
 
     /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/
