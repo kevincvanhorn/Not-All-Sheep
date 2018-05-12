@@ -4,8 +4,16 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
+
+/* States: */
 [RequireComponent(typeof(PBaseMovement_Airborne))]
 [RequireComponent(typeof(PBaseMovement_Idle))]
+[RequireComponent(typeof(PBaseMovement_Running))]
+[RequireComponent(typeof(PBaseMovement_OnWall))]
+[RequireComponent(typeof(PBaseMovement_SteepSlope))]
+[RequireComponent(typeof(PBaseMovement_TopSlope))]
+[RequireComponent(typeof(PBaseMovement_ClimbingSlope))]
+
 public class PBaseMovement : PBehaviour {
 
     /* Inherited Variables: */
