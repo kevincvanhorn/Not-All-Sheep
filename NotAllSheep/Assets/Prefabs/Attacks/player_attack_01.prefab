@@ -149,5 +149,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 11
   destroyOnAwake: 1
-  destroyDelay: 0.1
+  destroyDelay: 0.3
   damage: 1
+  offset: {x: 0, y: 0, z: 0}
+  positionPrev: {x: 0, y: 0, z: 0}

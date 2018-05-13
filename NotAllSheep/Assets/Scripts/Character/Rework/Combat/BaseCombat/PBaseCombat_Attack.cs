@@ -11,6 +11,9 @@ public class PBaseCombat_Attack{
     public PAttackInstance attackPrefab;
     public PAttackInstance attackInstance;
 
+    //public PAttackInstance[] attackPrefabs;
+    //public HashSet<PAttackInstance> attackInstances;
+
     /* Constructor: PBaseCombat is the monobehaviour, need to pass it as config for transform etc. */
     public PBaseCombat_Attack(PBaseCombat config, PAttackInstance attackPrefab)
     {
