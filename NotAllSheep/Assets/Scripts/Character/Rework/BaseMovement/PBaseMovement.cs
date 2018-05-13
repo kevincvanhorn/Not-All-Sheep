@@ -83,15 +83,16 @@ public class PBaseMovement : PBehaviour {
     {
         base.Awake();
         /* Get Components. */
+        pInputManager = GetComponent<PInputManager>();
         rigidBody = GetComponent<Rigidbody2D>(); // Note: Could be in this.Start Method
         collider = GetComponent<Collider2D>();   // For CameraFollow's Start Method.
     }
 
-    public override void Start()
+    public override void OnStart()
     {
         /* Input Setup. */
         inputFilter = new List<PInput>() { PInput.Vertical, PInput.Horizontal, PInput.Up, PInput.Down, PInput.Left, PInput.Right, PInput.Sprint, PInput.Dash };
-        base.Start(); // Creates Input Manager.
+        base.OnStart(); // Creates Input Manager.
 
         /* Calc Movement Variables. */
         gravity = -(2 * PStats.jumpHeightMax) / Mathf.Pow(PStats.timeToJumpApex, 2);
@@ -132,7 +133,7 @@ public class PBaseMovement : PBehaviour {
                                   // If Transition: curState.Exit() -> nextState.Enter().
 
         rigidBody.velocity = velocity;//((PBaseMovement_State)curState).velocity; // Gets the velocity from the current PBaseMovement_State.
-        pInputManager.OnFixedUpdate(); // Resets all keyDown events in input controller.
+        
     }
 
     public override void Transition(PState nextState)
@@ -187,5 +188,8 @@ public class PBaseMovement : PBehaviour {
         {
             hasLateralInput = true;
         }
+
+        /* Update Player Manager: */
+        Player.directionFacing = directionFacing;
     }
 }

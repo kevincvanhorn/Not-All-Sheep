@@ -9,6 +9,10 @@ using UnityEngine;
  [RequireComponent(typeof(PCollisionState))]
 public class PBehaviourManager : MonoBehaviour {
 
+    /* Singleton Behaviour. */
+    private static PBehaviourManager _instance = null;
+    public static PBehaviourManager Instance { get { return _instance; } }
+
     private PBehaviour curBehaviour;
 
     /* Behaviours: */
@@ -19,7 +23,20 @@ public class PBehaviourManager : MonoBehaviour {
     /* Collisions: */
     private PCollisionState collisionState;
 
-    public void Start()
+    
+    private void Awake()
+    {
+        /* Enforce Singleton: */
+        if (_instance != null && _instance != this)
+            Destroy(this.gameObject);
+        else
+            _instance = this;
+    }
+
+    /* Enforce different instance each scene. */
+    private void OnDestroy() { if (this == _instance) { _instance = null; } }
+
+    public void OnStart()
     {
         /* Create Behaviours. */
         behaviour_BaseMovement = gameObject.GetComponent<PBaseMovement>();
@@ -33,8 +50,9 @@ public class PBehaviourManager : MonoBehaviour {
     }
 
     /* FixedUpdate for all Behaviours and States is only called in this Manager. */
-    private void FixedUpdate()
+    public void OnFixedUpdate()
     {
+        
         curBehaviour.OnFixedUpdate();
     }
 
@@ -47,6 +65,6 @@ public class PBehaviourManager : MonoBehaviour {
     /* -- Methods For Readability. */
     private void SetBehaviourSpecificVars()
     {
-
+        behaviour_BaseMovement.OnStart();
     }
 }

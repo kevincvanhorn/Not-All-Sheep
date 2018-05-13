@@ -6,22 +6,25 @@ using UnityEngine;
 [RequireComponent(typeof(PCollisionState))]
 public class PBehaviour : MonoBehaviour {
 
+    [HideInInspector]
     public PInputManager pInputManager;
+    [HideInInspector]
     public List<PInput> inputFilter; // Inputs that this state accepts - any others should be discarded.
+    [HideInInspector]
     public PCollisionState collisionState;
-
+    [HideInInspector]
     public PState curState;
-
+    [HideInInspector]
     public bool isTransitioning = false;
 
     public virtual void Awake()
     {
-        pInputManager = GetComponent<PInputManager>();
+        //pInputManager = GetComponent<PInputManager>();
         collisionState = GetComponent<PCollisionState>();
     }
 
     // Use this for initialization
-    public virtual void Start()
+    public virtual void OnStart()
     {
         
     }

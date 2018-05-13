@@ -12,7 +12,8 @@ public enum PInput
     Right,
     Sprint,
     Dash,
-    Action
+    Action,
+    AttackLight
 }
 
 /*  Need to store keyDown events until consumed in next fixed update (uuuf) ie. held down until addressed in fixedUpdate.
@@ -45,6 +46,10 @@ public class PInputManager : MonoBehaviour
     public bool KeyHeld_Dash { get { return keyHeldInputs.Contains(PInput.Dash); } }
 
     public bool KeyHeld_Action { get { return keyHeldInputs.Contains(PInput.Action); } }
+
+    /* Attacks & Actions: */
+    public bool KeyDown_AttackLight { get { return keyDownInputs.Contains(PInput.AttackLight); } }
+    public bool KeyHeld_AttackLight { get { return keyHeldInputs.Contains(PInput.AttackLight); } }
 
     public void Awake()
     {
@@ -100,6 +105,11 @@ public class PInputManager : MonoBehaviour
         {
             keyDownInputs.Add(PInput.Dash);
         }
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            keyDownInputs.Add(PInput.AttackLight);
+            //Debug.LogError("OKASKF:ALFKHASF");
+        }
     }
 
     /* Populates the keyDownInputs to be reset each fixedUpdate (in current behaviour).
@@ -142,6 +152,10 @@ public class PInputManager : MonoBehaviour
         {
             keyHeldInputs.Add(PInput.Dash);
             keyHeldInputs.Add(PInput.Action);
+        }
+        if (Input.GetKey(KeyCode.X))
+        {
+            keyHeldInputs.Add(PInput.AttackLight);
         }
     }
 
