@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour {
 
-    public CharacterBase player;
+    public PBaseMovement player;
     public Vector2 focusAreaSize;
 
     public float verticalCameraOffset;
@@ -33,15 +33,19 @@ public class CameraFollow : MonoBehaviour {
         GameObject playerObj = GameObject.Find("Player");
         if (playerObj != null)
         {
-            player = playerObj.GetComponent<CharacterBase>();
+            //player = playerObj.GetComponent<CharacterBase>();
+            //player = Player.Instance.gameObject.GetComponent<PBaseMovement>();
+            player = playerObj.GetComponent<PBaseMovement>();
         }
+        //player = Player.Instance.gameObject.GetComponent<PBaseMovement>();
+
 
         //focusArea = new FocusArea(player.collider.bounds, focusAreaSize);
 
     }
 
     /* When all of the Player movemement has been used. */
-    private void LateUpdate()
+    public void OnFixedUpdate()
     {
         focusArea.UpdatePos(player.collider.bounds);
         Vector2 focusPosition = focusArea.center + Vector2.up * verticalCameraOffset;

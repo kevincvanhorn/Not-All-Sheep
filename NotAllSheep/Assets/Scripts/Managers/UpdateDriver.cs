@@ -33,10 +33,18 @@ public class UpdateDriver : MonoBehaviour {
         PBehaviourManager.Instance.OnFixedUpdate(); // Update PlayerMvt.
         PCombatManager.Instance.OnFixedUpdate();
         Player.input.OnFixedUpdate(); // Resets all keyDown events in input controller.
+
+        //CameraFollow cam = GameObject.FindObjectOfType<CameraFollow>();
+        //cam.OnFixedUpdate();
     }
 
     // Update is called once per frame
     void Update () {
 		
 	}
+
+    void LateUpdate()
+    {
+        
+    }
 }

@@ -18,7 +18,7 @@ public class PBaseCombat_Slash : PBaseCombat_Attack{
         base.DoHit();
 
         // Spawn Attack Instance:
-        attackInstance = GameObject.Instantiate(attackPrefab, config.transform.position + new Vector3(3 * Player.directionFacing, 1), attackPrefab.transform.rotation);
+        attackInstance = GameObject.Instantiate(attackPrefab, config.transform.position + new Vector3(3 * Player.directionFacing, 0), attackPrefab.transform.rotation);
 
         ((PBaseCombat_Slash_Instance)attackInstance).positionPrev = Player.Instance.transform.position;
         /*Flip direction w/ dirFacing*/

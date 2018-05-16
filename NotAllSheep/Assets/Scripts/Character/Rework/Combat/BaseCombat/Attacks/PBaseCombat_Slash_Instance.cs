@@ -22,9 +22,12 @@ public class PBaseCombat_Slash_Instance : PAttackInstance
         //offset = new Vector3(3 * Player.directionFacing, 1);
         //transform.position = Player.Instance.transform.position + offset;
         //Debug.LogError(Player.Instance.transform.position - positionPrev);
-        transform.Translate(Player.Instance.transform.position - positionPrev, Space.World);
+        transform.Translate((Player.Instance.transform.position - positionPrev)*.9f, Space.World);
         positionPrev = Player.Instance.transform.position;
     }
 
-
+    public override void OnCollisionEnter(Collision collision)
+    {
+        base.OnCollisionEnter(collision);
+    }
 }

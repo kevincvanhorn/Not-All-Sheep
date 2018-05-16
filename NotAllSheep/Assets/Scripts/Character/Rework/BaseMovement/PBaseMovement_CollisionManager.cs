@@ -35,7 +35,7 @@ public class PBaseMovement_CollisionManager
         /* Bot Collision. */
         if (collisionState.Bot_Enter)
         {
-            Debug.LogError("BOTCOLLISION");
+            //Debug.LogError("BOTCOLLISION");
             behaviour.velocity.y = 0;
             if (behaviour.velocity.x == 0) { behaviour.Transition(behaviour.SIdle); }
             else { behaviour.Transition(behaviour.SRunning); }
@@ -47,7 +47,7 @@ public class PBaseMovement_CollisionManager
         /* Slope Collision. */
         if (collisionState.Slope_Enter)
         {
-            Debug.LogError("SLOPE COLLISION");
+            //Debug.LogError("SLOPE COLLISION");
             if (collisionState.curSlopeAngle > PStats.slopeAngleMin && collisionState.curSlopeAngle <= PStats.slopeAngleMax)
             {
                 behaviour.Transition(behaviour.SClimbingSlope);
