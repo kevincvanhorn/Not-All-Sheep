@@ -9,6 +9,9 @@ public class UpdateDriver : MonoBehaviour {
     private static UpdateDriver _instance = null;
     public static UpdateDriver Instance { get { return _instance; } }
 
+    private static CameraFollow cam;
+
+
     /* Awake for this Driver script. NOT awake for other classes connected to this. */
     private void Awake()
     {
@@ -17,6 +20,9 @@ public class UpdateDriver : MonoBehaviour {
             Destroy(this.gameObject);
         else
             _instance = this;
+
+        /* Initialization: */
+         cam = GameObject.FindObjectOfType<CameraFollow>();
     }
 
     /* Different instance each scene. */
@@ -32,10 +38,10 @@ public class UpdateDriver : MonoBehaviour {
     {
         PBehaviourManager.Instance.OnFixedUpdate(); // Update PlayerMvt.
         PCombatManager.Instance.OnFixedUpdate();
-        Player.input.OnFixedUpdate(); // Resets all keyDown events in input controller.
 
-        //CameraFollow cam = GameObject.FindObjectOfType<CameraFollow>();
-        //cam.OnFixedUpdate();
+        cam.OnFixedUpdate();
+
+        Player.input.OnFixedUpdate(); // Resets all keyDown events in input controller.
     }
 
     // Update is called once per frame

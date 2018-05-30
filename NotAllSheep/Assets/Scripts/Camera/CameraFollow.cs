@@ -40,7 +40,7 @@ public class CameraFollow : MonoBehaviour {
         //player = Player.Instance.gameObject.GetComponent<PBaseMovement>();
 
 
-        //focusArea = new FocusArea(player.collider.bounds, focusAreaSize);
+        focusArea = new FocusArea(player.collider.bounds, focusAreaSize);
 
     }
 
@@ -84,8 +84,8 @@ public class CameraFollow : MonoBehaviour {
 
     private void OnDrawGizmos()
     {
-        //Gizmos.color = new Color(1, 0, 0, 0.5f);
-        //Gizmos.DrawCube(focusArea.center, focusAreaSize);
+        Gizmos.color = new Color(1, 0, 0, 0.5f);
+        Gizmos.DrawCube(focusArea.center, focusAreaSize);
     }
 
     struct FocusArea
