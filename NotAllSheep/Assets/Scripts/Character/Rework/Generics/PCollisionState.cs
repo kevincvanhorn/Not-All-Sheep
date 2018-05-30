@@ -22,7 +22,7 @@ public class PCollisionState : MonoBehaviour
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Set of collisions that entered this fixed frame.
     public HashSet<CollisionType> prevCollisionTypes = new HashSet<CollisionType>();  // Set of collisions present in the previous fixed frame.
     public HashSet<CollisionType> curCollisionTypes = new HashSet<CollisionType>();
-    int collisionTypeCount = CollisionType.GetNames(typeof(CollisionType)).Length;
+    //int collisionTypeCount = CollisionType.GetNames(typeof(CollisionType)).Length;
 
     /* Collision Variables: */
     private ContactFilter2D contactFilter = new ContactFilter2D();
@@ -61,7 +61,7 @@ public class PCollisionState : MonoBehaviour
     /* Checks and clears collision overlaps. */
     public void OnFixedUpdate()
     {
-        Debug.Log(TopSlope);
+        //Debug.Log(TopSlope);
         ClearOverlaps();
         CheckOverlaps();
         SetEnterCollisions();

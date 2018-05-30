@@ -8,7 +8,7 @@ public class CameraTrigger : MonoBehaviour {
 
     public CameraZoomType zoomType;
 
-    public CameraZoom camera; // **Set in Editor
+    public new CameraZoom camera; // **Set in Editor
     private float prevSize;
     public float zoomSize = 20;
 

@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PBaseMovement_Airborne : PBaseMovement_State {
+
+    public PBaseMovement_Airborne(PBaseMovement behaviourIn) : base(behaviourIn)
+    {
+    }
+
     public override void OnStateEnter()
     {
         base.OnStateEnter();

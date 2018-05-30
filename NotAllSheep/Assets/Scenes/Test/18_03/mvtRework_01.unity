@@ -5620,15 +5620,7 @@ GameObject:
   - component: {fileID: 1104687146}
   - component: {fileID: 1104687141}
   - component: {fileID: 1104687149}
-  - component: {fileID: 1104687145}
-  - component: {fileID: 1104687148}
-  - component: {fileID: 1104687147}
   - component: {fileID: 1104687150}
-  - component: {fileID: 1104687151}
-  - component: {fileID: 1104687152}
-  - component: {fileID: 1104687153}
-  - component: {fileID: 1104687154}
-  - component: {fileID: 1104687155}
   - component: {fileID: 1104687157}
   - component: {fileID: 1104687156}
   - component: {fileID: 1104687158}
@@ -5767,20 +5759,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1104687145
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c698bc6c7d1ca0c4385d76421c4795c9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  behaviour: {fileID: 0}
-  input: {fileID: 0}
-  collisionState: {fileID: 0}
 --- !u!114 &1104687146
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5792,34 +5770,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7d675295ac28c74e921ec91c4595f93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1104687147
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7854b7a69cbc16b479fc86461ac16020, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  behaviour: {fileID: 0}
-  input: {fileID: 0}
-  collisionState: {fileID: 0}
---- !u!114 &1104687148
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ecc25a255b4838349830f6bdb4a796b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  behaviour: {fileID: 0}
-  input: {fileID: 0}
-  collisionState: {fileID: 0}
 --- !u!114 &1104687149
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5834,7 +5784,6 @@ MonoBehaviour:
   pInputManager: {fileID: 0}
   inputFilter: 
   collisionState: {fileID: 0}
-  curState: {fileID: 0}
   isTransitioning: 0
   rigidBody: {fileID: 0}
   collider: {fileID: 0}
@@ -5860,15 +5809,6 @@ MonoBehaviour:
   topSlopeSpeedCur: {x: 0, y: 0}
   topSlideFactor: 1
   steepSlopeSpeed: 0
-  SAirborne: {fileID: 0}
-  SIdle: {fileID: 0}
-  SRunning: {fileID: 0}
-  SOnWall: {fileID: 0}
-  SSteepSlope: {fileID: 0}
-  STopSlope: {fileID: 0}
-  SClimbingSlope: {fileID: 0}
-  SDashing: {fileID: 0}
-  SAction: {fileID: 0}
   hasLateralInput: 0
 --- !u!114 &1104687150
 MonoBehaviour:
@@ -5881,76 +5821,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8f0e7218ed1e4d40b0ae396f8e2c083, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1104687151
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7dfb08dbf5c62f241976efcb61cb2b4c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  behaviour: {fileID: 0}
-  input: {fileID: 0}
-  collisionState: {fileID: 0}
---- !u!114 &1104687152
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bdc7cf9740025c046ba3c045a67c058e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  behaviour: {fileID: 0}
-  input: {fileID: 0}
-  collisionState: {fileID: 0}
---- !u!114 &1104687153
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abe45d89137827945b53cf179b348de0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  behaviour: {fileID: 0}
-  input: {fileID: 0}
-  collisionState: {fileID: 0}
---- !u!114 &1104687154
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc44c247751e5ff4c8581fa959a71798, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  behaviour: {fileID: 0}
-  input: {fileID: 0}
-  collisionState: {fileID: 0}
---- !u!114 &1104687155
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1104687138}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 010434f749939394aa82a99c09ea1e8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  behaviour: {fileID: 0}
-  input: {fileID: 0}
-  collisionState: {fileID: 0}
 --- !u!114 &1104687156
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5988,7 +5858,6 @@ MonoBehaviour:
   pInputManager: {fileID: 0}
   inputFilter: 
   collisionState: {fileID: 0}
-  curState: {fileID: 0}
   isTransitioning: 0
   SSlash_prefab: {fileID: 114518368124997458, guid: 4a07f133cbce7064d864c137b4f39a0e,
     type: 2}

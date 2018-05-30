@@ -74,12 +74,10 @@ public class PBaseMovement_ClimbingSlope : PBaseMovement_State
         }
     }
 
-    public override void OnStart(PBaseMovement behaviourIn)
+    public PBaseMovement_ClimbingSlope(PBaseMovement behaviourIn) : base(behaviourIn)
     {
-        base.OnStart(behaviourIn);
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
-
 
     public override void OnStateEnter()
     {

@@ -52,9 +52,8 @@ public class PBaseMovement_Running : PBaseMovement_State {
         }
     }
 
-    public override void OnStart(PBaseMovement behaviourIn)
+    public PBaseMovement_Running(PBaseMovement behaviourIn) : base(behaviourIn)
     {
-        base.OnStart(behaviourIn);
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
 

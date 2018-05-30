@@ -5,7 +5,7 @@ using UnityEngine;
 /* The base combat configuration with a set of attacks (as states). */
 public class PBaseCombat : PBehaviour {
 
-    LayerMask enemyLayer = (int)CollisionLayers.Enemy;
+    //LayerMask enemyLayer = (int)CollisionLayers.Enemy;
 
     //public new PAttackState curState;
 

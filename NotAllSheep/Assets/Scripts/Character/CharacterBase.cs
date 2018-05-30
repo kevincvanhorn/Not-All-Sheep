@@ -14,7 +14,7 @@ using MonsterLove.StateMachine; // State-Machine Package.
 public class CharacterBase : MonoBehaviour
 {
     public Rigidbody2D rigidBody; // Not Kinematic: moves not by transform, but by physics
-    public Collider2D collider;
+    public new Collider2D collider;
 
     /* Collisions Vars */
     private float slideFactor = 1;

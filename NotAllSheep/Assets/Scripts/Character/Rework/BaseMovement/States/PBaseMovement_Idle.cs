@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class PBaseMovement_Idle : PBaseMovement_State
 {
+    public PBaseMovement_Idle(PBaseMovement behaviourIn) : base(behaviourIn)
+    {
+    }
+
     public override void OnStateEnter()
     {
         base.OnStateEnter();

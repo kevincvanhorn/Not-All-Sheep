@@ -17,7 +17,7 @@ public class CCollisionState : MonoBehaviour
     public float debugSlopeAngle2 = 0;
     public int slopeDir = 1;
 
-    private Collider2D collider;
+    private new Collider2D collider;
     private ContactFilter2D contactFilter = new ContactFilter2D();
 
     public bool none;

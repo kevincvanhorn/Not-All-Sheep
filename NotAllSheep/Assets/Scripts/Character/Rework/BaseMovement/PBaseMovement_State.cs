@@ -18,13 +18,18 @@ public class PBaseMovement_State : PState {
 
     /* Variables that each PBaseMovement State has a copy of: */
 
-    /* Called via Start method of PBaseMovement. */
-    public virtual void OnStart(PBaseMovement behaviourIn)
+    public PBaseMovement_State(PBaseMovement behaviourIn)
     {
         behaviour = behaviourIn;
         collisionState = behaviour.collisionState;
         input = behaviour.pInputManager;
         collisionManager = new PBaseMovement_CollisionManager(this, collisionState);
+    }
+
+    /* Called via Start method of PBaseMovement. */
+    public virtual void OnStart()
+    {
+        //TODO: Merge this into constructor for each sub-state.
     }
 
     /* When any Base Movement state is entered. */
@@ -53,7 +58,7 @@ public class PBaseMovement_State : PState {
     public virtual void DoCollisionBehaviour()
     {
         collisionManager.DoCollisionBehaviour();
-        Debug.Log(this.GetType() + " - DoCOllisionBehaviour"); //@tag: DEBUG
+        //Debug.Log(this.GetType() + " - DoCOllisionBehaviour"); //@tag: DEBUG
     }
 
 

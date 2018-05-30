@@ -75,9 +75,8 @@ public class PBaseMovement_SteepSlope : PBaseMovement_State {
         }
     }
 
-    public override void OnStart(PBaseMovement behaviourIn)
+    public PBaseMovement_SteepSlope(PBaseMovement behaviourIn) : base(behaviourIn)
     {
-        base.OnStart(behaviourIn);
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
 

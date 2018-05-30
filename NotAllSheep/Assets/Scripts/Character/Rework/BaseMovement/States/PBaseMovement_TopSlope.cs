@@ -10,12 +10,10 @@ public class PBaseMovement_TopSlope : PBaseMovement_State {
         }
     }
 
-    public override void OnStart(PBaseMovement behaviourIn)
+    public PBaseMovement_TopSlope(PBaseMovement behaviourIn) : base(behaviourIn)
     {
-        base.OnStart(behaviourIn);
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
-
 
     public override void OnStateEnter()
     {

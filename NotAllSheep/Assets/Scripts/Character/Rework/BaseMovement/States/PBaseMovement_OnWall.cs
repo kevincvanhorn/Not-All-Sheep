@@ -38,30 +38,29 @@ public class PBaseMovement_OnWall : PBaseMovement_State {
         }
     }
 
-    public override void OnStart(PBaseMovement behaviourIn)
+    public PBaseMovement_OnWall(PBaseMovement behaviourIn) : base(behaviourIn)
     {
-        base.OnStart(behaviourIn);
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
 
     public void OnWallEnter()
     {
-        collisionState.printStatesWarning();
+        //collisionState.printStatesWarning();
         //yield return new WaitForEndOfFrame();// WaitforEndofFrame();
         behaviour.velocity = behaviour.wallHitSpeed;
         behaviour.wallStickTime = Mathf.Abs(behaviour.wallHitSpeed.x); // 1.16.18
-        Debug.LogWarning(collisionState.wallHitNormal);
+        //Debug.LogWarning(collisionState.wallHitNormal);
         float wallNormalAngle = Vector2.Angle(behaviour.velocity * -1, collisionState.wallHitNormal);
 
-        Debug.DrawLine(collisionState.debugWallHitLoc, collisionState.debugWallHitLoc + (Vector3)collisionState.wallHitNormal * 5, Color.blue, 10f);
-        Debug.DrawLine(collisionState.debugWallHitLoc, collisionState.debugWallHitLoc + (Vector3)behaviour.velocity * -1 * 0.2f, Color.yellow, 10f);
+        //Debug.DrawLine(collisionState.debugWallHitLoc, collisionState.debugWallHitLoc + (Vector3)collisionState.wallHitNormal * 5, Color.blue, 10f);
+        //Debug.DrawLine(collisionState.debugWallHitLoc, collisionState.debugWallHitLoc + (Vector3)behaviour.velocity * -1 * 0.2f, Color.yellow, 10f);
 
         /* Enable / Disable Wallsticking 1.16.17 */
         if (!(collisionState.Left && input.KeyHeld_Right || collisionState.Right && input.KeyHeld_Left))
         {
             if (wallNormalAngle <= 45 && behaviour.velocity.y < 0 && input.KeyHeld_Up) // coming down hit wall: set vel 0 and keep falling
             {
-                Debug.LogWarning("WallStick Case = 1");
+                //Debug.LogWarning("WallStick Case = 1");
                 behaviour.wallCase = 1;
                 behaviour.isWallSticking = true;
                 behaviour.velocity = Vector2.zero;
@@ -75,13 +74,13 @@ public class PBaseMovement_OnWall : PBaseMovement_State {
             }*/
             else if (wallNormalAngle <= 45 && behaviour.velocity.y > 0)
             {
-                Debug.LogWarning("WallStick Case = 3");
+                //Debug.LogWarning("WallStick Case = 3");
                 behaviour.wallCase = 3;
                 behaviour.isWallSticking = true;
             }
             else
             {
-                Debug.LogWarning("WallStick = false");
+                //Debug.LogWarning("WallStick = false");
                 behaviour.isWallSticking = false;
             }
         }
@@ -92,9 +91,9 @@ public class PBaseMovement_OnWall : PBaseMovement_State {
         {
 
             behaviour.wallFallSpeed = Mathf.Sin(wallNormalAngle * Mathf.Deg2Rad) * behaviour.velocity.magnitude * Mathf.Sign(behaviour.velocity.y);
-             Debug.LogError("Velocity   " + behaviour.velocity.magnitude);
-             Debug.LogError("WallHitAngle      " + wallNormalAngle);
-             Debug.LogError("Speed Calc " + behaviour.wallFallSpeed);
+            //Debug.LogError("Velocity   " + behaviour.velocity.magnitude);
+            //Debug.LogError("WallHitAngle      " + wallNormalAngle);
+            //Debug.LogError("Speed Calc " + behaviour.wallFallSpeed);
         }
         else
         {
@@ -108,7 +107,7 @@ public class PBaseMovement_OnWall : PBaseMovement_State {
     // @ param dir: 1 = left, -1 = right
     private void jumpTowardWall(int dir)
     {
-        Debug.Log("JumpTowardWall : " + dir);
+        //Debug.Log("JumpTowardWall : " + dir);
         behaviour.velocity.y = behaviour.jumpVelocityMax;
         behaviour.velocity.x = dir * behaviour.activeSpeed / 2;
         behaviour.Transition(behaviour.SAirborne);
@@ -118,7 +117,7 @@ public class PBaseMovement_OnWall : PBaseMovement_State {
     // @ param dir: 1 = left, -1 = right
     private void jumpAwayFromWall(int dir)
     {
-        Debug.Log("JumpAwayFromWall : " + dir);
+        //Debug.Log("JumpAwayFromWall : " + dir);
         behaviour.velocity.y = behaviour.jumpVelocityMax;
         behaviour.velocity.x = dir * behaviour.activeSpeed;
         behaviour.Transition(behaviour.SAirborne);
@@ -139,12 +138,12 @@ public class PBaseMovement_OnWall : PBaseMovement_State {
     /* Responds to any Input events - called after collision handling. */
     public override void OnInputBehaviour()
     {
-        collisionState.printStatesError();
+        //collisionState.printStatesError();
         base.OnInputBehaviour();
 
         if (!collisionState.Right && !collisionState.Left)
         {
-            Debug.Log("OnWall - touchingNone - transition to Airborne");
+            //Debug.Log("OnWall - touchingNone - transition to Airborne");
             behaviour.Transition(behaviour.SAirborne);
         }
         else

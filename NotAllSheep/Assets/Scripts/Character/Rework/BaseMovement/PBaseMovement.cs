@@ -4,16 +4,6 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
-
-/* States: */
-[RequireComponent(typeof(PBaseMovement_Airborne))]
-[RequireComponent(typeof(PBaseMovement_Idle))]
-[RequireComponent(typeof(PBaseMovement_Running))]
-[RequireComponent(typeof(PBaseMovement_OnWall))]
-[RequireComponent(typeof(PBaseMovement_SteepSlope))]
-[RequireComponent(typeof(PBaseMovement_TopSlope))]
-[RequireComponent(typeof(PBaseMovement_ClimbingSlope))]
-
 public class PBaseMovement : PBehaviour {
 
     /* Inherited Variables: */
@@ -104,15 +94,13 @@ public class PBaseMovement : PBehaviour {
         //wallFrictionDown = 1;
 
         /* Create States. */
-        SAirborne = gameObject.GetComponent<PBaseMovement_Airborne>();
-        SIdle = gameObject.GetComponent<PBaseMovement_Idle>();
-        SRunning = gameObject.GetComponent<PBaseMovement_Running>();
-        SOnWall = gameObject.GetComponent<PBaseMovement_OnWall>();
-        SClimbingSlope = gameObject.GetComponent<PBaseMovement_ClimbingSlope>();
-        STopSlope = gameObject.GetComponent<PBaseMovement_TopSlope>();
-        SSteepSlope = gameObject.GetComponent<PBaseMovement_SteepSlope>();
-
-        SetStateParentBehaviours();
+        SAirborne = new PBaseMovement_Airborne(this);
+        SIdle = new PBaseMovement_Idle(this);
+        SRunning = new PBaseMovement_Running(this);
+        SOnWall = new PBaseMovement_OnWall(this);
+        SClimbingSlope = new PBaseMovement_ClimbingSlope(this);
+        STopSlope = new PBaseMovement_TopSlope(this);
+        SSteepSlope = new PBaseMovement_SteepSlope(this);
 
         /* Set State. */
         curState = SAirborne;
@@ -142,18 +130,6 @@ public class PBaseMovement : PBehaviour {
     }
 
     /* ---- Methods for Readability (Called once, solely to slim down overriden methods above.) */
-
-    /* Set the behaviour var in each state for referencing this Behaviour. Ideally this would be via constructor. */
-    private void SetStateParentBehaviours()
-    {
-        SAirborne.OnStart(this);
-        SIdle.OnStart(this);
-        SRunning.OnStart(this);
-        SOnWall.OnStart(this);
-        SClimbingSlope.OnStart(this);
-        STopSlope.OnStart(this);
-        SSteepSlope.OnStart(this);
-    }
 
     /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/
     private void UpdateLateralInputVars()
