@@ -38,7 +38,7 @@ public class E1_01FollowBot : EnemyBase
     public float repathRate = 0.5f;
 
     private Seeker seeker;
-    private Rigidbody2D rigidbody;
+    private new Rigidbody2D rigidbody;
     private ForceMode2D fMode; // way to change between force and impulse 
 
     private int curWaypoint = 0;

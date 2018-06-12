@@ -127,13 +127,13 @@ public class PBaseMovement_ClimbingSlope : PBaseMovement_State
                 {
                     if (behaviour.velocity.x < behaviour.activeSpeed * Mathf.Cos(collisionState.curSlopeAngle * Mathf.Deg2Rad))
                     {
-                        Debug.Log("1: "+ behaviour.lateralAccelGrounded + " " + Mathf.Cos(collisionState.curSlopeAngle * Mathf.Deg2Rad) +  " " + behaviour.directionFacing);
+                        //Debug.Log("1: "+ behaviour.lateralAccelGrounded + " " + Mathf.Cos(collisionState.curSlopeAngle * Mathf.Deg2Rad) +  " " + behaviour.directionFacing);
                         behaviour.velocity.x += behaviour.lateralAccelGrounded * Mathf.Cos(collisionState.curSlopeAngle * Mathf.Deg2Rad) * Time.deltaTime * behaviour.directionFacing;
                         behaviour.velocity.y += behaviour.lateralAccelGrounded * Mathf.Sin(collisionState.curSlopeAngle * Mathf.Deg2Rad) * collisionState.slopeDir * behaviour.directionFacing * Time.deltaTime;
                     }
                     else
                     {
-                        Debug.Log("2");
+                        //Debug.Log("2");
                         behaviour.velocity.x = behaviour.activeSpeed * Mathf.Cos(collisionState.curSlopeAngle * Mathf.Deg2Rad) * behaviour.directionFacing;
                         behaviour.velocity.y = behaviour.activeSpeed * Mathf.Sin(collisionState.curSlopeAngle * Mathf.Deg2Rad) * collisionState.slopeDir * behaviour.directionFacing;
                     }

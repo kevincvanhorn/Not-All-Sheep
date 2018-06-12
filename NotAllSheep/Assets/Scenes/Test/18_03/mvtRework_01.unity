@@ -5620,6 +5620,7 @@ GameObject:
   - component: {fileID: 1104687146}
   - component: {fileID: 1104687141}
   - component: {fileID: 1104687149}
+  - component: {fileID: 1104687145}
   - component: {fileID: 1104687150}
   - component: {fileID: 1104687157}
   - component: {fileID: 1104687156}
@@ -5759,6 +5760,46 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1104687145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1104687138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e07c0db161c6e94398d852cb491180d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pInputManager: {fileID: 0}
+  inputFilter: 
+  collisionState: {fileID: 0}
+  isTransitioning: 0
+  rigidBody: {fileID: 0}
+  collider: {fileID: 0}
+  gravity: 0
+  directionFacing: 1
+  directionMoving: 1
+  moveSpeed: 30
+  activeSpeed: 0
+  lateralAccelAirborne: 60
+  lateralAccelGrounded: 200
+  sprintSpeed: 30
+  jumpVelocityMax: 0
+  jumpVelocityMin: 0
+  velocity: {x: 0, y: 0}
+  wallHitSpeed: {x: 0, y: 0}
+  wallFallSpeed: 0
+  wallStickTime: 0
+  wallCase: 0
+  isWallSticking: 0
+  maxAngle: 80
+  climbSlopeHitSpeed: {x: 0, y: 0}
+  steepSlopeMinEnterSpeed: 20
+  topSlopeSpeedCur: {x: 0, y: 0}
+  topSlideFactor: 1
+  steepSlopeSpeed: 0
+  hasLateralInput: 0
 --- !u!114 &1104687146
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -51,14 +52,14 @@ public class PBaseMovement : PBehaviour {
     public Vector2 topSlopeSpeedCur;
     public float topSlideFactor = 1;
 
-    /* Private State-Specific Vars */
+    /* State-Specific Vars */
     // Steep Slopes
     public float steepSlopeSpeed;
     //public Vector2 steepSlopeHitNormal;
     //public float wallFrictionDown;
 
     /* Declare States: */
-    public PBaseMovement_Airborne SAirborne; // -- TODO: 3.14.18 Tried polymorphism with PStates, but presented issues.
+    public PBaseMovement_Airborne SAirborne;
     public PBaseMovement_Idle SIdle;
     public PBaseMovement_Running SRunning;
     public PBaseMovement_State SOnWall, SSteepSlope, STopSlope, SClimbingSlope, SDashing, SAction;
@@ -132,7 +133,7 @@ public class PBaseMovement : PBehaviour {
     /* ---- Methods for Readability (Called once, solely to slim down overriden methods above.) */
 
     /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/
-    private void UpdateLateralInputVars()
+    protected void UpdateLateralInputVars()
     {
         /* Update Direction Moving. */
         directionMoving = (velocity.x >= 0) ? (sbyte)1 : (sbyte)-1; // @sbyte an explicit cast. //((PBaseMovement_State)curState).

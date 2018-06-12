@@ -40,10 +40,11 @@ public class PBehaviourManager : MonoBehaviour {
     {
         /* Create Behaviours. */
         behaviour_BaseMovement = gameObject.GetComponent<PBaseMovement>();
+        behaviour_ScytheBase = gameObject.GetComponent<PScytheMovement>();
         SetBehaviourSpecificVars();
 
         /* Set current Behaviour. */
-        curBehaviour = behaviour_BaseMovement;
+        curBehaviour = behaviour_ScytheBase;//behaviour_BasesMovement; // 6.1.18
 
         /* Movement Components - Ensures that everything above is run before component creation. */
         collisionState = gameObject.GetComponent<PCollisionState>();
@@ -63,8 +64,9 @@ public class PBehaviourManager : MonoBehaviour {
     }
 
     /* -- Methods For Readability. */
-    private void SetBehaviourSpecificVars()
+    protected void SetBehaviourSpecificVars()
     {
         behaviour_BaseMovement.OnStart();
+        behaviour_ScytheBase.OnStart();
     }
 }

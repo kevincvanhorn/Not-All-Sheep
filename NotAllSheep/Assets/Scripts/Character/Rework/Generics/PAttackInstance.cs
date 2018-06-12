@@ -13,6 +13,9 @@ public class PAttackInstance : MonoBehaviour {
     public float destroyDelay = 0.0f;
     public float damage = 1;
 
+    public delegate void OnAttackHitDelegate();
+    public event OnAttackHitDelegate attackDelegate; 
+
     public virtual void Start()
     {
         if (destroyOnAwake)

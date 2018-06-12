@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class EnemyBase : MonoBehaviour {
     public float health;
-    public Collider2D collider;
+    public new Collider2D collider;
     public Renderer rend;
 
     public void Start()
@@ -27,10 +27,8 @@ public class EnemyBase : MonoBehaviour {
 
     public void OnTriggerEnter2D(Collider2D collision)
     {
-        Debug.LogError("OKAY");
         if (collision.gameObject.CompareTag("Attack"))
         {
-            Debug.LogError("WOWOWOOWWO");
             PAttackInstance attack = collision.gameObject.GetComponent<PAttackInstance>();
             OnHit(attack.damage);
         }

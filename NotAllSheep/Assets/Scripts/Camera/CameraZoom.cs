@@ -12,7 +12,7 @@ public class CameraZoom : MonoBehaviour {
     public float curSize;
     private float targetSize;
 
-    private Camera camera;
+    private new Camera camera;
 
     // Calculation Variables:
     private float smoothVel;
