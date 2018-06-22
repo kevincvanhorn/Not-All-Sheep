@@ -54,6 +54,7 @@ public class PBaseMovement_Running : PBaseMovement_State {
 
     public PBaseMovement_Running(PBaseMovement behaviourIn) : base(behaviourIn)
     {
+        stateID = (int)PBaseMovement_States.Running; // 1
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
 

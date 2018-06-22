@@ -7,6 +7,7 @@ using UnityEngine;
 public class PState {
     // 3.14.18 Had Issue with polymorphism, but this variable into the local states.
     //public PBehaviour behaviour; // The parent behaviour of the state - contains all of the shared variables for states in a behaviour.
+    public int stateID; // Acts as an enum identifier in each animation controller. 
 
     public virtual void OnStateEnter()
     {

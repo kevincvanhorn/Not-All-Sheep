@@ -40,6 +40,8 @@ public class PBaseMovement_OnWall : PBaseMovement_State {
 
     public PBaseMovement_OnWall(PBaseMovement behaviourIn) : base(behaviourIn)
     {
+        stateID = (int)PBaseMovement_States.OnWall; // 4
+
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
 

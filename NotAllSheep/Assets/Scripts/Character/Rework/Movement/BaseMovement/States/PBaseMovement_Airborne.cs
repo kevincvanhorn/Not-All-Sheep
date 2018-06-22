@@ -6,6 +6,7 @@ public class PBaseMovement_Airborne : PBaseMovement_State {
 
     public PBaseMovement_Airborne(PBaseMovement behaviourIn) : base(behaviourIn)
     {
+        stateID = (int)PBaseMovement_States.Airborne; // 2
     }
 
     public override void OnStateEnter()

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CAnimationController_TestLevel : MonoBehaviour
+public class CAnimationController_WhiteOblivion : MonoBehaviour
 {
 
-    private PScytheMovement character;
+    private PBehaviour character;
     private Animator animator;
     public ParticleSystem draggingParticle;
 
@@ -14,7 +14,7 @@ public class CAnimationController_TestLevel : MonoBehaviour
     {
         animator = GetComponent<Animator>();
         //character = GetComponent<CharacterBase>();
-        character = gameObject.GetComponentInParent<PScytheMovement>();
+        character = gameObject.GetComponentInParent<PBehaviour>();
     }
 
     public void Update()

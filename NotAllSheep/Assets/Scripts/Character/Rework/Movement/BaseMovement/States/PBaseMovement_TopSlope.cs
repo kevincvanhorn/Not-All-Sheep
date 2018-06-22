@@ -12,6 +12,7 @@ public class PBaseMovement_TopSlope : PBaseMovement_State {
 
     public PBaseMovement_TopSlope(PBaseMovement behaviourIn) : base(behaviourIn)
     {
+        stateID = (int)PBaseMovement_States.TopSlope; // 6
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
 

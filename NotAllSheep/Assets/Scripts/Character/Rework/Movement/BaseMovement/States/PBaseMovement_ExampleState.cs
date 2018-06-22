@@ -12,9 +12,10 @@ public class PBaseMovement_ExampleState : PBaseMovement_State {
 
     public PBaseMovement_ExampleState(PBaseMovement behaviourIn) : base(behaviourIn)
     {
+        stateID = (int)PBaseMovement_States.Null; //-1
+
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
-
 
     public override void OnStateEnter()
     {

@@ -77,6 +77,8 @@ public class PBaseMovement_SteepSlope : PBaseMovement_State {
 
     public PBaseMovement_SteepSlope(PBaseMovement behaviourIn) : base(behaviourIn)
     {
+        stateID = (int)PBaseMovement_States.SteepSlope; // 5
+
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
 

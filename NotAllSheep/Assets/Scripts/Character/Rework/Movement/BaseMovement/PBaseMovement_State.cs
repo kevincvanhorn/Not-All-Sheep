@@ -2,6 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum PBaseMovement_States {
+    Null = -1,
+    Idle, // 0
+    Running, //1
+    Airborne, //2
+    ClimbingSlope, //3
+    OnWall, //4
+    SteepSlope, //5
+    TopSlope //6
+};
+
 /* Contains all of the common state variables for Player Base Movement. */
 /* Methods and variables here apply to every state for Base Movement.   */
 public class PBaseMovement_State : PState {
@@ -9,6 +20,7 @@ public class PBaseMovement_State : PState {
      * FixedUpdate
      * OnCollisionEnter2D
      */
+
 
     [HideInInspector]
     public PBaseMovement behaviour;// The parent behaviour of the state - contains all of the shared variables for states in a behaviour.

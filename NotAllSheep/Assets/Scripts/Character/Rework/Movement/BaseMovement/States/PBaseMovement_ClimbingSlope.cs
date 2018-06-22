@@ -76,6 +76,7 @@ public class PBaseMovement_ClimbingSlope : PBaseMovement_State
 
     public PBaseMovement_ClimbingSlope(PBaseMovement behaviourIn) : base(behaviourIn)
     {
+        stateID = (int)PBaseMovement_States.ClimbingSlope; // 3
         collisionManager = new LocalCollisionManager(this, collisionState);
     }
 

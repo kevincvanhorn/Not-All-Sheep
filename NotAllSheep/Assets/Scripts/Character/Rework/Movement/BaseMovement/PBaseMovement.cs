@@ -18,8 +18,6 @@ public class PBaseMovement : PBehaviour {
 
     /* Base Movement Variables: */
     public float gravity;
-    public sbyte directionFacing = 1; // @sybte of size -128 to 127
-    public sbyte directionMoving = 1; // @sybte of size -128 to 127 
     public float moveSpeed = 10;
     public float activeSpeed;         // Horizontal Speed.
     public float lateralAccelAirborne = 60;
@@ -32,7 +30,6 @@ public class PBaseMovement : PBehaviour {
     public float jumpVelocityMax;
     [HideInInspector]
     public float jumpVelocityMin;
-    public Vector2 velocity = Vector2.zero;
 
     /* Wall Variables: */
     public Vector2 wallHitSpeed = Vector2.zero;
@@ -66,9 +63,6 @@ public class PBaseMovement : PBehaviour {
 
     /* Collision Variables: */
     public HashSet<CollisionType> enterCollisionTypes = new HashSet<CollisionType>(); // Used to simulate onCollisionEnter each FixedUpdate.
-
-    /* Camera Variables: */
-    public bool hasLateralInput;
 
     public override void Awake()
     {
@@ -131,42 +125,4 @@ public class PBaseMovement : PBehaviour {
     }
 
     /* ---- Methods for Readability (Called once, solely to slim down overriden methods above.) */
-
-    /* Set Lateral Input Vars: directionFacing, directionMoving, hasLateralInput*/
-    protected void UpdateLateralInputVars()
-    {
-        /* Update Direction Moving. */
-        directionMoving = (velocity.x >= 0) ? (sbyte)1 : (sbyte)-1; // @sbyte an explicit cast. //((PBaseMovement_State)curState).
-
-        /* Update Direction Facing. */
-        if (pInputManager.KeyDown_Right)
-        {
-            directionFacing = 1;
-        }
-        else if (pInputManager.KeyDown_Left)
-        {
-            directionFacing = -1;
-        }
-        else if (pInputManager.KeyHeld_Left && !pInputManager.KeyHeld_Right)
-        {
-            directionFacing = -1;
-        }
-        else if (pInputManager.KeyHeld_Right && !pInputManager.KeyHeld_Left)
-        {
-            directionFacing = 1;
-        }
-
-        /* Check if there is Lateral input: For Camera Manager. */
-        if (!pInputManager.KeyHeld_Right && !pInputManager.KeyHeld_Left)
-        {
-            hasLateralInput = false;
-        }
-        else
-        {
-            hasLateralInput = true;
-        }
-
-        /* Update Player Manager: */
-        Player.directionFacing = directionFacing;
-    }
 }
