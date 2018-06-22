@@ -13,7 +13,7 @@ public class PBehaviourManager : MonoBehaviour {
     private static PBehaviourManager _instance = null;
     public static PBehaviourManager Instance { get { return _instance; } }
 
-    private PBehaviour curBehaviour;
+    public PBehaviour curBehaviour;
 
     /* Behaviours: */
     private PBehaviour behaviour_Hobbling;

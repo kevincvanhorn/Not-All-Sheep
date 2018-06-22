@@ -523,17 +523,6 @@ GameObject:
 Transform:
   m_PrefabParentObject: {fileID: 400104, guid: 905ac80a141e852408b7ad3d61c236d9, type: 3}
   m_PrefabInternal: {fileID: 1696804021}
---- !u!114 &740264067
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 740264065}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0f346c5c92a7d6b46b8e165490a810df, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &740264068
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -545,6 +534,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 20206148f37059147ad1ea515d36229f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  character: {fileID: 0}
+  charState: 0
+  prevState: 0
+  animator: {fileID: 0}
+  flipX: 1
   draggingParticle: {fileID: 1689285416}
 --- !u!1 &838279659 stripped
 GameObject:
