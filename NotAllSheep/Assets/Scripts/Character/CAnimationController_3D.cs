@@ -52,8 +52,18 @@ public class CAnimationController_3D : MonoBehaviour {
 
         animator.SetFloat("velocityXAbs", Mathf.Abs(character.velocity.x));
 
-
+        if (Input.GetKeyDown(KeyCode.X)) //TODO: Move to attack class via behaviour manager.
+        {
+            animator.SetBool("isAttacking", true);
+            StartCoroutine(attackDelay());
+        }
         //Debug.LogError(IsJumpFromGrounded());
+    }
+
+    private IEnumerator attackDelay()
+    {
+        yield return new WaitForSeconds(1f);
+        animator.SetBool("isAttacking", false);
     }
 
     public void AnimTrigger()
