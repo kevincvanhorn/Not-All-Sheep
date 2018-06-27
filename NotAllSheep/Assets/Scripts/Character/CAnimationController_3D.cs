@@ -6,7 +6,7 @@ public class CAnimationController_3D : MonoBehaviour {
 
     protected PBehaviour character;
     protected int charState= 0; // Idle default
-    protected int prevState;
+    protected int prevState = -1;
     protected Animator animator;
 
     private Vector3 LeftFlip, RightFlip;
@@ -29,7 +29,8 @@ public class CAnimationController_3D : MonoBehaviour {
 
     public virtual void Update()
     {
-        prevState = charState;
+        if (charState != character.curState.stateID) { prevState = charState; } // Only set on change of state.
+
         charState = character.curState.stateID;
 
         //        bool canFlip = (flipX ? (character.directionFacing == 1) : (character.directionFacing == -1));
