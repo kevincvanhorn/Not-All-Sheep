@@ -195,8 +195,8 @@ MonoBehaviour:
   - {fileID: 367602908}
   - {fileID: 1850144439}
   parrallaxScales:
-  - 0
-  - 0
+  - -18
+  - 2
   - 0
   smoothing: 0
 --- !u!1 &22838136
@@ -46884,13 +46884,13 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 928116170}
-  m_LocalRotation: {x: -0, y: -0, z: -0.7044461, w: 0.7097576}
-  m_LocalPosition: {x: -25.2, y: 140.6, z: 0.12803715}
-  m_LocalScale: {x: 28.569757, y: 262.76614, z: 1}
+  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalPosition: {x: 44.62, y: 140.6, z: 0.12803715}
+  m_LocalScale: {x: 28.569756, y: 402.2995, z: 1}
   m_Children: []
   m_Father: {fileID: 1579149053}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -89.57001}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -90}
 --- !u!61 &928116172
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -47963,7 +47963,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 1104687149}
   focusAreaSize: {x: 7.54, y: 9.96}
-  verticalCameraOffset: 2.08
+  verticalCameraOffset: 11.4
   lookAheadDistX: 4
   xLookSmoothTime: 0.5
   yLookSmoothTime: 0.2
