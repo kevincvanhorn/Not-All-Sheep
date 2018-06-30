@@ -1,0 +1,233 @@
+fileFormatVersion: 2
+guid: a97cb685e9b344544b5e73e477ab5e42
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: //RootNode
+    100002: NurbsPath
+    100004: NurbsPath_001
+    100006: NurbsPath_002
+    100008: NurbsPath_003
+    100010: NurbsPath_004
+    100012: Plane_000
+    100014: Plane_001
+    100016: Plane_002
+    100018: Plane_003
+    100020: Plane_004
+    100022: Plane_005
+    100024: Plane_006
+    100026: Plane_007
+    100028: Plane_008
+    100030: Plane_009
+    100032: Plane_010
+    100034: Plane_011
+    100036: Plane_012
+    100038: Plane_013
+    100040: Plane_014
+    100042: Plane_016
+    100044: Plane_017
+    100046: Plane_018
+    100048: Plane_019
+    100050: Plane_020
+    100052: Plane_021
+    100054: Plane_022
+    100056: Plane_023
+    400000: //RootNode
+    400002: NurbsPath
+    400004: NurbsPath_001
+    400006: NurbsPath_002
+    400008: NurbsPath_003
+    400010: NurbsPath_004
+    400012: Plane_000
+    400014: Plane_001
+    400016: Plane_002
+    400018: Plane_003
+    400020: Plane_004
+    400022: Plane_005
+    400024: Plane_006
+    400026: Plane_007
+    400028: Plane_008
+    400030: Plane_009
+    400032: Plane_010
+    400034: Plane_011
+    400036: Plane_012
+    400038: Plane_013
+    400040: Plane_014
+    400042: Plane_016
+    400044: Plane_017
+    400046: Plane_018
+    400048: Plane_019
+    400050: Plane_020
+    400052: Plane_021
+    400054: Plane_022
+    400056: Plane_023
+    2100000: Material_002
+    2100002: unnamed
+    2100004: Material_001
+    2300000: NurbsPath
+    2300002: NurbsPath_001
+    2300004: NurbsPath_002
+    2300006: NurbsPath_003
+    2300008: NurbsPath_004
+    2300010: Plane_000
+    2300012: Plane_001
+    2300014: Plane_002
+    2300016: Plane_003
+    2300018: Plane_004
+    2300020: Plane_005
+    2300022: Plane_006
+    2300024: Plane_007
+    2300026: Plane_008
+    2300028: Plane_009
+    2300030: Plane_010
+    2300032: Plane_011
+    2300034: Plane_012
+    2300036: Plane_013
+    2300038: Plane_014
+    2300040: Plane_016
+    2300042: Plane_017
+    2300044: Plane_018
+    2300046: Plane_019
+    2300048: Plane_020
+    2300050: Plane_021
+    2300052: Plane_022
+    2300054: Plane_023
+    3300000: NurbsPath
+    3300002: NurbsPath_001
+    3300004: NurbsPath_002
+    3300006: NurbsPath_003
+    3300008: NurbsPath_004
+    3300010: Plane_000
+    3300012: Plane_001
+    3300014: Plane_002
+    3300016: Plane_003
+    3300018: Plane_004
+    3300020: Plane_005
+    3300022: Plane_006
+    3300024: Plane_007
+    3300026: Plane_008
+    3300028: Plane_009
+    3300030: Plane_010
+    3300032: Plane_011
+    3300034: Plane_012
+    3300036: Plane_013
+    3300038: Plane_014
+    3300040: Plane_016
+    3300042: Plane_017
+    3300044: Plane_018
+    3300046: Plane_019
+    3300048: Plane_020
+    3300050: Plane_021
+    3300052: Plane_022
+    3300054: Plane_023
+    4300000: Plane_023
+    4300002: Plane_016
+    4300004: Plane_022
+    4300006: Plane_021
+    4300008: Plane_020
+    4300010: Plane_019
+    4300012: Plane_018
+    4300014: Plane_017
+    4300016: Plane_014
+    4300018: Plane_013
+    4300020: Plane_003
+    4300022: Plane_001
+    4300024: Plane_000
+    4300026: Plane_012
+    4300028: Plane_011
+    4300030: Plane_010
+    4300032: Plane_009
+    4300034: Plane_002
+    4300036: NurbsPath_004
+    4300038: Plane_008
+    4300040: Plane_007
+    4300042: Plane_006
+    4300044: Plane_005
+    4300046: Plane_004
+    4300048: NurbsPath_003
+    4300050: NurbsPath_002
+    4300052: NurbsPath_001
+    4300054: NurbsPath
+    7400000: Default Take
+    9500000: //RootNode
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
