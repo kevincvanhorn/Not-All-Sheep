@@ -25,6 +25,8 @@ public class CAnimationController_3D : MonoBehaviour {
 
         RightFlip = transform.localScale;
         LeftFlip = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z * -1);
+
+        charState = character.curState.stateID;
     }
 
     public virtual void Update()
