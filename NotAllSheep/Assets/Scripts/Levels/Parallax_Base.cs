@@ -10,10 +10,16 @@ public class Parallax_Base : MonoBehaviour {
 
     private Transform camera;
     private Vector3 prevCamPosition;
+    private float[] positionOffsets;
 
     private void Awake()
     {
         camera = Camera.main.transform;
+        positionOffsets = new float[layers.Length];
+        for(int i = 0; i < positionOffsets.Length; i++)
+        {
+            positionOffsets[i] = camera.transform.position.x - layers[i].transform.position.x;
+        }
     }
 
     // Use this for initialization

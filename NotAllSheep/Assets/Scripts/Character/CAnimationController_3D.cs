@@ -35,17 +35,6 @@ public class CAnimationController_3D : MonoBehaviour {
 
         charState = character.curState.stateID;
 
-        //        bool canFlip = (flipX ? (character.directionFacing == 1) : (character.directionFacing == -1));
-        //bool flipSprite = (flipX ? (character.directionFacing == -1) : (character.directionFacing == 1));
-
-
-
-        //Debug.LogError("flipX " + flipX + " flipSprite " + flipSprite + " directionFacing: " + character.directionFacing);
-        /*
-        if (flipSprite) {
-            gameObject.transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z * character.directionFacing);
-            flipX = !flipX;
-        }*/
         transform.localScale = (character.directionFacing == 1) ? RightFlip : LeftFlip;
 
         animator.SetFloat("velocityX", character.velocity.x);

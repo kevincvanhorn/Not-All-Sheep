@@ -4,13 +4,14 @@ using UnityEngine;
 
 public enum PBaseMovement_States {
     Null = -1,
-    Idle, // 0
-    Running, //1
-    Airborne, //2
-    ClimbingSlope, //3
-    OnWall, //4
-    SteepSlope, //5
-    TopSlope //6
+    Idle,          // 0
+    Running,       // 1
+    Airborne,      // 2
+    ClimbingSlope, // 3
+    OnWall,        // 4
+    SteepSlope,    // 5
+    TopSlope,      // 6
+    Attack_01      // 7
 };
 
 /* Contains all of the common state variables for Player Base Movement. */

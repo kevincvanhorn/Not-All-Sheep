@@ -1,0 +1,14 @@
+Error
+Scene with build index: 1 couldn't be loaded because it has not been added to the build settings.
+To add a scene to the build settings use the menu File->Build Settings...
+UnityEngine.SceneManagement.SceneManager:LoadScene(Int32)
+UI_LoadScene:LoadByIndex(Int32) (at Assets/Scripts/UI/UI_LoadScene.cs:10)
+UnityEngine.EventSystems.EventSystem:Update()
+
+Error
+Scene with build index: 1 couldn't be loaded because it has not been added to the build settings.
+To add a scene to the build settings use the menu File->Build Settings...
+UnityEngine.SceneManagement.SceneManager:LoadScene(Int32)
+UI_LoadScene:LoadByIndex(Int32) (at Assets/Scripts/UI/UI_LoadScene.cs:10)
+UnityEngine.EventSystems.EventSystem:Update()
+
