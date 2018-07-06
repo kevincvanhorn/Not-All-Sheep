@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/Test/18_03/WhiteOblivion_06_Demo.unity
+- path: Assets/Scenes/Test/18_07/AttackBase_01.unity
   isLoaded: 1
   isActive: 1

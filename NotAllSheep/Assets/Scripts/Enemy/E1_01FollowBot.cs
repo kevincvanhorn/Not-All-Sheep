@@ -58,8 +58,9 @@ public class E1_01FollowBot : EnemyBase
     private float prevPerlinHeight = 0f; // position without perlin noise;
     private float prevPerlinLateral = 0f;
 
-    private void Start()
+    public override void Start()
     {
+        base.Start();
         seeker = GetComponent<Seeker>();
         rigidbody = GetComponent<Rigidbody2D>();
 
@@ -321,7 +322,7 @@ public class E1_01FollowBot : EnemyBase
         prevPerlinLateral = lateral;
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    public override void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.GetComponent<PlayerBounds>() != null)
         {

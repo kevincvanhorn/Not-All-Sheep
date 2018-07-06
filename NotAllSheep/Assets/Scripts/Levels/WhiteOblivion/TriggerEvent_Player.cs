@@ -8,7 +8,7 @@ namespace WhiteOblivion
     public class TriggerEvent_Player : MonoBehaviour {
 
         public string triggerType;
-        public Camera camera;
+        public new Camera camera;
         public Object endingParticles;
 
         private Bloom mainBloom;

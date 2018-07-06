@@ -11,11 +11,11 @@ public class PlatformMovement : MonoBehaviour {
     private float waitTime = 0;
     private float dir = 1;
 
-    public CharacterBase player;
+    //public CharacterBase player;
 
     private void Awake()
     {
-        player = GameObject.FindObjectOfType<CharacterBase>();
+        //player = GameObject.FindObjectOfType<CharacterBase>();
     }
 
     // Use this for initialization
@@ -28,11 +28,11 @@ public class PlatformMovement : MonoBehaviour {
         waitTime = moveDist / speed;
         transform.Translate(Vector2.up * speed * dir * Time.deltaTime);
 
-        if (player.collisionState.isTouchingPlayer(this.gameObject))
+        /*if (player.collisionState.isTouchingPlayer(this.gameObject))
         {
             Debug.LogError("Translate");
             player.transform.Translate(Vector2.up * speed * dir * Time.deltaTime); 
-        }
+        }*/
     }
 
     IEnumerator SwitchDirection()

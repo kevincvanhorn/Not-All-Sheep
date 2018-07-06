@@ -29,7 +29,7 @@ public class CameraTrigger : MonoBehaviour {
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.GetComponent<CharacterBase>())
+        if (collision.gameObject.GetComponent<PBehaviour>())
         {
             if(zoomType == CameraZoomType.ZoomTo_Default)
             {
@@ -47,7 +47,7 @@ public class CameraTrigger : MonoBehaviour {
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.GetComponent<CharacterBase>())
+        if (collision.gameObject.GetComponent<PBehaviour>())
         {
             if (zoomType == CameraZoomType.ZoomTo_WhileContained)
             {

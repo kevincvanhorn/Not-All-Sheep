@@ -9,10 +9,10 @@ public class Checkpoint : MonoBehaviour {
     private void OnTriggerEnter2D(Collider2D collision)
     {
         
-        if (MomentumGlobals.CurMomentum < maxActivateSpeed && collision.gameObject.GetComponent<CharacterBase>())
+        /*if (MomentumGlobals.CurMomentum < maxActivateSpeed && collision.gameObject.GetComponent<CharacterBase>())
         {
             string value = EventRelay.RelayEvent(EventRelay.EventMessageType.MomentumTrigger, this);
             Debug.LogWarning("MomentumTrigger Event was seen by: " + value);
-        }
+        }*/
     }
 }

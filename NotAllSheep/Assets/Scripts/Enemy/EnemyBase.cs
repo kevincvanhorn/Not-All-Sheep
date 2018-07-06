@@ -8,7 +8,7 @@ public class EnemyBase : MonoBehaviour {
     public new Collider2D collider;
     public Renderer rend;
 
-    public void Start()
+    public virtual void Start()
     {
         collider = GetComponent<Collider2D>();
         rend = GetComponent<Renderer>();
@@ -25,7 +25,7 @@ public class EnemyBase : MonoBehaviour {
         }
     }
 
-    public void OnTriggerEnter2D(Collider2D collision)
+    public virtual void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("Attack"))
         {
