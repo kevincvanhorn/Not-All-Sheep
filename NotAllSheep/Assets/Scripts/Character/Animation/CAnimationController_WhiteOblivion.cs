@@ -21,13 +21,16 @@ public class CAnimationController_WhiteOblivion : CAnimationController_3D
     {
         base.Update();
 
-        if(character.velocity.x <= 0)
+        //ParticleSystem.EmissionModule em = m_particleSystem.emission;
+        //em.enabled = true;
+
+        if (character.velocity.x <= 0)
         {
             draggingParticle.enableEmission = false;
         }
         else
         {
-            draggingParticle.enableEmission = true;
+            draggingParticle.enableEmission = false;
         }
     }
 

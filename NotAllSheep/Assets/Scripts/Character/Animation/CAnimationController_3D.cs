@@ -10,6 +10,8 @@ public class CAnimationController_3D : MonoBehaviour {
     protected Animator animator;
 
     private Vector3 LeftFlip, RightFlip;
+    private float attackPercent = 0f;
+    private bool isAttacking = false;
 
     // Use this for initialization  
     public void Awake()
@@ -32,7 +34,7 @@ public class CAnimationController_3D : MonoBehaviour {
     public virtual void Update()
     {
         if (charState != character.curState.stateID) { prevState = charState; } // Only set on change of state.
-
+            
         charState = character.curState.stateID;
 
         transform.localScale = (character.directionFacing == 1) ? RightFlip : LeftFlip;
@@ -41,20 +43,29 @@ public class CAnimationController_3D : MonoBehaviour {
         animator.SetFloat("velocityY", character.velocity.y);
         animator.SetInteger("charState", charState);
         animator.SetInteger("prevState", prevState);
+        animator.SetFloat("attackPercent",attackPercent);
 
         animator.SetFloat("velocityXAbs", Mathf.Abs(character.velocity.x));
 
-        if ((Player.input.KeyDown_AttackLight)) //TODO: Move to attack class via behaviour manager.
+        if ((Player.input.KeyDown_AttackLight) && !isAttacking) //TODO: Move to attack class via behaviour manager.
         {
+            attackPercent = 0;
+            isAttacking = true;
             animator.SetBool("isAttacking", true);
             StartCoroutine(attackDelay());
         }
+        if (isAttacking)
+        {
+            //attackPercent += Time.deltaTime;
+        }
+        
         //Debug.LogError(IsJumpFromGrounded());
     }
 
     private IEnumerator attackDelay()
     {
         yield return new WaitForSeconds(1f);
+        isAttacking = false;
         animator.SetBool("isAttacking", false);
     }
 
